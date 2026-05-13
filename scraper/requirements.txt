@@ -1,0 +1,21 @@
+# Pinned dependencies for dallas-intel.
+# Tested against Python 3.11.
+#
+# Refresh procedure:
+#   1. Update version ceilings here as needed.
+#   2. python3.11 -m venv .venv && source .venv/bin/activate
+#   3. pip install --upgrade -r scraper/requirements.txt
+#   4. pip freeze > scraper/requirements.lock.txt   # exact pins for prod
+#
+# In CI, install from this file (compatible-release ranges).
+# In production, install from requirements.lock.txt (exact pins).
+
+playwright>=1.40,<2.0
+pdfplumber>=0.10,<1.0
+pandas>=2.0,<3.0
+requests>=2.30,<3.0
+beautifulsoup4>=4.12,<5.0
+lxml>=5.0,<6.0
+
+# Test dependencies (kept here for single-source pinning).
+pytest>=8.0,<9.0
