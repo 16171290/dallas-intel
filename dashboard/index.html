@@ -1,0 +1,1332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="dallas-intel — daily property-intelligence dashboard for Dallas County, TX">
+  <title>dallas-intel · County Records Terminal</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
+
+  <!-- SheetJS for tax-list XLSX import -->
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+  <style>
+    /* ═══════════════════════════════════════════════════════════════════════
+       Design tokens — County Records Terminal
+       ═══════════════════════════════════════════════════════════════════════ */
+    :root {
+      /* surfaces */
+      --bg:         #0A0A0B;
+      --surface:    #161618;
+      --surface-2:  #1E1E22;
+      --border:     #2A2A30;
+      --border-2:   #3A3A42;
+
+      /* text */
+      --text:       #F4F4F5;
+      --text-muted: #8A8A95;
+      --text-dim:   #5A5A65;
+
+      /* accents */
+      --gold:       #E8B458;
+      --gold-dim:   #8E6E36;
+      --teal:       #6FB8B0;
+
+      /* score bands (hot → cold) */
+      --score-extreme: #FF4757;
+      --score-high:    #FF8800;
+      --score-medium:  #FFB800;
+      --score-low:     #4A90E2;
+      --score-none:    #555560;
+
+      /* type */
+      --font-display: "Instrument Serif", "Times New Roman", serif;
+      --font-body:    "IBM Plex Sans", system-ui, sans-serif;
+      --font-mono:    "JetBrains Mono", "Courier New", monospace;
+
+      /* spacing rhythm */
+      --space-1: 4px;
+      --space-2: 8px;
+      --space-3: 12px;
+      --space-4: 16px;
+      --space-5: 24px;
+      --space-6: 32px;
+      --space-7: 48px;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       Reset
+       ═══════════════════════════════════════════════════════════════════════ */
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 14px;
+      line-height: 1.5;
+      min-height: 100vh;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+    button, input, select { font: inherit; color: inherit; }
+    button { cursor: pointer; }
+
+    /* Subtle grain texture on the background — court-records-paper feel. */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.025;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/></filter><rect width='200' height='200' filter='url(%23n)' opacity='0.5'/></svg>");
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       Top bar
+       ═══════════════════════════════════════════════════════════════════════ */
+    .top-bar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      padding: var(--space-4) var(--space-6);
+      background: rgba(10, 10, 11, 0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .brand { display: flex; align-items: baseline; gap: var(--space-3); }
+    .brand-mark {
+      display: inline-block;
+      width: 4px; height: 22px;
+      background: var(--gold);
+      transform: translateY(3px);
+    }
+    .brand h1 {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: 26px;
+      font-weight: 400;
+      letter-spacing: -0.01em;
+      line-height: 1;
+    }
+    .brand-sub {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      padding-left: var(--space-3);
+      border-left: 1px solid var(--border);
+    }
+    .meta {
+      display: flex;
+      gap: var(--space-5);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .meta em { font-style: normal; color: var(--text); }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       Tabs
+       ═══════════════════════════════════════════════════════════════════════ */
+    .tabs {
+      display: flex;
+      gap: 0;
+      padding: 0 var(--space-6);
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+      position: sticky;
+      top: 67px;
+      z-index: 99;
+    }
+    .tab {
+      padding: var(--space-4) var(--space-5);
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: var(--text-muted);
+      font-family: var(--font-body);
+      font-size: 12px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      transition: color 120ms, border-color 120ms;
+    }
+    .tab:hover { color: var(--text); }
+    .tab.active {
+      color: var(--gold);
+      border-bottom-color: var(--gold);
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       Views
+       ═══════════════════════════════════════════════════════════════════════ */
+    main { padding: var(--space-6); position: relative; z-index: 1; }
+    .view { display: none; }
+    .view.active { display: block; animation: fadeIn 200ms ease-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       Filters bar (records view)
+       ═══════════════════════════════════════════════════════════════════════ */
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-3);
+      align-items: center;
+      padding: var(--space-3) var(--space-4);
+      margin-bottom: var(--space-4);
+      background: var(--surface);
+      border: 1px solid var(--border);
+    }
+    .filters input[type="text"],
+    .filters select {
+      background: var(--surface-2);
+      border: 1px solid var(--border-2);
+      color: var(--text);
+      padding: 8px var(--space-3);
+      font-family: var(--font-body);
+      font-size: 13px;
+      outline: none;
+      min-width: 0;
+    }
+    .filters input[type="text"]:focus,
+    .filters select:focus {
+      border-color: var(--gold-dim);
+    }
+    .filters input[type="text"] { flex: 1 1 280px; }
+    .filters label {
+      display: inline-flex; align-items: center; gap: 6px;
+      color: var(--text-muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .filters input[type="checkbox"] { accent-color: var(--gold); }
+    .filter-count {
+      margin-left: auto;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      letter-spacing: 0.05em;
+    }
+    .filter-count em { color: var(--gold); font-style: normal; }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       Records table
+       ═══════════════════════════════════════════════════════════════════════ */
+    .table-wrap {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    thead th {
+      position: sticky;
+      top: 109px;  /* below the top bar + tabs */
+      background: var(--surface-2);
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      text-align: left;
+      padding: var(--space-3) var(--space-4);
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+    }
+    thead th:hover { color: var(--text); }
+    thead th::after {
+      content: "";
+      display: inline-block;
+      width: 8px;
+      margin-left: 4px;
+      color: var(--text-dim);
+    }
+    thead th.sort-asc::after  { content: "↑"; color: var(--gold); }
+    thead th.sort-desc::after { content: "↓"; color: var(--gold); }
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      transition: background 100ms;
+    }
+    tbody tr:hover { background: var(--surface-2); }
+    tbody td {
+      padding: var(--space-3) var(--space-4);
+      vertical-align: middle;
+    }
+    .cell-mono { font-family: var(--font-mono); font-size: 12px; }
+    .cell-address { font-weight: 500; max-width: 320px; }
+    .cell-grantee { color: var(--text-muted); max-width: 220px; }
+    .cell-num { font-family: var(--font-mono); font-size: 12px; text-align: right; }
+
+    /* Score visualization */
+    .score-cell {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      min-width: 130px;
+    }
+    .score-bar {
+      flex: 1;
+      height: 6px;
+      background: var(--surface-2);
+      border-radius: 1px;
+      overflow: hidden;
+      position: relative;
+    }
+    .score-fill {
+      height: 100%;
+      transition: width 300ms ease-out;
+    }
+    .score-value {
+      font-family: var(--font-mono);
+      font-weight: 600;
+      font-size: 13px;
+      min-width: 28px;
+      text-align: right;
+    }
+    .score-extreme  .score-fill, .score-extreme  .score-value { background: var(--score-extreme); }
+    .score-extreme  .score-value { background: transparent; color: var(--score-extreme); }
+    .score-high     .score-fill { background: var(--score-high); }
+    .score-high     .score-value { color: var(--score-high); }
+    .score-medium   .score-fill { background: var(--score-medium); }
+    .score-medium   .score-value { color: var(--score-medium); }
+    .score-low      .score-fill { background: var(--score-low); }
+    .score-low      .score-value { color: var(--score-low); }
+    .score-none     .score-fill { background: var(--score-none); }
+    .score-none     .score-value { color: var(--text-dim); }
+
+    /* Category badge */
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      background: var(--surface-2);
+      border: 1px solid var(--border-2);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.05em;
+      color: var(--text);
+      white-space: nowrap;
+    }
+    .badge-source-pdf  { color: var(--teal); border-color: var(--teal); }
+    .badge-homestead   { color: var(--gold); border-color: var(--gold-dim); }
+    .badge-inactive    { color: var(--text-dim); border-color: var(--border-2); }
+
+    .row-inactive { opacity: 0.5; }
+    .empty-state {
+      padding: var(--space-7);
+      text-align: center;
+      color: var(--text-muted);
+      font-family: var(--font-display);
+      font-size: 22px;
+      font-style: italic;
+    }
+    .empty-state .em { color: var(--gold); font-style: normal; }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       Detail panel (right slide-over)
+       ═══════════════════════════════════════════════════════════════════════ */
+    .detail-panel {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: min(520px, 100vw);
+      height: 100vh;
+      background: var(--surface);
+      border-left: 1px solid var(--border);
+      transform: translateX(100%);
+      transition: transform 220ms ease-out;
+      z-index: 200;
+      overflow-y: auto;
+      box-shadow: -8px 0 32px rgba(0, 0, 0, 0.5);
+    }
+    .detail-panel.open { transform: none; }
+    .detail-panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: var(--space-5) var(--space-5) var(--space-3);
+      border-bottom: 1px solid var(--border);
+    }
+    .detail-panel-header h2 {
+      margin: 0;
+      font-family: var(--font-display);
+      font-weight: 400;
+      font-size: 28px;
+      letter-spacing: -0.01em;
+    }
+    .detail-close {
+      background: none;
+      border: 1px solid var(--border-2);
+      color: var(--text-muted);
+      width: 32px;
+      height: 32px;
+      font-size: 18px;
+      line-height: 1;
+      transition: color 120ms, border-color 120ms;
+    }
+    .detail-close:hover { color: var(--text); border-color: var(--gold-dim); }
+    .detail-content { padding: var(--space-5); }
+    .detail-row {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      gap: var(--space-3);
+      padding: var(--space-3) 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+    }
+    .detail-row:last-child { border-bottom: none; }
+    .detail-key {
+      color: var(--text-muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .detail-val { font-family: var(--font-mono); font-size: 12px; word-break: break-word; }
+    .detail-val.is-number { text-align: right; }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       Calculators
+       ═══════════════════════════════════════════════════════════════════════ */
+    .calc-grid {
+      display: grid;
+      gap: var(--space-5);
+      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    }
+    .calc-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: var(--space-5);
+    }
+    .calc-card h3 {
+      margin: 0 0 var(--space-4);
+      font-family: var(--font-display);
+      font-weight: 400;
+      font-size: 24px;
+      letter-spacing: -0.01em;
+      display: flex;
+      align-items: baseline;
+      gap: var(--space-3);
+    }
+    .calc-card h3 small {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .calc-field {
+      display: grid;
+      grid-template-columns: 1fr 130px;
+      gap: var(--space-3);
+      align-items: center;
+      margin-bottom: var(--space-2);
+    }
+    .calc-field label {
+      color: var(--text-muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .calc-field input {
+      background: var(--surface-2);
+      border: 1px solid var(--border-2);
+      padding: 6px var(--space-2);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      text-align: right;
+      outline: none;
+    }
+    .calc-field input:focus { border-color: var(--gold-dim); }
+    .calc-output {
+      margin-top: var(--space-4);
+      padding-top: var(--space-4);
+      border-top: 1px solid var(--border);
+    }
+    .calc-output .result {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: var(--space-2);
+    }
+    .calc-output .result-label {
+      color: var(--text-muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .calc-output .result-value {
+      font-family: var(--font-mono);
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--gold);
+    }
+    .calc-output .result-value.negative { color: var(--score-extreme); }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       Tax-list import
+       ═══════════════════════════════════════════════════════════════════════ */
+    .dropzone {
+      padding: var(--space-7);
+      border: 2px dashed var(--border-2);
+      background: var(--surface);
+      text-align: center;
+      transition: border-color 150ms, background 150ms;
+    }
+    .dropzone.dragover {
+      border-color: var(--gold);
+      background: var(--surface-2);
+    }
+    .dropzone .dz-title {
+      font-family: var(--font-display);
+      font-size: 28px;
+      letter-spacing: -0.01em;
+    }
+    .dropzone .dz-sub {
+      color: var(--text-muted);
+      font-size: 13px;
+      margin-top: var(--space-3);
+    }
+    .dropzone input[type="file"] { display: none; }
+    .dropzone .dz-btn {
+      display: inline-block;
+      margin-top: var(--space-4);
+      padding: 8px var(--space-4);
+      background: var(--gold);
+      color: var(--bg);
+      font-weight: 600;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+    }
+    .import-results {
+      margin-top: var(--space-5);
+      padding: var(--space-4);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      font-family: var(--font-mono);
+      font-size: 12px;
+    }
+    .import-results .match { color: var(--score-extreme); font-weight: 600; }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       About
+       ═══════════════════════════════════════════════════════════════════════ */
+    .about-grid {
+      display: grid;
+      gap: var(--space-5);
+      grid-template-columns: 2fr 1fr;
+      max-width: 980px;
+    }
+    .about-grid h3 {
+      font-family: var(--font-display);
+      font-weight: 400;
+      font-size: 24px;
+      margin: 0 0 var(--space-3);
+    }
+    .about-grid p { line-height: 1.65; color: var(--text-muted); }
+    .about-grid a { color: var(--gold); text-decoration: none; border-bottom: 1px solid var(--gold-dim); }
+    .stats-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: var(--space-4);
+    }
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: var(--space-2) 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .stat-row:last-child { border-bottom: none; }
+    .stat-key { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; }
+    .stat-val { font-family: var(--font-mono); font-size: 14px; color: var(--text); }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       Responsive
+       ═══════════════════════════════════════════════════════════════════════ */
+    @media (max-width: 900px) {
+      .top-bar { flex-wrap: wrap; gap: var(--space-3); }
+      .brand h1 { font-size: 22px; }
+      .brand-sub { display: none; }
+      .meta { font-size: 10px; }
+      main { padding: var(--space-4); }
+      .filters { gap: var(--space-2); padding: var(--space-3); }
+      .cell-address { max-width: 200px; }
+      .cell-grantee { max-width: 140px; }
+      .about-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ────────────────────────── Top bar ────────────────────────── -->
+  <header class="top-bar">
+    <div class="brand">
+      <span class="brand-mark"></span>
+      <h1>dallas-intel</h1>
+      <span class="brand-sub">County Records Terminal · Dallas County, TX</span>
+    </div>
+    <div class="meta">
+      <span>Generated <em id="generated-at">—</em></span>
+      <span><em id="record-count">0</em> records</span>
+      <span>Hit-rate <em id="hit-rate">—</em></span>
+    </div>
+  </header>
+
+  <!-- ────────────────────────── Tabs ───────────────────────────── -->
+  <nav class="tabs" role="tablist">
+    <button class="tab active" data-tab="records"     role="tab">Records</button>
+    <button class="tab"         data-tab="calculators" role="tab">Calculators</button>
+    <button class="tab"         data-tab="import"      role="tab">Tax List Import</button>
+    <button class="tab"         data-tab="about"       role="tab">About</button>
+  </nav>
+
+  <main>
+    <!-- ────────────────────── Records view ─────────────────────── -->
+    <section id="view-records" class="view active">
+      <div class="filters">
+        <input type="text" id="search" placeholder="Search address, owner, or instrument…">
+        <select id="filter-category">
+          <option value="">All categories</option>
+        </select>
+        <select id="filter-score-band">
+          <option value="">All scores</option>
+          <option value="EXTREME">Extreme (90+)</option>
+          <option value="HIGH">High (75–89)</option>
+          <option value="MEDIUM">Medium (60–74)</option>
+          <option value="LOW">Low (40–59)</option>
+        </select>
+        <select id="filter-source">
+          <option value="">All sources</option>
+          <option value="publicsearch.us">publicsearch.us</option>
+          <option value="foreclosure_pdf">foreclosure PDF</option>
+        </select>
+        <label><input type="checkbox" id="active-only" checked> Active only</label>
+        <label><input type="checkbox" id="homestead-only"> Homestead only</label>
+        <span class="filter-count"><em id="visible-count">0</em> of <em id="total-count">0</em></span>
+      </div>
+
+      <div class="table-wrap">
+        <table id="records-table">
+          <thead>
+            <tr>
+              <th data-sort="score" class="sort-desc">Score</th>
+              <th data-sort="address_normalized">Address</th>
+              <th data-sort="grantee">Owner / Grantee</th>
+              <th data-sort="category">Category</th>
+              <th data-sort="filing_date">Filed</th>
+              <th data-sort="dcad_market_value">Value</th>
+              <th>Tags</th>
+            </tr>
+          </thead>
+          <tbody id="records-tbody">
+            <tr><td colspan="7" class="empty-state">Loading records<span class="em">…</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ────────────────────── Calculators view ─────────────────── -->
+    <section id="view-calculators" class="view">
+      <div class="calc-grid" id="calc-grid"></div>
+    </section>
+
+    <!-- ────────────────────── Import view ──────────────────────── -->
+    <section id="view-import" class="view">
+      <div class="dropzone" id="dropzone">
+        <div class="dz-title">Drop a tax-list XLSX here</div>
+        <div class="dz-sub">Cross-references the file's addresses against today's records — flags any that already appear in the pipeline.</div>
+        <label class="dz-btn">
+          Choose file
+          <input type="file" id="file-input" accept=".xlsx,.xls,.csv">
+        </label>
+      </div>
+      <div id="import-results" class="import-results" style="display: none;"></div>
+    </section>
+
+    <!-- ────────────────────── About view ───────────────────────── -->
+    <section id="view-about" class="view">
+      <div class="about-grid">
+        <div>
+          <h3>About dallas-intel</h3>
+          <p>
+            Daily property-intelligence pipeline for Dallas County, Texas. Scrapes the
+            County Clerk's Official Public Records, foreclosure notices, and DCAD parcel
+            data; enriches and scores records to surface motivated-seller signals.
+          </p>
+          <p>
+            Source code, architecture rationale, and full decision ledger live in the
+            <a href="https://github.com/16171290/dallas-intel">project repo</a>. The
+            authoritative design document is <a href="https://github.com/16171290/dallas-intel/blob/main/docs/ARCHITECTURE.md">docs/ARCHITECTURE.md</a>.
+          </p>
+          <p>
+            Operates on public records only. All scoring is derivative analysis applied
+            to records that are public under Texas Government Code Ch. 552
+            (Public Information Act).
+          </p>
+        </div>
+        <div class="stats-card">
+          <div class="stat-row">
+            <span class="stat-key">Last run</span>
+            <span class="stat-val" id="stat-generated">—</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-key">Records</span>
+            <span class="stat-val" id="stat-records">—</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-key">Active</span>
+            <span class="stat-val" id="stat-active">—</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-key">Hit-rate</span>
+            <span class="stat-val" id="stat-hitrate">—</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-key">EXTREME (90+)</span>
+            <span class="stat-val" id="stat-extreme">—</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-key">HIGH (75–89)</span>
+            <span class="stat-val" id="stat-high">—</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ────────────────────── Detail panel ─────────────────────────── -->
+  <aside class="detail-panel" id="detail-panel" aria-hidden="true">
+    <div class="detail-panel-header">
+      <h2 id="detail-title">Record</h2>
+      <button class="detail-close" id="detail-close" aria-label="Close detail">×</button>
+    </div>
+    <div class="detail-content" id="detail-content"></div>
+  </aside>
+
+  <script>
+    /* ═══════════════════════════════════════════════════════════════════════
+       State
+       ═══════════════════════════════════════════════════════════════════════ */
+    const RECORDS_URL = "../data/records.json";
+
+    const state = {
+      records: [],          // raw from records.json
+      visible: [],          // filtered + sorted
+      sortKey: "score",
+      sortDir: "desc",
+      filters: {
+        search:      "",
+        category:    "",
+        scoreBand:   "",
+        source:      "",
+        activeOnly:  true,
+        homesteadOnly: false,
+      },
+    };
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       Helpers
+       ═══════════════════════════════════════════════════════════════════════ */
+    const $ = sel => document.querySelector(sel);
+    const $$ = sel => document.querySelectorAll(sel);
+    const fmtMoney = n => {
+      if (n === null || n === undefined || n === "") return "—";
+      const num = typeof n === "number" ? n : parseFloat(n);
+      if (!Number.isFinite(num)) return "—";
+      return "$" + Math.round(num).toLocaleString();
+    };
+    const fmtDate = d => d || "—";
+    const scoreBand = s => {
+      if (s >= 90) return "EXTREME";
+      if (s >= 75) return "HIGH";
+      if (s >= 60) return "MEDIUM";
+      if (s >= 40) return "LOW";
+      return "NONE";
+    };
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       Boot
+       ═══════════════════════════════════════════════════════════════════════ */
+    async function boot() {
+      setupTabs();
+      setupFilters();
+      setupSorting();
+      setupDetailPanel();
+      setupCalculators();
+      setupImport();
+      await loadRecords();
+    }
+
+    async function loadRecords() {
+      try {
+        const resp = await fetch(RECORDS_URL, { cache: "no-store" });
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        const data = await resp.json();
+        state.records = Array.isArray(data.records) ? data.records : [];
+        $("#generated-at").textContent = data.generated_at || "—";
+        $("#stat-generated").textContent = data.generated_at || "—";
+        populateCategoryFilter();
+        applyAndRender();
+      } catch (err) {
+        $("#records-tbody").innerHTML =
+          `<tr><td colspan="7" class="empty-state">
+             Could not load records.json<br>
+             <span style="font-size: 13px; font-style: normal; color: var(--text-muted)">${err.message}</span>
+           </td></tr>`;
+      }
+    }
+
+    function populateCategoryFilter() {
+      const cats = [...new Set(state.records.map(r => r.category).filter(Boolean))].sort();
+      const sel = $("#filter-category");
+      sel.innerHTML = '<option value="">All categories</option>' +
+        cats.map(c => `<option value="${c}">${c}</option>`).join("");
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       Tabs
+       ═══════════════════════════════════════════════════════════════════════ */
+    function setupTabs() {
+      $$(".tab").forEach(btn => {
+        btn.addEventListener("click", () => {
+          $$(".tab").forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+          $$(".view").forEach(v => v.classList.remove("active"));
+          $(`#view-${btn.dataset.tab}`).classList.add("active");
+        });
+      });
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       Filters + render
+       ═══════════════════════════════════════════════════════════════════════ */
+    function setupFilters() {
+      const bind = (sel, key, transform = v => v) => {
+        $(sel).addEventListener("input", e => {
+          state.filters[key] = transform(e.target.type === "checkbox" ? e.target.checked : e.target.value);
+          applyAndRender();
+        });
+      };
+      bind("#search",            "search");
+      bind("#filter-category",   "category");
+      bind("#filter-score-band", "scoreBand");
+      bind("#filter-source",     "source");
+      bind("#active-only",       "activeOnly");
+      bind("#homestead-only",    "homesteadOnly");
+    }
+
+    function applyAndRender() {
+      const f = state.filters;
+      const q = f.search.trim().toLowerCase();
+
+      state.visible = state.records.filter(r => {
+        if (f.activeOnly    && r.active === false) return false;
+        if (f.homesteadOnly && !r.dcad_homestead)  return false;
+        if (f.category      && r.category !== f.category) return false;
+        if (f.source        && r.source   !== f.source)   return false;
+        if (f.scoreBand     && scoreBand(r.score || 0) !== f.scoreBand) return false;
+        if (q) {
+          const hay = [r.address, r.address_normalized, r.grantee, r.grantor,
+                       r.dcad_owner, r.instrument_num].filter(Boolean).join(" ").toLowerCase();
+          if (!hay.includes(q)) return false;
+        }
+        return true;
+      });
+
+      // sort
+      const k = state.sortKey;
+      const dir = state.sortDir === "asc" ? 1 : -1;
+      state.visible.sort((a, b) => {
+        const av = a[k], bv = b[k];
+        if (av === bv) return 0;
+        if (av === null || av === undefined || av === "") return 1;
+        if (bv === null || bv === undefined || bv === "") return -1;
+        return av < bv ? -1 * dir : 1 * dir;
+      });
+
+      renderTable();
+      renderStats();
+    }
+
+    function renderTable() {
+      const tbody = $("#records-tbody");
+      $("#visible-count").textContent = state.visible.length.toLocaleString();
+      $("#total-count").textContent   = state.records.length.toLocaleString();
+      $("#record-count").textContent  = state.records.length.toLocaleString();
+
+      if (state.visible.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="empty-state">
+          No records match<span class="em">.</span>
+        </td></tr>`;
+        return;
+      }
+
+      const rows = state.visible.map((r, idx) => {
+        const score = r.score || 0;
+        const band = scoreBand(score).toLowerCase();
+        const pct = Math.min(100, score) + "%";
+        const homestead = r.dcad_homestead
+          ? '<span class="badge badge-homestead">Homestead</span>' : "";
+        const sourcePdf = r.source === "foreclosure_pdf"
+          ? '<span class="badge badge-source-pdf">PDF</span>' : "";
+        const inactive = r.active === false
+          ? '<span class="badge badge-inactive">Inactive</span>' : "";
+
+        return `
+          <tr data-idx="${idx}" class="${r.active === false ? 'row-inactive' : ''}">
+            <td>
+              <div class="score-cell score-${band}">
+                <div class="score-bar"><div class="score-fill" style="width: ${pct}"></div></div>
+                <div class="score-value">${score}</div>
+              </div>
+            </td>
+            <td class="cell-address" title="${escapeHtml(r.address_normalized || r.address || '')}">${escapeHtml(r.address_normalized || r.address || '—')}</td>
+            <td class="cell-grantee" title="${escapeHtml(r.grantee || r.dcad_owner || '')}">${escapeHtml(r.grantee || r.dcad_owner || '—')}</td>
+            <td><span class="badge">${escapeHtml(r.category || r.dallas_code || '—')}</span></td>
+            <td class="cell-mono">${escapeHtml(r.filing_date || '—')}</td>
+            <td class="cell-num">${fmtMoney(r.dcad_market_value)}</td>
+            <td>${sourcePdf} ${homestead} ${inactive}</td>
+          </tr>
+        `;
+      }).join("");
+      tbody.innerHTML = rows;
+
+      $$("#records-tbody tr").forEach(row => {
+        row.addEventListener("click", () => openDetail(state.visible[parseInt(row.dataset.idx)]));
+      });
+    }
+
+    function renderStats() {
+      const total  = state.records.length;
+      const active = state.records.filter(r => r.active !== false).length;
+      const matched = state.records.filter(r => r.dcad_account).length;
+      const hitRate = total ? ((matched / total) * 100).toFixed(1) + "%" : "—";
+
+      $("#hit-rate").textContent       = hitRate;
+      $("#stat-records").textContent   = total.toLocaleString();
+      $("#stat-active").textContent    = active.toLocaleString();
+      $("#stat-hitrate").textContent   = hitRate;
+      $("#stat-extreme").textContent   = state.records.filter(r => (r.score || 0) >= 90).length;
+      $("#stat-high").textContent      = state.records.filter(r => { const s = r.score || 0; return s >= 75 && s < 90; }).length;
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, c => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+      }[c]));
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       Sorting
+       ═══════════════════════════════════════════════════════════════════════ */
+    function setupSorting() {
+      $$("thead th[data-sort]").forEach(th => {
+        th.addEventListener("click", () => {
+          const k = th.dataset.sort;
+          if (state.sortKey === k) {
+            state.sortDir = state.sortDir === "asc" ? "desc" : "asc";
+          } else {
+            state.sortKey = k;
+            state.sortDir = "desc";
+          }
+          $$("thead th").forEach(t => t.classList.remove("sort-asc", "sort-desc"));
+          th.classList.add(state.sortDir === "asc" ? "sort-asc" : "sort-desc");
+          applyAndRender();
+        });
+      });
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       Detail panel
+       ═══════════════════════════════════════════════════════════════════════ */
+    function setupDetailPanel() {
+      $("#detail-close").addEventListener("click", closeDetail);
+      document.addEventListener("keydown", e => {
+        if (e.key === "Escape") closeDetail();
+      });
+    }
+    function openDetail(rec) {
+      $("#detail-title").textContent = rec.address_normalized || rec.address || rec.record_id || "Record";
+
+      const fields = [
+        ["Score",            rec.score],
+        ["Category",         rec.category],
+        ["Dallas code",      rec.dallas_code],
+        ["Filing date",      rec.filing_date],
+        ["Sale date",        rec.sale_date],
+        ["Instrument #",     rec.instrument_num],
+        ["Record ID",        rec.record_id],
+        ["Source",           rec.source],
+        ["Grantor",          rec.grantor],
+        ["Grantee",          rec.grantee],
+        ["DCAD account",     rec.dcad_account],
+        ["DCAD owner",       rec.dcad_owner],
+        ["Market value",     fmtMoney(rec.dcad_market_value)],
+        ["Homestead",        rec.dcad_homestead === true ? "Yes" : rec.dcad_homestead === false ? "No" : "—"],
+        ["Trustee",          rec.trustee],
+        ["Amount",           rec.amount ? fmtMoney(rec.amount) : null],
+        ["Address (raw)",    rec.address],
+        ["Active",           rec.active === false ? "No (suppressed)" : "Yes"],
+        ["First seen",       rec.first_seen],
+        ["Last seen",        rec.last_seen],
+        ["Parse warnings",   (rec.parse_warnings || []).join(", ")],
+      ];
+
+      const html = fields
+        .filter(([_, v]) => v !== null && v !== undefined && v !== "")
+        .map(([k, v]) => `
+          <div class="detail-row">
+            <div class="detail-key">${k}</div>
+            <div class="detail-val">${escapeHtml(String(v))}</div>
+          </div>
+        `).join("");
+
+      const breakdownHtml = rec.score_breakdown && Object.keys(rec.score_breakdown).length
+        ? `<div class="detail-row">
+             <div class="detail-key">Score breakdown</div>
+             <div class="detail-val">${Object.entries(rec.score_breakdown).map(([k, v]) => `${k}: +${v}`).join("<br>")}</div>
+           </div>`
+        : "";
+
+      $("#detail-content").innerHTML = html + breakdownHtml;
+      $("#detail-panel").classList.add("open");
+      $("#detail-panel").setAttribute("aria-hidden", "false");
+    }
+    function closeDetail() {
+      $("#detail-panel").classList.remove("open");
+      $("#detail-panel").setAttribute("aria-hidden", "true");
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       Calculators
+       ═══════════════════════════════════════════════════════════════════════ */
+    function setupCalculators() {
+      const grid = $("#calc-grid");
+      grid.innerHTML = CALCULATORS.map(renderCalc).join("");
+      // Bind input listeners.
+      CALCULATORS.forEach(calc => {
+        const inputs = $$(`#calc-${calc.id} input`);
+        inputs.forEach(inp => inp.addEventListener("input", () => recalc(calc)));
+        recalc(calc); // initial paint
+      });
+    }
+    function renderCalc(calc) {
+      const fields = calc.fields.map(f => `
+        <div class="calc-field">
+          <label for="${calc.id}-${f.key}">${f.label}</label>
+          <input id="${calc.id}-${f.key}" name="${f.key}" type="number" step="${f.step || 'any'}" value="${f.default}">
+        </div>
+      `).join("");
+      const outputs = calc.outputs.map(o => `
+        <div class="result" data-key="${o.key}">
+          <span class="result-label">${o.label}</span>
+          <span class="result-value" id="${calc.id}-out-${o.key}">—</span>
+        </div>
+      `).join("");
+      return `
+        <div class="calc-card" id="calc-${calc.id}">
+          <h3>${calc.name} <small>${calc.tag}</small></h3>
+          ${fields}
+          <div class="calc-output">${outputs}</div>
+        </div>
+      `;
+    }
+    function recalc(calc) {
+      const vals = {};
+      calc.fields.forEach(f => {
+        const el = document.getElementById(`${calc.id}-${f.key}`);
+        vals[f.key] = parseFloat(el.value) || 0;
+      });
+      const results = calc.compute(vals);
+      calc.outputs.forEach(o => {
+        const el = document.getElementById(`${calc.id}-out-${o.key}`);
+        const v = results[o.key];
+        const isNum = typeof v === "number";
+        el.textContent = isNum ? (o.format === "pct" ? v.toFixed(1) + "%" : fmtMoney(v)) : v;
+        el.classList.toggle("negative", isNum && v < 0);
+      });
+    }
+
+    /* Calculator definitions
+       ────────────────────────────────────────────────────────────────────
+       Each calculator is a pure function (compute) plus declarative
+       field + output schemas. Easy to add/remove without DOM surgery.
+    */
+    const CALCULATORS = [
+      {
+        id: "flip", name: "Fix & Flip", tag: "ARV − costs",
+        fields: [
+          { key: "arv",     label: "ARV",            default: 320000 },
+          { key: "rehab",   label: "Rehab cost",     default: 45000  },
+          { key: "purchase", label: "Purchase price", default: 180000 },
+          { key: "holding", label: "Holding (mo)",   default: 6      },
+          { key: "monthly", label: "Holding $/mo",   default: 1500   },
+          { key: "selling", label: "Selling %",      default: 8      },
+        ],
+        outputs: [
+          { key: "sellingCost", label: "Selling cost" },
+          { key: "holdingCost", label: "Total holding" },
+          { key: "totalCost",   label: "Total all-in" },
+          { key: "profit",      label: "Profit" },
+          { key: "roi",         label: "ROI", format: "pct" },
+        ],
+        compute: v => {
+          const sellingCost = v.arv * (v.selling / 100);
+          const holdingCost = v.holding * v.monthly;
+          const totalCost   = v.purchase + v.rehab + sellingCost + holdingCost;
+          const profit      = v.arv - totalCost;
+          const roi         = totalCost ? (profit / totalCost) * 100 : 0;
+          return { sellingCost, holdingCost, totalCost, profit, roi };
+        }
+      },
+      {
+        id: "subto", name: "Sub-To", tag: "Take-over loan",
+        fields: [
+          { key: "arv",        label: "ARV",              default: 280000 },
+          { key: "loan",       label: "Existing loan",    default: 195000 },
+          { key: "piti",       label: "PITI / mo",        default: 1850   },
+          { key: "rent",       label: "Market rent / mo", default: 2200   },
+          { key: "cashToSeller", label: "Cash to seller", default: 5000   },
+        ],
+        outputs: [
+          { key: "equity",     label: "Day-1 equity" },
+          { key: "cashFlow",   label: "Monthly cash flow" },
+          { key: "annualCF",   label: "Annual cash flow" },
+          { key: "cocReturn",  label: "CoC return (yr 1)", format: "pct" },
+        ],
+        compute: v => {
+          const equity   = v.arv - v.loan - v.cashToSeller;
+          const cashFlow = v.rent - v.piti;
+          const annualCF = cashFlow * 12;
+          const cocReturn = v.cashToSeller ? (annualCF / v.cashToSeller) * 100 : 0;
+          return { equity, cashFlow, annualCF, cocReturn };
+        }
+      },
+      {
+        id: "creative", name: "Creative Finance", tag: "Seller-carry",
+        fields: [
+          { key: "purchase",  label: "Purchase",     default: 220000 },
+          { key: "down",      label: "Down payment", default: 10000  },
+          { key: "rate",      label: "Rate (%)",     default: 6.5    },
+          { key: "term",      label: "Term (years)", default: 30     },
+          { key: "rent",      label: "Rent / mo",    default: 2000   },
+        ],
+        outputs: [
+          { key: "principal",  label: "Loan amount" },
+          { key: "payment",    label: "P&I / mo" },
+          { key: "cashFlow",   label: "Cash flow / mo" },
+          { key: "annualCF",   label: "Annual" },
+        ],
+        compute: v => {
+          const principal = v.purchase - v.down;
+          const r = (v.rate / 100) / 12;
+          const n = v.term * 12;
+          const payment = r > 0 ? (principal * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1) : principal / n;
+          const cashFlow = v.rent - payment;
+          const annualCF = cashFlow * 12;
+          return { principal, payment, cashFlow, annualCF };
+        }
+      },
+      {
+        id: "mortgage", name: "Mortgage", tag: "Amortization",
+        fields: [
+          { key: "principal", label: "Principal",   default: 250000 },
+          { key: "rate",      label: "Rate (%)",    default: 7.0    },
+          { key: "term",      label: "Term (yrs)",  default: 30     },
+        ],
+        outputs: [
+          { key: "monthly",     label: "Monthly P&I" },
+          { key: "totalPaid",   label: "Total paid" },
+          { key: "totalInterest", label: "Total interest" },
+        ],
+        compute: v => {
+          const r = (v.rate / 100) / 12;
+          const n = v.term * 12;
+          const monthly = r > 0 ? (v.principal * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1) : v.principal / n;
+          const totalPaid = monthly * n;
+          const totalInterest = totalPaid - v.principal;
+          return { monthly, totalPaid, totalInterest };
+        }
+      },
+      {
+        id: "coc", name: "Cash-on-Cash", tag: "Annual CF / cash in",
+        fields: [
+          { key: "down",       label: "Down + closing",  default: 50000 },
+          { key: "rehab",      label: "Rehab",           default: 15000 },
+          { key: "annualNoi",  label: "Annual NOI",      default: 18000 },
+          { key: "annualDebt", label: "Annual debt svc", default: 10000 },
+        ],
+        outputs: [
+          { key: "totalCash",  label: "Cash invested" },
+          { key: "cashFlow",   label: "Annual cash flow" },
+          { key: "coc",        label: "CoC return", format: "pct" },
+        ],
+        compute: v => {
+          const totalCash = v.down + v.rehab;
+          const cashFlow  = v.annualNoi - v.annualDebt;
+          const coc       = totalCash ? (cashFlow / totalCash) * 100 : 0;
+          return { totalCash, cashFlow, coc };
+        }
+      },
+      {
+        id: "cap", name: "Cap Rate", tag: "NOI / value",
+        fields: [
+          { key: "noi",   label: "Annual NOI", default: 18000 },
+          { key: "value", label: "Property value", default: 220000 },
+        ],
+        outputs: [
+          { key: "capRate", label: "Cap rate", format: "pct" },
+        ],
+        compute: v => {
+          const capRate = v.value ? (v.noi / v.value) * 100 : 0;
+          return { capRate };
+        }
+      },
+    ];
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       Tax-list XLSX import
+       ═══════════════════════════════════════════════════════════════════════ */
+    function setupImport() {
+      const dz = $("#dropzone");
+      const fileInput = $("#file-input");
+
+      dz.addEventListener("dragover", e => { e.preventDefault(); dz.classList.add("dragover"); });
+      dz.addEventListener("dragleave", () => dz.classList.remove("dragover"));
+      dz.addEventListener("drop", e => {
+        e.preventDefault();
+        dz.classList.remove("dragover");
+        if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+      });
+      fileInput.addEventListener("change", e => {
+        if (e.target.files.length) handleFile(e.target.files[0]);
+      });
+    }
+
+    async function handleFile(file) {
+      if (typeof XLSX === "undefined") {
+        showImportResults(`<div>SheetJS still loading — try again in a moment.</div>`);
+        return;
+      }
+      try {
+        const buffer = await file.arrayBuffer();
+        const wb = XLSX.read(buffer);
+        const sheet = wb.Sheets[wb.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+        crossReference(rows, file.name);
+      } catch (err) {
+        showImportResults(`<div>Could not read file: ${escapeHtml(err.message)}</div>`);
+      }
+    }
+
+    function crossReference(rows, filename) {
+      if (!rows.length) {
+        showImportResults(`<div>File <em>${escapeHtml(filename)}</em> contained no rows.</div>`);
+        return;
+      }
+
+      const cols = Object.keys(rows[0]);
+      const addrCol = cols.find(c => /address|street|property/i.test(c));
+      const ownerCol = cols.find(c => /owner|name/i.test(c));
+
+      if (!addrCol) {
+        showImportResults(
+          `<div>Imported ${rows.length} rows from <em>${escapeHtml(filename)}</em> ` +
+          `but couldn't identify an address column. Found columns: ` +
+          `<code>${cols.map(escapeHtml).join(", ")}</code></div>`
+        );
+        return;
+      }
+
+      // Build normalized lookup from current records.
+      const recordsByAddr = new Map();
+      state.records.forEach(r => {
+        if (r.address_normalized) recordsByAddr.set(r.address_normalized, r);
+      });
+
+      const matches = [];
+      rows.forEach(row => {
+        const rawAddr = String(row[addrCol] || "");
+        const norm = normalizeForMatch(rawAddr);
+        const match = recordsByAddr.get(norm);
+        if (match) {
+          matches.push({ row, match, normalized: norm });
+        }
+      });
+
+      const matchListHtml = matches.length
+        ? matches.slice(0, 50).map(m =>
+            `<div>• <span class="match">${m.match.score}</span> · ` +
+            `${escapeHtml(m.normalized)} → ${escapeHtml(m.match.category || "")}</div>`
+          ).join("")
+        : `<div style="color: var(--text-muted)">No matches found.</div>`;
+
+      showImportResults(`
+        <div><strong>${rows.length}</strong> tax-list rows imported from <em>${escapeHtml(filename)}</em></div>
+        <div>Address column: <code>${escapeHtml(addrCol)}</code>${ownerCol ? ` · Owner column: <code>${escapeHtml(ownerCol)}</code>` : ""}</div>
+        <div style="margin-top: 12px"><strong class="match">${matches.length}</strong> matches against current records:</div>
+        <div style="margin-top: 8px">${matchListHtml}</div>
+        ${matches.length > 50 ? `<div style="margin-top: 8px; color: var(--text-muted)">…and ${matches.length - 50} more.</div>` : ""}
+      `);
+    }
+
+    /* Simple client-side address normalizer for cross-reference.
+       Approximate parity with scraper.normalize.normalize_address — kept
+       intentionally simple. Server-side normalization is authoritative. */
+    function normalizeForMatch(raw) {
+      if (!raw) return "";
+      let s = String(raw).toUpperCase()
+        .replace(/[,;\.]/g, " ")
+        .replace(/#\s*/g, "UNIT ")
+        .replace(/\s+/g, " ")
+        .trim();
+      // Strip unit portion
+      s = s.replace(/\b(APT|APARTMENT|STE|SUITE|UNIT|BLDG|FL|FLOOR|RM|ROOM)\s+[A-Z0-9\-]+/g, "").trim();
+      // Common suffix expansions
+      const repl = [
+        [/\bSTREET\b/g, "ST"], [/\bAVENUE\b/g, "AVE"], [/\bBOULEVARD\b/g, "BLVD"],
+        [/\bDRIVE\b/g, "DR"], [/\bROAD\b/g, "RD"], [/\bLANE\b/g, "LN"],
+        [/\bCOURT\b/g, "CT"], [/\bCIRCLE\b/g, "CIR"], [/\bPLACE\b/g, "PL"],
+        [/\bPARKWAY\b/g, "PKWY"], [/\bHIGHWAY\b/g, "HWY"], [/\bTRAIL\b/g, "TRL"],
+        [/\bTERRACE\b/g, "TER"],
+        [/\bNORTH\b/g, "N"], [/\bSOUTH\b/g, "S"], [/\bEAST\b/g, "E"], [/\bWEST\b/g, "W"],
+        [/\bNORTHEAST\b/g, "NE"], [/\bNORTHWEST\b/g, "NW"],
+        [/\bSOUTHEAST\b/g, "SE"], [/\bSOUTHWEST\b/g, "SW"],
+      ];
+      repl.forEach(([re, sub]) => { s = s.replace(re, sub); });
+      return s.replace(/\s+/g, " ").trim();
+    }
+
+    function showImportResults(html) {
+      const el = $("#import-results");
+      el.innerHTML = html;
+      el.style.display = "block";
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       Go
+       ═══════════════════════════════════════════════════════════════════════ */
+    boot();
+  </script>
+</body>
+</html>

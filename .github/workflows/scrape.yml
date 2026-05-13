@@ -1,0 +1,119 @@
+name: Daily Scrape
+
+# ─── When ──────────────────────────────────────────────────────────────────
+# 07:00 UTC daily. main.py applies its own ±30 min jitter (§3.7.9) so the
+# actual hit lands in a 30-minute window after 07:00 UTC, reducing
+# coordinated-bot signature against publicsearch.us.
+#
+# Manual trigger via workflow_dispatch supports ad-hoc runs from the
+# Actions UI (useful for first-run verification or backfill).
+
+on:
+  schedule:
+    - cron: "0 7 * * *"
+  workflow_dispatch:
+
+# ─── Permissions ───────────────────────────────────────────────────────────
+# contents: write lets the bot commit data/ and exports/ back to main.
+permissions:
+  contents: write
+
+# ─── Concurrency ───────────────────────────────────────────────────────────
+# Don't kill in-flight runs; queue new ones behind. A scrape that runs over
+# into the next slot is rare but not catastrophic.
+concurrency:
+  group: scrape
+  cancel-in-progress: false
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+
+    steps:
+      # ─── Checkout ────────────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # fetch-depth: 0 lets us amend the daily commit history if needed
+          # and ensures git pull --rebase works against the remote.
+          fetch-depth: 1
+
+      # ─── Python + dependency caching ─────────────────────────────────────
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: scraper/requirements.txt
+
+      - name: Install Python dependencies
+        run: pip install -r scraper/requirements.txt
+
+      # ─── Compute the current ISO year-week (cache key for DCAD ZIP) ──────
+      # %G is ISO-week year, %V is ISO week number. This keeps the cache
+      # stable for the whole week and rotates on Monday.
+      - name: Compute ISO year-week
+        id: weekkey
+        run: echo "yw=$(date -u +%G%V)" >> "$GITHUB_OUTPUT"
+
+      # ─── DCAD ZIP cache (weekly) ─────────────────────────────────────────
+      # Per §3.7.6 = (a): direct download from /DataProducts.aspx, cached
+      # weekly. The ZIP is large (~50–200 MB); re-pulling weekly amortizes
+      # the bandwidth cost.
+      - name: Cache DCAD bulk ZIP
+        uses: actions/cache@v4
+        with:
+          path: ~/.dcad_cache
+          key: dcad-${{ steps.weekkey.outputs.yw }}
+          restore-keys: |
+            dcad-
+
+      # ─── Playwright browser cache ────────────────────────────────────────
+      # Chromium is ~250 MB. Cached separately from pip to survive
+      # requirements.txt changes.
+      - name: Cache Playwright Chromium
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-${{ runner.os }}-v1
+
+      - name: Install Playwright Chromium (with system deps)
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: playwright install --with-deps chromium
+
+      - name: Install Playwright system deps (cache hit)
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: playwright install-deps chromium
+
+      # ─── Run the pipeline ────────────────────────────────────────────────
+      # All secrets sourced from repo Settings → Secrets and variables → Actions.
+      # DCAD_ZIP_URL is optional — set it only if discovery in dcad_bulk.py
+      # ever breaks and you need a manual override.
+      - name: Run dallas-intel pipeline
+        env:
+          CONTACT_EMAIL:       ${{ secrets.CONTACT_EMAIL }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          DCAD_ZIP_URL:        ${{ secrets.DCAD_ZIP_URL }}
+          DCAD_TARGET_YEAR:    "2026"
+          LOG_LEVEL:           INFO
+        run: python -m scraper.main
+
+      # ─── Commit results ──────────────────────────────────────────────────
+      # Always runs (even on partial failures) so we don't lose a successful
+      # data update because a non-critical step failed. main.py exits 0 only
+      # on full success; the previous step's failure short-circuits this one.
+      - name: Commit data + exports
+        if: success()
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/ exports/
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Daily scrape $(date -u +%Y-%m-%d)"
+            # Retry once on push race (in case of concurrent admin pushes).
+            git push || (git pull --rebase && git push)
+          fi
