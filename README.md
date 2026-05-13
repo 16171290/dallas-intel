@@ -53,31 +53,51 @@ Set locally via `.env` (gitignored) or in production via GitHub Actions secrets.
 | `DAYS_BACK_OVERRIDE` | Override default `DAYS_BACK=7` for ad-hoc runs | No |
 | `DCAD_CACHE_DIR` | Override local cache path (default `~/.dcad_cache`) | No |
 
-## Local setup
+## Local setup (Windows / PowerShell)
 
-```bash
+```powershell
 # 1. Clone
 git clone git@github.com:16171290/dallas-intel.git
 cd dallas-intel
 
 # 2. Python env
-python3.11 -m venv .venv
-source .venv/bin/activate
-pip install -r scraper/requirements.txt
+py -3.11 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r scraper\requirements.txt
 
 # 3. Playwright browsers (one-time, ~250 MB)
 playwright install chromium
 
 # 4. Configure
-cp .env.example .env  # then edit
-# Or set manually:
-export CONTACT_EMAIL="your-email@example.com"
-export DISCORD_WEBHOOK_URL="..."
+Copy-Item .env.example .env   # then edit in VS Code / Notepad
+# Or set just for this session:
+$env:CONTACT_EMAIL       = "your-email@example.com"
+$env:DISCORD_WEBHOOK_URL = "..."
 
 # 5. Run once
 python -m scraper.main
 
 # 6. Run tests
+pytest tests\
+```
+
+> **First-time PowerShell users:** If `Activate.ps1` is blocked with a security error, run this once (per user, not per session) to allow signed local scripts:
+>
+> ```powershell
+> Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
+> ```
+
+### Local setup (macOS / Linux — for reference)
+
+```bash
+git clone git@github.com:16171290/dallas-intel.git
+cd dallas-intel
+python3.11 -m venv .venv
+source .venv/bin/activate
+pip install -r scraper/requirements.txt
+playwright install chromium
+cp .env.example .env  # then edit
+python -m scraper.main
 pytest tests/
 ```
 
