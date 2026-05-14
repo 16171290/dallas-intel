@@ -176,7 +176,7 @@ class TestExtractRecordsFromText:
         # populate debtor. This test pins the behavior in.
         # (May be None if regex doesn't match a given style; flag warns.)
         if recs[0].debtor is None:
-            assert "no_address_or_debtor" not in recs[0].parse_warnings or \
+            assert "no_address_extracted" not in recs[0].parse_warnings or \
                    recs[0].property_address is not None
 
     def test_source_pdf_propagated(self):
@@ -189,7 +189,7 @@ class TestExtractRecordsFromText:
         weak_text = "NOTICE OF FORECLOSURE SALE\n\nSome random text with no fields."
         recs = foreclosure_pdfs.extract_records_from_text(weak_text)
         assert len(recs) == 1
-        assert "no_address_or_debtor" in recs[0].parse_warnings
+        assert "no_address_extracted" in recs[0].parse_warnings
 
 
 class TestParseDateIso:

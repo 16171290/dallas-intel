@@ -1,10 +1,17 @@
 """
-Output writers — records.json archive and daily GHL-format CSV.
+Output writers - records.json archive and daily GHL-format CSV.
 
-records.json is the source of truth (committed daily by the bot per §C.3).
+records.json is the source of truth (committed daily by the bot per Sec C.3).
 The CSV is a flattened export for downstream import into a CRM (GHL push
-is deferred per §3.4.2; the CSV format is the manual-import format
+is deferred per Sec 3.4.2; the CSV format is the manual-import format
 inherited from Harris-Intel).
+
+CSV-filter semantics (Phase 0.A):
+  - Records with `active=False` are suppressed (existing behavior).
+  - Records with `in_buy_box=False` are also suppressed from the CSV
+    but remain in records.json for audit.
+  - Records lacking the in_buy_box flag (legacy / pre-Phase-0.A) default
+    to True so the CSV is backward-compatible.
 """
 
 from __future__ import annotations
@@ -22,9 +29,9 @@ logger = logging.getLogger(__name__)
 CanonicalRecord = dict[str, Any]
 
 
-# ═══════════════════════════════════════════════════════════════════════════
+# ============================================================================
 # JSON archive
-# ═══════════════════════════════════════════════════════════════════════════
+# ============================================================================
 
 def write_records_json(records: list[CanonicalRecord], path: Path) -> None:
     """Atomic write of the full records archive to ``path``.
@@ -68,17 +75,17 @@ def read_records_json(path: Path) -> list[CanonicalRecord]:
         with path.open("r", encoding="utf-8") as f:
             data = json.load(f)
     except (OSError, json.JSONDecodeError) as e:
-        logger.warning("Could not read %s: %s — starting fresh", path, e)
+        logger.warning("Could not read %s: %s - starting fresh", path, e)
         return []
     return data.get("records", []) if isinstance(data, dict) else []
 
 
-# ═══════════════════════════════════════════════════════════════════════════
+# ============================================================================
 # Daily CSV (GHL-style)
-# ═══════════════════════════════════════════════════════════════════════════
+# ============================================================================
 
 # CSV column order modeled on Harris-Intel's GHL export. Skip-trace fields
-# (Email, Phone) ship empty for now since §3.4.1 is deferred.
+# (Email, Phone) ship empty for now since Sec 3.4.1 is deferred.
 GHL_CSV_COLUMNS = [
     "First Name",
     "Last Name",
@@ -106,10 +113,21 @@ def write_daily_csv(
     """Write a single-day GHL-style CSV.
 
     Filename: ``ghl_export_YYYYMMDD.csv``. Returns the path.
+
+    Filters applied (records suppressed from CSV but kept in records.json):
+      - ``active=False``      (existing suppression - REL/RLP releases etc.)
+      - ``in_buy_box=False``  (Phase 0.A - outside operator's buy-box)
+
+    Records missing either flag default to True for backward compatibility
+    with pre-Phase-0.A records.json archives.
     """
     exports_dir.mkdir(parents=True, exist_ok=True)
     filename = f"ghl_export_{target_date.strftime('%Y%m%d')}.csv"
     out_path = exports_dir / filename
+
+    written = 0
+    skipped_active = 0
+    skipped_buy_box = 0
 
     tmp = out_path.with_suffix(out_path.suffix + ".tmp")
     with tmp.open("w", newline="", encoding="utf-8") as f:
@@ -117,11 +135,19 @@ def write_daily_csv(
         writer.writeheader()
         for rec in records:
             if not rec.get("active", True):
-                continue  # suppressed records don't go to outreach
+                skipped_active += 1
+                continue
+            if not rec.get("in_buy_box", True):
+                skipped_buy_box += 1
+                continue
             writer.writerow(_record_to_csv_row(rec))
+            written += 1
     tmp.replace(out_path)
 
-    logger.info("Wrote daily CSV: %s", out_path)
+    logger.info(
+        "Wrote daily CSV: %s (%d rows; skipped %d inactive, %d outside buy-box)",
+        out_path, written, skipped_active, skipped_buy_box,
+    )
     return out_path
 
 
@@ -223,9 +249,9 @@ def _split_address(addr: str) -> dict[str, str]:
     return out
 
 
-# ═══════════════════════════════════════════════════════════════════════════
+# ============================================================================
 # Run summary
-# ═══════════════════════════════════════════════════════════════════════════
+# ============================================================================
 
 def summarize_run(
     records: list[CanonicalRecord],
@@ -235,16 +261,18 @@ def summarize_run(
 
     Includes counts by category, score band, and overall address-resolution
     rate. Caller can pass ``extra`` to merge in pipeline-level metrics
-    (e.g. EnrichmentStats fields).
+    (e.g. EnrichmentStats fields, gov_filtered_count, buy_box summary).
     """
     by_category = Counter(r.get("category", "UNKNOWN") for r in records)
     score_bands = Counter(_score_band(r.get("score", 0)) for r in records)
     active_count = sum(1 for r in records if r.get("active", True))
     matched_addr = sum(1 for r in records if r.get("dcad_account"))
+    in_buy_box_count = sum(1 for r in records if r.get("in_buy_box", True))
 
     summary: dict[str, Any] = {
         "total":                       len(records),
         "active":                      active_count,
+        "in_buy_box_count":            in_buy_box_count,
         "by_category":                 dict(by_category),
         "by_score_band":               dict(score_bands),
         "address_resolution_count":    matched_addr,

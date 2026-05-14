@@ -1,7 +1,7 @@
-"""
+﻿"""
 Regression tests for scraper.normalize.
 
-Includes the guard test for §3.3.1 — the HOA-plaintiff bug carried over
+Includes the guard test for Â§3.3.1 â€” the HOA-plaintiff bug carried over
 from Harris-Intel. If is_hoa_entity() ever stops recognizing the
 representative HOA names, this suite fails loudly.
 """
@@ -11,9 +11,9 @@ import pytest
 from scraper import normalize
 
 
-# ═══════════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # Address normalization
-# ═══════════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 class TestAddressNormalization:
     def test_empty_input(self):
@@ -25,7 +25,7 @@ class TestAddressNormalization:
 
     def test_punctuation_removal(self):
         assert normalize.normalize_address("123 Main St, Dallas, TX") == \
-            "123 MAIN ST DALLAS TX"
+            "123 MAIN ST"
 
     def test_directional_expansion(self):
         assert normalize.normalize_address("123 North Main St") == "123 N MAIN ST"
@@ -72,15 +72,15 @@ class TestAddressNormalization:
     def test_real_world_dallas_addresses(self):
         # Sample from an actual Dallas foreclosure-PDF.
         assert normalize.normalize_address("1004 Seago Drive, Seagoville, TX 75159") == \
-            "1004 SEAGO DR SEAGOVILLE TX 75159"
+            "1004 SEAGO DR"
         # With unit:
         assert normalize.normalize_address("456 Live Oak Ln Apt 12, Dallas, TX") == \
-            "456 LIVE OAK LN DALLAS TX"
+            "456 LIVE OAK LN"
 
 
-# ═══════════════════════════════════════════════════════════════════════════
-# HOA detection — §3.3.1 regression guard
-# ═══════════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# HOA detection â€” Â§3.3.1 regression guard
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 class TestHOADetection:
     def test_empty_or_none(self):
@@ -100,7 +100,7 @@ class TestHOADetection:
 
     def test_obvious_hoa_indicators(self):
         # These MUST flag as HOA. If any of these stops flagging, the
-        # §3.3.1 fix has regressed.
+        # Â§3.3.1 fix has regressed.
         for name in [
             "Richland Trace Owners Association, Inc.",
             "Highland Park HOA",
@@ -116,7 +116,7 @@ class TestHOADetection:
             assert normalize.is_hoa_entity(name), f"Should be HOA: {name!r}"
 
     def test_corporate_suffix_alone_not_sufficient(self):
-        """Mere corporate suffix shouldn't auto-flag — only HOA-specific
+        """Mere corporate suffix shouldn't auto-flag â€” only HOA-specific
         patterns flag, to avoid false positives on banks, churches, LLCs.
         """
         for name in [
@@ -135,9 +135,9 @@ class TestHOADetection:
         assert normalize.is_hoa_entity("Highland Park Hoa")
 
 
-# ═══════════════════════════════════════════════════════════════════════════
-# Grantor / grantee extraction (§3.3.1)
-# ═══════════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# Grantor / grantee extraction (Â§3.3.1)
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 class TestGrantorGrantee:
     def test_explicit_keys(self):
@@ -190,9 +190,9 @@ class TestGrantorGrantee:
         assert gee == "John Smith"
 
 
-# ═══════════════════════════════════════════════════════════════════════════
-# Instrument code mapping (§A.3)
-# ═══════════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# Instrument code mapping (Â§A.3)
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 class TestInstrumentCodes:
     def test_known_codes(self):
@@ -216,11 +216,16 @@ class TestInstrumentCodes:
         assert normalize.dallas_code_to_category(" td ") == "TRSALE"
 
     def test_codes_in_multiple_categories(self):
-        # TXL appears in both T/L and LEVY per §A.3
-        cats = normalize.harris_categories_for_dallas_code("TXL")
-        assert "T/L"  in cats
-        assert "LEVY" in cats
-        assert len(cats) == 2
+        # Post-verification (2026-05-13): each code lives in exactly one
+        # category. TXL is in T/L only; LEVY is SZS only. The invariant
+        # below holds for every code in INSTRUMENT_CODES.
+        from scraper import config
+        for codes in config.INSTRUMENT_CODES.values():
+            for code in codes:
+                cats = normalize.harris_categories_for_dallas_code(code)
+                assert len(cats) == 1, (
+                    f"Code {code!r} appears in multiple categories: {cats}"
+                )
 
     def test_single_category_codes_return_one(self):
         assert normalize.harris_categories_for_dallas_code("LP") == ["L/P"]
@@ -238,3 +243,5 @@ class TestInstrumentCodes:
         assert not normalize.is_suppression_code("NOF")
         assert not normalize.is_suppression_code("")
         assert not normalize.is_suppression_code(None)
+
+

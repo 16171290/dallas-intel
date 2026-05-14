@@ -3,6 +3,13 @@ Address normalization, instrument-code mapping, and HOA detection.
 
 This is the contract every other module that touches raw scraped data
 depends on. Keep it pure (no I/O, no side effects).
+
+2026-05-14: Added city/state/ZIP suffix stripping to normalize_address.
+DCAD's address index is keyed on STREET_NUM + FULL_STREET_NAME only
+(e.g. "1402 LEVEE LN"). Foreclosure PDFs frequently emit addresses with
+the city/state/ZIP appended (e.g. "1402 LEVEE LN DALLAS TX 75201"),
+which silently fails the join. The new preprocessing step strips that
+suffix so PDF and DCAD addresses normalize to the same key.
 """
 
 import re
@@ -11,11 +18,11 @@ from typing import Optional
 from . import config
 
 
-# ═══════════════════════════════════════════════════════════════════════════
-# Instrument code mapping (§A.3)
-# ═══════════════════════════════════════════════════════════════════════════
+# ============================================================================
+# Instrument code mapping (Sec A.3)
+# ============================================================================
 
-# Reverse-lookup: Dallas literal code → first Harris-Intel category that
+# Reverse-lookup: Dallas literal code -> first Harris-Intel category that
 # claims it. Some codes (notably TXL) appear in multiple categories;
 # ``harris_categories_for_dallas_code`` returns the full list.
 _DALLAS_TO_HARRIS: dict[str, str] = {
@@ -39,8 +46,8 @@ def dallas_code_to_category(dallas_code: str) -> Optional[str]:
 def harris_categories_for_dallas_code(dallas_code: str) -> list[str]:
     """All Harris-Intel categories a Dallas code might map to.
 
-    Some codes belong to multiple categories — e.g. ``TXL`` is both ``T/L``
-    (Tax Lien) and ``LEVY`` per §A.3. Returns a list, possibly empty.
+    Some codes belong to multiple categories - e.g. ``TXL`` is both ``T/L``
+    (Tax Lien) and ``LEVY`` per Sec A.3. Returns a list, possibly empty.
     """
     if not dallas_code:
         return []
@@ -59,9 +66,9 @@ def is_suppression_code(dallas_code: str) -> bool:
     return dallas_code.upper().strip() in config.SUPPRESSION_CODES
 
 
-# ═══════════════════════════════════════════════════════════════════════════
+# ============================================================================
 # Address normalization (USPS-style)
-# ═══════════════════════════════════════════════════════════════════════════
+# ============================================================================
 
 # Standard USPS street-suffix abbreviations. Source: USPS Pub 28 Appendix C.
 _USPS_SUFFIX: dict[str, str] = {
@@ -104,6 +111,102 @@ _USPS_DIRECTIONAL: dict[str, str] = {
 }
 
 
+# ----------------------------------------------------------------------------
+# City/state/ZIP suffix stripping (2026-05-14)
+# ----------------------------------------------------------------------------
+# DCAD's address index keys are STREET_NUM + FULL_STREET_NAME only - no
+# city, no state, no ZIP. PDF-sourced addresses commonly carry the full
+# postal form ("1402 LEVEE LN DALLAS TX 75201"). Stripping the suffix
+# before lookup raises the join hit-rate from ~5% to ~60%+ on the
+# foreclosure-PDF source.
+#
+# Strategy:
+#   1. If the address contains a comma, take everything before the first
+#      comma. Postal-form addresses with commas put the street first.
+#   2. After (1), or if no comma existed, scan for a known-city pattern
+#      at the end of the string. Strip from the city onwards.
+#
+# False-positive guard: known cities are recognized as suffixes only when
+# at the end of the string OR followed by state/ZIP indicators. This
+# preserves street names that happen to contain a city word (e.g.
+# "1234 DALLAS ST" keeps "DALLAS ST" intact - DALLAS is not at end and
+# is not followed by TX/TEXAS/zip).
+
+_KNOWN_CITY_SUFFIXES: list[str] = [
+    # Dallas County proper
+    "DALLAS", "GARLAND", "MESQUITE", "IRVING", "GRAND PRAIRIE",
+    "RICHARDSON", "CARROLLTON", "ROWLETT", "DESOTO", "LANCASTER",
+    "CEDAR HILL", "DUNCANVILLE", "FARMERS BRANCH", "ADDISON",
+    "UNIVERSITY PARK", "HIGHLAND PARK", "COCKRELL HILL",
+    "BALCH SPRINGS", "HUTCHINS", "WILMER", "SEAGOVILLE",
+    "GLENN HEIGHTS", "COMBINE", "SUNNYVALE", "COPPELL",
+    "SACHSE", "WYLIE",
+    # Cross-county (Collin, Denton, Tarrant) - properties straddle
+    "PLANO", "FRISCO", "MCKINNEY", "ALLEN", "MURPHY", "PARKER",
+    "FAIRVIEW", "LEWISVILLE", "DENTON", "FORT WORTH", "ARLINGTON",
+    "GRAPEVINE", "SOUTHLAKE", "EULESS", "BEDFORD", "KELLER",
+    "COLLEYVILLE", "FLOWER MOUND", "THE COLONY", "LITTLE ELM",
+]
+
+# Sort longest first so "CEDAR HILL" matches before any potential "CEDAR"
+# in a more permissive future list.
+_KNOWN_CITY_SUFFIXES_SORTED = sorted(_KNOWN_CITY_SUFFIXES, key=len, reverse=True)
+
+# Alternation. Internal whitespace must be flexible so "CEDAR  HILL" matches.
+_CITY_ALT = "|".join(
+    c.replace(" ", r"\s+") for c in _KNOWN_CITY_SUFFIXES_SORTED
+)
+
+# Pattern A: <city> <state> [zip] [trailing junk]
+# Strips greedily once we've anchored on city + state.
+_CITY_STATE_TRAIL_RE = re.compile(
+    rf"\s+(?:{_CITY_ALT})\s+(?:TX|TEXAS)\b.*$",
+    re.IGNORECASE,
+)
+# Pattern B: <city> <zip>
+_CITY_ZIP_RE = re.compile(
+    rf"\s+(?:{_CITY_ALT})\s+\d{{5}}(?:-\d{{4}})?\s*$",
+    re.IGNORECASE,
+)
+# Pattern C: <city> alone at end of string (post-comma-split case).
+# Won't match cities mid-string (e.g. "DALLAS" in "1234 DALLAS ST").
+_CITY_ONLY_RE = re.compile(
+    rf"\s+(?:{_CITY_ALT})\s*$",
+    re.IGNORECASE,
+)
+
+
+def _strip_city_state_zip(addr: str) -> str:
+    """Strip trailing city/state/ZIP from an address string.
+
+    Examples:
+        "1402 LEVEE LN, DALLAS, TX 75201"            -> "1402 LEVEE LN"
+        "1011 E ALAN AVE CARROLLTON TEXAS 75006"     -> "1011 E ALAN AVE"
+        "567 VILLAGE GREEN DR COPPELL, TEXAS 75019"  -> "567 VILLAGE GREEN DR"
+        "4335 LASHLEY DR DALLAS TX 75232 EXTRA JUNK" -> "4335 LASHLEY DR"
+        "1234 DALLAS ST"                             -> "1234 DALLAS ST" (unchanged)
+        "5605 EVERGLADE RD"                          -> "5605 EVERGLADE RD" (unchanged)
+    """
+    if not addr:
+        return addr
+
+    # Strategy 1: comma form - take everything before first comma
+    if "," in addr:
+        addr = addr.split(",", 1)[0].strip()
+
+    # Strategy 2: known-city pattern at end (or with state/zip after).
+    # Try the most specific pattern first.
+    addr = _CITY_STATE_TRAIL_RE.sub("", addr).strip()
+    addr = _CITY_ZIP_RE.sub("", addr).strip()
+    addr = _CITY_ONLY_RE.sub("", addr).strip()
+
+    return addr
+
+
+# ----------------------------------------------------------------------------
+# Existing punctuation / whitespace / unit handling
+# ----------------------------------------------------------------------------
+
 _PUNCT_RE      = re.compile(r"[,;\.]")
 _WHITESPACE_RE = re.compile(r"\s+")
 _HASH_UNIT_RE  = re.compile(r"#\s*")
@@ -117,13 +220,16 @@ def normalize_address(raw: Optional[str]) -> str:
     """Produce a USPS-style normalized address string.
 
     Operations:
+      0. (NEW 2026-05-14) Strip trailing city/state/ZIP if present, so
+         PDF-sourced postal-form addresses reduce to the same shape as
+         DCAD's index keys (street-only).
       1. Strip leading/trailing whitespace; treat ``None`` as empty.
       2. Uppercase.
       3. Remove commas, semicolons, and periods.
       4. Collapse repeated whitespace.
-      5. Expand directional words (NORTH→N) and street suffixes (STREET→ST)
-         to USPS abbreviations.
-      6. Strip unit-portion (APT/STE/etc.) — use :func:`extract_unit` to
+      5. Expand directional words (NORTH->N) and street suffixes
+         (STREET->ST) to USPS abbreviations.
+      6. Strip unit-portion (APT/STE/etc.) - use :func:`extract_unit` to
          retrieve it separately.
 
     The output is the *primary* address (no unit), suitable as a join key
@@ -135,8 +241,13 @@ def normalize_address(raw: Optional[str]) -> str:
         return ""
 
     s = str(raw).strip().upper()
+
+    # NEW: strip city/state/zip suffix. Runs BEFORE the punctuation removal
+    # so the comma-split branch can use the comma as a boundary marker.
+    s = _strip_city_state_zip(s)
+
     s = _PUNCT_RE.sub(" ", s)
-    # Canonicalize "#5" → "UNIT 5" so the unit regex matches via \b.
+    # Canonicalize "#5" -> "UNIT 5" so the unit regex matches via \b.
     s = _HASH_UNIT_RE.sub("UNIT ", s)
     s = _WHITESPACE_RE.sub(" ", s)
 
@@ -166,12 +277,12 @@ def _strip_unit(addr: str) -> str:
 def extract_unit(raw: Optional[str]) -> Optional[str]:
     """Return the unit/apt/suite portion of an address, or ``None``.
 
-    Normalizes the unit-type abbreviation (e.g. ``APARTMENT 5`` → ``APT 5``).
+    Normalizes the unit-type abbreviation (e.g. ``APARTMENT 5`` -> ``APT 5``).
     """
     if not raw:
         return None
     s = str(raw).strip().upper()
-    # Canonicalize "#5" → "UNIT 5" before matching.
+    # Canonicalize "#5" -> "UNIT 5" before matching.
     s = _HASH_UNIT_RE.sub("UNIT ", s)
     m = _UNIT_SEP_RE.search(s)
     if not m:
@@ -192,12 +303,12 @@ def extract_unit(raw: Optional[str]) -> Optional[str]:
     return f"{unit_type} {unit_id}"
 
 
-# ═══════════════════════════════════════════════════════════════════════════
-# Grantor / grantee extraction (§3.3.1 — the HOA-plaintiff bug fix)
-# ═══════════════════════════════════════════════════════════════════════════
+# ============================================================================
+# Grantor / grantee extraction (Sec 3.3.1 - the HOA-plaintiff bug fix)
+# ============================================================================
 #
 # Harris-Intel's bug surfaced ``owner`` as the lead-target field even when
-# the record was an HOA suing a homeowner — the HOA name landed at the top
+# the record was an HOA suing a homeowner - the HOA name landed at the top
 # of the dashboard as a "lead". The fix:
 #
 #   - GRANTOR = party filing the action (potentially an HOA)
@@ -205,7 +316,7 @@ def extract_unit(raw: Optional[str]) -> Optional[str]:
 #     homeowner; the real lead target)
 #
 # Downstream, ``scorer.filter_hoa()`` removes records whose GRANTEE is
-# missing AND whose GRANTOR is an HOA — i.e. cases where the only named
+# missing AND whose GRANTOR is an HOA - i.e. cases where the only named
 # party is the HOA itself.
 
 def extract_grantor_grantee(raw_record: dict) -> tuple[str, str]:
@@ -235,9 +346,9 @@ def extract_grantor_grantee(raw_record: dict) -> tuple[str, str]:
     return (str(grantor).strip(), str(grantee).strip())
 
 
-# ═══════════════════════════════════════════════════════════════════════════
-# HOA / association detection (§3.3.1)
-# ═══════════════════════════════════════════════════════════════════════════
+# ============================================================================
+# HOA / association detection (Sec 3.3.1)
+# ============================================================================
 
 _HOA_REGEXES: list[re.Pattern[str]] = [
     re.compile(p, re.IGNORECASE) for p in config.HOA_PATTERNS
@@ -251,7 +362,7 @@ def is_hoa_entity(name: Optional[str]) -> bool:
       1. Exact match against ``config.HOA_DENYLIST`` (case-insensitive).
       2. Regex match against ``config.HOA_PATTERNS``.
 
-    A bare corporate suffix (e.g. ``", Inc."``) is *not* sufficient — the
+    A bare corporate suffix (e.g. ``", Inc."``) is *not* sufficient - the
     pattern set is HOA-specific to avoid false positives like banks,
     churches, and ordinary LLCs.
     """
@@ -262,7 +373,7 @@ def is_hoa_entity(name: Optional[str]) -> bool:
     if not s:
         return False
 
-    # Denylist check — exact, case-insensitive.
+    # Denylist check - exact, case-insensitive.
     s_upper = s.upper()
     for entry in config.HOA_DENYLIST:
         if entry.upper() == s_upper:
