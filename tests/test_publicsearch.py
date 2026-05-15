@@ -157,3 +157,56 @@ class TestPublicSearchRecord:
         b = publicsearch.PublicSearchRecord(record_id="2", dallas_code="LP")
         a.parse_warnings.append("flag")
         assert b.parse_warnings == []
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Filing-date parser
+# ═══════════════════════════════════════════════════════════════════════════
+
+class TestParseFilingDate:
+    def test_basic(self):
+        assert publicsearch._parse_filing_date("4/8/2026") == "2026-04-08"
+        assert publicsearch._parse_filing_date("12/31/2025") == "2025-12-31"
+
+    def test_zero_pad(self):
+        assert publicsearch._parse_filing_date("1/1/2026") == "2026-01-01"
+
+    def test_returns_none_on_empty(self):
+        assert publicsearch._parse_filing_date(None) is None
+        assert publicsearch._parse_filing_date("") is None
+        assert publicsearch._parse_filing_date("--/--/--") is None
+
+    def test_returns_none_on_garbage(self):
+        assert publicsearch._parse_filing_date("not-a-date") is None
+        assert publicsearch._parse_filing_date("2026-04-08") is None  # wrong format
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Config consistency
+# ═══════════════════════════════════════════════════════════════════════════
+
+class TestConfigConsistency:
+    def test_every_display_name_code_is_in_instrument_codes(self):
+        """Every code in DALLAS_CODE_DISPLAY_NAMES should appear in some category."""
+        all_codes = {c for codes in config.INSTRUMENT_CODES.values() for c in codes}
+        for code in config.DALLAS_CODE_DISPLAY_NAMES:
+            assert code in all_codes, (
+                f"Display-name code {code!r} is not present in any "
+                f"INSTRUMENT_CODES category"
+            )
+
+    def test_display_names_are_non_empty(self):
+        for code, name in config.DALLAS_CODE_DISPLAY_NAMES.items():
+            assert name and name.strip(), f"Empty display name for {code!r}"
+
+    def test_suppression_codes_are_valid(self):
+        all_codes = {c for codes in config.INSTRUMENT_CODES.values() for c in codes}
+        for code in config.SUPPRESSION_CODES:
+            assert code in all_codes, (
+                f"Suppression code {code!r} not in INSTRUMENT_CODES"
+            )
+
+    def test_lp_fc_pair_categories_exist(self):
+        lp, fc = config.LP_FC_PAIR
+        assert lp in config.INSTRUMENT_CODES
+        assert fc in config.INSTRUMENT_CODES

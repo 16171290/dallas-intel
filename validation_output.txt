@@ -1,0 +1,1082 @@
+================================================================================
+PDF: April\Addison_1.pdf
+Text size: 4,717 chars
+NO EXTRACTION
+
+All candidates considered:
+
+================================================================================
+PDF: April\Balch-Springs_1.pdf
+Text size: 11,358 chars
+NO EXTRACTION
+
+All candidates considered:
+
+================================================================================
+PDF: April\Balch-Springs_2.pdf
+Text size: 11,424 chars
+NO EXTRACTION
+
+All candidates considered:
+
+================================================================================
+PDF: April\Cedar-Hill_1.pdf
+Text size: 21,025 chars
+NO EXTRACTION
+
+All candidates considered:
+  [P4_DATE_LABEL ] REJECTED    raw='January 28, 2026'              iso='2026-01-28'  rejected_by='Notice of Sale'
+  [P4_DATE_LABEL ] REJECTED    raw='January 28, 2026'              iso='2026-01-28'  rejected_by='Notice of Sale'
+
+================================================================================
+PDF: April\Cedar-Hill_2.pdf
+Text size: 19,056 chars
+BEST: 2026-02-19  via P1_DECLARANT  (raw='02/19/26')
+
+All candidates considered:
+  [P1_DECLARANT  ] ACCEPTED    raw='02/19/26'                      iso='2026-02-19'
+  [P4_DATE_LABEL ] REJECTED    raw='April 07, 2026'                iso='2026-04-07'  rejected_by='Place of Sale'
+  [P4_DATE_LABEL ] ACCEPTED    raw='February 23, 2026'             iso='2026-02-23'
+  [P4_DATE_LABEL ] REJECTED    raw='September 7, 2022'             iso='2022-09-07'  rejected_by='deed of trust'
+  [P4_DATE_LABEL ] ACCEPTED    raw='February 23, 2026'             iso='2026-02-23'
+  [P4_DATE_LABEL ] REJECTED    raw='September 2, 2022'             iso='2022-09-02'  rejected_by='deed of trust'
+
+================================================================================
+PDF: April\Dallas_1 (1).pdf
+Text size: 98,600 chars
+BEST: 2026-01-29  via P2_DATED  (raw='1/29/2026')
+
+All candidates considered:
+  [P2_DATED      ] ACCEPTED    raw='1/29/2026'                     iso='2026-01-29'
+  [P4_DATE_LABEL ] REJECTED    raw='February 4, 2026'              iso='2026-02-04'  rejected_by='Notice of Sale'
+  [P4_DATE_LABEL ] REJECTED    raw='November 25, 2014'             iso='2014-11-25'  rejected_by='deed of trust'
+  [P4_DATE_LABEL ] REJECTED    raw='November 25, 2014'             iso='2014-11-25'  rejected_by='deed of trust'
+  [P4_DATE_LABEL ] REJECTED    raw='January 28, 2026'              iso='2026-01-28'  rejected_by='Notice of Sale'
+  [P4_DATE_LABEL ] REJECTED    raw='JANUARY 28, 2026'              iso=None  rejected_by='Notice of Sale'
+  [P4_DATE_LABEL ] REJECTED    raw='NOVEMBER 30, 2017'             iso=None  rejected_by='deed of trust'
+  [P4_DATE_LABEL ] REJECTED    raw='NOVEMBER 30, 2017'             iso=None  rejected_by='deed of trust'
+  [P4_DATE_LABEL ] ACCEPTED    raw='July 7, 2000'                  iso='2000-07-07'
+  [P4_DATE_LABEL ] REJECTED    raw='July 7, 2000'                  iso='2000-07-07'  rejected_by='deed of trust'
+  [P4_DATE_LABEL ] REJECTED    raw='July 7, 2000'                  iso='2000-07-07'  rejected_by='deed of trust'
+  [P4_DATE_LABEL ] REJECTED    raw='January 14, 2026'              iso='2026-01-14'  rejected_by='Notice of Sale'
+  [P4_DATE_LABEL ] ACCEPTED    raw='September 17, 1999'            iso='1999-09-17'
+  [P4_DATE_LABEL ] REJECTED    raw='January 13, 2026'              iso='2026-01-13'  rejected_by='Notice of Sale'
+  [P4_DATE_LABEL ] REJECTED    raw='January 15, 2026'              iso='2026-01-15'  rejected_by='Notice of Sale'
+
+================================================================================
+PDF: April\Dallas_1 (2).pdf
+Text size: 103,945 chars
+BEST: 2026-02-12  via P1_DECLARANT  (raw='02/12/26')
+
+All candidates considered:
+  [P1_DECLARANT  ] ACCEPTED    raw='02/12/26'                      iso='2026-02-12'
+  [P1_DECLARANT  ] ACCEPTED    raw='02/09/2026'                    iso='2026-02-09'
+  [P1_DECLARANT  ] ACCEPTED    raw='02/09/2026'                    iso='2026-02-09'
+  [P1_DECLARANT  ] ACCEPTED    raw='02/09/2026'                    iso='2026-02-09'
+  [P2_DATED      ] ACCEPTED    raw='2/10/2026'                     iso='2026-02-10'
+  [P4_DATE_LABEL ] REJECTED    raw='April 07, 2026'                iso='2026-04-07'  rejected_by='Place of Sale'
+  [P4_DATE_LABEL ] REJECTED    raw='April 07, 2026'                iso='2026-04-07'  rejected_by='Place of Sale'
+  [P4_DATE_LABEL ] REJECTED    raw='April 07, 2026'                iso='2026-04-07'  rejected_by='Place of Sale'
+  [P4_DATE_LABEL ] REJECTED    raw='April 07, 2026'                iso='2026-04-07'  rejected_by='Place of Sale'
+  [P4_DATE_LABEL ] REJECTED    raw='April 07, 2026'                iso='2026-04-07'  rejected_by='Place of Sale'
+  [P4_DATE_LABEL ] REJECTED    raw='April 07, 2026'                iso='2026-04-07'  rejected_by='Place of Sale'
+  [P4_DATE_LABEL ] REJECTED    raw='January 8, 2026'               iso='2026-01-08'  rejected_by='Notice of Sale'
+
+================================================================================
+PDF: April\Dallas_2.pdf
+Text size: 97,760 chars
+BEST: 2026-02-19  via P2_DATED  (raw='02/19/26')
+
+All candidates considered:
+  [P2_DATED      ] ACCEPTED    raw='02/19/26'                      iso='2026-02-19'
+  [P2_DATED      ] REJECTED    raw='April 2, 2020'                 iso='2020-04-02'  rejected_by='deed of trust'
+  [P2_DATED      ] ACCEPTED    raw='2/17/2026'                     iso='2026-02-17'
+  [P2_DATED      ] ACCEPTED    raw='2/12/2026'                     iso='2026-02-12'
+  [P2_DATED      ] ACCEPTED    raw='2/12/2026'                     iso='2026-02-12'
+  [P2_DATED      ] REJECTED    raw='February 12, 2026'             iso='2026-02-12'  rejected_by='Notice of Sale'
+  [P2_DATED      ] REJECTED    raw='August 31, 2023'               iso='2023-08-31'  rejected_by='deed of trust'
+  [P2_DATED      ] ACCEPTED    raw='2/18/26'                       iso='2026-02-18'
+  [P4_DATE_LABEL ] ACCEPTED    raw='April 7, 2026'                 iso='2026-04-07'
+  [P4_DATE_LABEL ] REJECTED    raw='February 18, 2026'             iso='2026-02-18'  rejected_by='Notice of Sale'
+  [P4_DATE_LABEL ] REJECTED    raw='October 28, 2022'              iso='2022-10-28'  rejected_by='deed of trust'
+  [P4_DATE_LABEL ] REJECTED    raw='August 24, 2024'               iso='2024-08-24'  rejected_by='deed of trust'
+  [P4_DATE_LABEL ] REJECTED    raw='February 9, 2023'              iso='2023-02-09'  rejected_by='deed of trust'
+
+================================================================================
+PDF: April\DeSoto_1.pdf
+Text size: 78,270 chars
+BEST: 2026-01-22  via P1_DECLARANT  (raw='01/22/2026')
+
+All candidates considered:
+  [P1_DECLARANT  ] ACCEPTED    raw='01/22/2026'                    iso='2026-01-22'
+  [P1_DECLARANT  ] ACCEPTED    raw='1/29/26'                       iso='2026-01-29'
+  [P4_DATE_LABEL ] REJECTED    raw='December 4, 2015'              iso='2015-12-04'  rejected_by='deed of trust'
+  [P4_DATE_LABEL ] REJECTED    raw='January 20, 2026'              iso='2026-01-20'  rejected_by='Notice of Sale'
+  [P4_DATE_LABEL ] REJECTED    raw='April 07, 2026'                iso='2026-04-07'  rejected_by='Place of Sale'
+  [P4_DATE_LABEL ] REJECTED    raw='April 07, 2026'                iso='2026-04-07'  rejected_by='Place of Sale'
+
+================================================================================
+PDF: April\DeSoto_2.pdf
+Text size: 24,799 chars
+NO EXTRACTION
+
+All candidates considered:
+  [P2_DATED      ] REJECTED    raw='February 13, 2026'             iso='2026-02-13'  rejected_by='Notice of Sale'
+
+================================================================================
+PDF: April\Duncanville_1.pdf
+Text size: 16,352 chars
+NO EXTRACTION
+
+All candidates considered:
+
+================================================================================
+PDF: April\Duncanville_2.pdf
+Text size: 7,693 chars
+NO EXTRACTION
+
+All candidates considered:
+  [P4_DATE_LABEL ] REJECTED    raw='August 25, 2000'               iso='2000-08-25'  rejected_by='deed of trust'
+
+================================================================================
+PDF: April\Garland_1.pdf
+Text size: 30,931 chars
+BEST: 2026-01-29  via P1_DECLARANT  (raw='1/29/26')
+
+All candidates considered:
+  [P1_DECLARANT  ] ACCEPTED    raw='1/29/26'                       iso='2026-01-29'
+  [P2_DATED      ] ACCEPTED    raw='2/9/2026'                      iso='2026-02-09'
+  [P4_DATE_LABEL ] REJECTED    raw='January 28, 2022'              iso='2022-01-28'  rejected_by='deed of trust'
+  [P4_DATE_LABEL ] REJECTED    raw='April 07, 2026'                iso='2026-04-07'  rejected_by='Place of Sale'
+
+================================================================================
+PDF: April\Garland_2.pdf
+Text size: 15,581 chars
+BEST: 2026-02-12  via P2_DATED  (raw='2/12/2026')
+
+All candidates considered:
+  [P2_DATED      ] ACCEPTED    raw='2/12/2026'                     iso='2026-02-12'
+
+================================================================================
+PDF: April\Glenn-Heights_1.pdf
+Text size: 8,507 chars
+NO EXTRACTION
+
+All candidates considered:
+  [P4_DATE_LABEL ] REJECTED    raw='February 9, 2026'              iso='2026-02-09'  rejected_by='Notice of Sale'
+
+================================================================================
+PDF: April\Glenn-Heights_2.pdf
+Text size: 5,886 chars
+NO EXTRACTION
+
+All candidates considered:
+
+================================================================================
+PDF: April\Grand-Prairie_1.pdf
+Text size: 35,453 chars
+BEST: 2026-02-12  via P1_DECLARANT  (raw='02/12/26')
+
+All candidates considered:
+  [P1_DECLARANT  ] ACCEPTED    raw='02/12/26'                      iso='2026-02-12'
+  [P2_DATED      ] ACCEPTED    raw='2/9/2026'                      iso='2026-02-09'
+  [P4_DATE_LABEL ] REJECTED    raw='April 07, 2026'                iso='2026-04-07'  rejected_by='Place of Sale'
+  [P4_DATE_LABEL ] REJECTED    raw='January 15, 2021'              iso='2021-01-15'  rejected_by='deed of trust'
+
+================================================================================
+PDF: April\Grand-Prairie_2.pdf
+Text size: 12,073 chars
+BEST: 2026-02-18  via P2_DATED  (raw='2/18/2026')
+
+All candidates considered:
+  [P2_DATED      ] ACCEPTED    raw='2/18/2026'                     iso='2026-02-18'
+
+================================================================================
+PDF: April\Irving_1.pdf
+Text size: 37,438 chars
+BEST: 2026-01-22  via P1_DECLARANT  (raw='01/22/2026')
+
+All candidates considered:
+  [P1_DECLARANT  ] ACCEPTED    raw='01/22/2026'                    iso='2026-01-22'
+  [P4_DATE_LABEL ] REJECTED    raw='April 07, 2026'                iso='2026-04-07'  rejected_by='Place of Sale'
+  [P4_DATE_LABEL ] REJECTED    raw='January 28, 2026'              iso='2026-01-28'  rejected_by='Notice of Sale'
+
+================================================================================
+PDF: April\Irving_2.pdf
+Text size: 18,782 chars
+BEST: 2026-02-17  via P2_DATED  (raw='2/17/2026')
+
+All candidates considered:
+  [P2_DATED      ] ACCEPTED    raw='2/17/2026'                     iso='2026-02-17'
+  [P2_DATED      ] REJECTED    raw='July 1, 2025'                  iso='2025-07-01'  rejected_by='deed of trust'
+  [P4_DATE_LABEL ] REJECTED    raw='February 11, 2026'             iso='2026-02-11'  rejected_by='Notice of Sale'
+  [P4_DATE_LABEL ] ACCEPTED    raw='April 7, 2026'                 iso='2026-04-07'
+
+================================================================================
+PDF: April\Lancaster_1.pdf
+Text size: 39,875 chars
+BEST: 2026-02-09  via P1_DECLARANT  (raw='02/09/2026')
+
+All candidates considered:
+  [P1_DECLARANT  ] ACCEPTED    raw='02/09/2026'                    iso='2026-02-09'
+  [P2_DATED      ] ACCEPTED    raw='1/26/2026'                     iso='2026-01-26'
+  [P4_DATE_LABEL ] REJECTED    raw='April 07, 2026'                iso='2026-04-07'  rejected_by='Place of Sale'
+  [P4_DATE_LABEL ] ACCEPTED    raw='January 28, 2026'              iso='2026-01-28'
+
+================================================================================
+PDF: April\Lancaster_2.pdf
+Text size: 15,109 chars
+BEST: 2026-02-19  via P1_DECLARANT  (raw='02/19/26')
+
+All candidates considered:
+  [P1_DECLARANT  ] ACCEPTED    raw='02/19/26'                      iso='2026-02-19'
+  [P4_DATE_LABEL ] REJECTED    raw='April 07, 2026'                iso='2026-04-07'  rejected_by='Place of Sale'
+
+================================================================================
+PDF: April\Mesquite_1.pdf
+Text size: 43,168 chars
+BEST: 2026-02-09  via P1_DECLARANT  (raw='02/09/2026')
+
+All candidates considered:
+  [P1_DECLARANT  ] ACCEPTED    raw='02/09/2026'                    iso='2026-02-09'
+  [P1_DECLARANT  ] ACCEPTED    raw='02/09/2026'                    iso='2026-02-09'
+  [P1_DECLARANT  ] ACCEPTED    raw='01/15/2026'                    iso='2026-01-15'
+  [P2_DATED      ] REJECTED    raw='October 5, 2021'               iso='2021-10-05'  rejected_by='deed of trust'
+  [P4_DATE_LABEL ] REJECTED    raw='April 07, 2026'                iso='2026-04-07'  rejected_by='Place of Sale'
+  [P4_DATE_LABEL ] REJECTED    raw='April 07, 2026'                iso='2026-04-07'  rejected_by='Place of Sale'
+  [P4_DATE_LABEL ] REJECTED    raw='April 07, 2026'                iso='2026-04-07'  rejected_by='Place of Sale'
+
+================================================================================
+PDF: April\Mesquite_2.pdf
+Text size: 38,060 chars
+BEST: 2026-02-19  via P2_DATED  (raw='2/19/26')
+
+All candidates considered:
+  [P2_DATED      ] ACCEPTED    raw='2/19/26'                       iso='2026-02-19'
+
+================================================================================
+PDF: April\Other_1.pdf
+Text size: 5,117 chars
+NO EXTRACTION
+
+All candidates considered:
+
+================================================================================
+PDF: April\Other_2.pdf
+Text size: 24,500 chars
+NO EXTRACTION
+
+All candidates considered:
+  [P4_DATE_LABEL ] REJECTED    raw='September 19, 2023'            iso='2023-09-19'  rejected_by='deed of trust'
+
+================================================================================
+PDF: April\Rowlett_1.pdf
+Text size: 17,446 chars
+NO EXTRACTION
+
+All candidates considered:
+
+================================================================================
+PDF: April\Rowlett_2.pdf
+Text size: 6,579 chars
+NO EXTRACTION
+
+All candidates considered:
+
+================================================================================
+PDF: April\Sachse_1.pdf
+Text size: 4,120 chars
+NO EXTRACTION
+
+All candidates considered:
+
+================================================================================
+PDF: April\Sachse_2.pdf
+Text size: 12,429 chars
+BEST: 2026-02-18  via P2_DATED  (raw='2/18/26')
+
+All candidates considered:
+  [P2_DATED      ] ACCEPTED    raw='2/18/26'                       iso='2026-02-18'
+
+================================================================================
+PDF: April\Seagoville_1.pdf
+Text size: 10,255 chars
+BEST: 2026-02-05  via P1_DECLARANT  (raw='02/05/26')
+
+All candidates considered:
+  [P1_DECLARANT  ] ACCEPTED    raw='02/05/26'                      iso='2026-02-05'
+  [P4_DATE_LABEL ] REJECTED    raw='April 07, 2026'                iso='2026-04-07'  rejected_by='Place of Sale'
+
+================================================================================
+PDF: April\Seagoville_2.pdf
+Text size: 7,824 chars
+BEST: 2026-02-18  via P2_DATED  (raw='2/18/26')
+
+All candidates considered:
+  [P2_DATED      ] ACCEPTED    raw='2/18/26'                       iso='2026-02-18'
+
+================================================================================
+PDF: March\Addison_4.pdf
+Text size: 7,396 chars
+NO EXTRACTION
+
+All candidates considered:
+
+================================================================================
+PDF: March\Balch-Springs_1.pdf
+Text size: 4,014 chars
+NO EXTRACTION
+
+All candidates considered:
+
+================================================================================
+PDF: March\Balch-Springs_4.pdf
+Text size: 1,752 chars
+NO EXTRACTION
+
+All candidates considered:
+
+================================================================================
+PDF: March\Carrollton_2.pdf
+Text size: 4,160 chars
+NO EXTRACTION
+
+All candidates considered:
+
+================================================================================
+PDF: March\Carrollton_3.pdf
+Text size: 6,080 chars
+NO EXTRACTION
+
+All candidates considered:
+
+================================================================================
+PDF: March\Carrollton_4.pdf
+Text size: 17,175 chars
+BEST: 2026-02-09  via P2_DATED  (raw='02/09/2026')
+
+All candidates considered:
+  [P2_DATED      ] ACCEPTED    raw='02/09/2026'                    iso='2026-02-09'
+  [P2_DATED      ] REJECTED    raw='July 25, 2022'                 iso='2022-07-25'  rejected_by='deed of trust'
+
+================================================================================
+PDF: March\Cedar-Hill_1.pdf
+Text size: 14,697 chars
+BEST: 2025-12-30  via P1_DECLARANT  (raw='12-30-25')
+
+All candidates considered:
+  [P1_DECLARANT  ] ACCEPTED    raw='12-30-25'                      iso='2025-12-30'
+  [P4_DATE_LABEL ] REJECTED    raw='March 03, 2026'                iso='2026-03-03'  rejected_by='Place of Sale'
+
+================================================================================
+PDF: March\Cedar-Hill_2.pdf
+Text size: 11,065 chars
+BEST: 2026-03-03  via P4_DATE_LABEL  (raw='March 3, 2026')
+
+All candidates considered:
+  [P2_DATED      ] REJECTED    raw='May 22, 2017'                  iso='2017-05-22'  rejected_by='deed of trust'
+  [P4_DATE_LABEL ] ACCEPTED    raw='March 3, 2026'                 iso='2026-03-03'
+
+================================================================================
+PDF: March\Cedar-Hill_3.pdf
+Text size: 24,180 chars
+BEST: 2026-02-05  via P1_DECLARANT  (raw='02/05/26')
+
+All candidates considered:
+  [P1_DECLARANT  ] ACCEPTED    raw='02/05/26'                      iso='2026-02-05'
+  [P1_DECLARANT  ] ACCEPTED    raw='02/05/26'                      iso='2026-02-05'
+  [P4_DATE_LABEL ] REJECTED    raw='July 28, 2004'                 iso='2004-07-28'  rejected_by='deed of trust'
+  [P4_DATE_LABEL ] REJECTED    raw='March 03, 2026'                iso='2026-03-03'  rejected_by='Place of Sale'
+  [P4_DATE_LABEL ] REJECTED    raw='March 03, 2026'                iso='2026-03-03'  rejected_by='Place of Sale'
+
+================================================================================
+PDF: March\Cedar-Hill_4.pdf
+Text size: 15,844 chars
+NO EXTRACTION
+
+All candidates considered:
+  [P2_DATED      ] REJECTED    raw='July 29, 2022'                 iso='2022-07-29'  rejected_by='deed of trust'
+  [P4_DATE_LABEL ] REJECTED    raw='October 12, 2001'              iso='2001-10-12'  rejected_by='deed of trust'
+
+================================================================================
+PDF: March\Coppell_2.pdf
+Text size: 7,441 chars
+BEST: 2026-01-15  via P2_DATED  (raw='01/15/2026')
+
+All candidates considered:
+  [P2_DATED      ] ACCEPTED    raw='01/15/2026'                    iso='2026-01-15'
+
+================================================================================
+PDF: March\Coppell_4.pdf
+Text size: 4,240 chars
+BEST: 2026-02-09  via P1_DECLARANT  (raw='02/09/2026')
+
+All candidates considered:
+  [P1_DECLARANT  ] ACCEPTED    raw='02/09/2026'                    iso='2026-02-09'
+  [P4_DATE_LABEL ] REJECTED    raw='March 03, 2026'                iso='2026-03-03'  rejected_by='Place of Sale'
+
+================================================================================
+PDF: March\Dallas_1.pdf
+Text size: 141,990 chars
+BEST: 2026-01-12  via P1_DECLARANT  (raw='1/12/26')
+
+All candidates considered:
+  [P1_DECLARANT  ] ACCEPTED    raw='1/12/26'                       iso='2026-01-12'
+  [P1_DECLARANT  ] ACCEPTED    raw='12-30-25'                      iso='2025-12-30'
+  [P1_DECLARANT  ] ACCEPTED    raw='12-30-25'                      iso='2025-12-30'
+  [P2_DATED      ] REJECTED    raw='06/17/2024'                    iso='2024-06-17'  rejected_by='deed of trust'
+  [P2_DATED      ] ACCEPTED    raw='12/15/2025'                    iso='2025-12-15'
+  [P2_DATED      ] REJECTED    raw='August 28, 2025'               iso='2025-08-28'  rejected_by='Notice of Sale'
+  [P2_DATED      ] ACCEPTED    raw='01/08/2026'                    iso='2026-01-08'
+  [P2_DATED      ] ACCEPTED    raw='01/08/2026'                    iso='2026-01-08'
+  [P2_DATED      ] REJECTED    raw='September 16, 2022'            iso='2022-09-16'  rejected_by='deed of trust'
+  [P2_DATED      ] ACCEPTED    raw='1/5/2026'                      iso='2026-01-05'
+  [P2_DATED      ] ACCEPTED    raw='12/31/2025'                    iso='2025-12-31'
+  [P2_DATED      ] ACCEPTED    raw='12/31/2025'                    iso='2025-12-31'
+  [P2_DATED      ] ACCEPTED    raw='12-30-25'                      iso='2025-12-30'
+  [P2_DATED      ] PARSE_FAIL  raw='SEPTEMBER 10, 1981'            iso=None
+  [P4_DATE_LABEL ] REJECTED    raw='March 03, 2026'                iso='2026-03-03'  rejected_by='Place of Sale'
+  [P4_DATE_LABEL ] REJECTED    raw='January 9, 2026'               iso='2026-01-09'  rejected_by='Notice of Sale'
+  [P4_DATE_LABEL ] REJECTED    raw='December 17, 2025'             iso='2025-12-17'  rejected_by='Notice of Sale'
+  [P4_DATE_LABEL ] REJECTED    raw='March 03, 2026'                iso='2026-03-03'  rejected_by='Place of Sale'
+  [P4_DATE_LABEL ] REJECTED    raw='August 27, 2019'               iso='2019-08-27'  rejected_by='deed of trust'
+
+================================================================================
+PDF: March\Dallas_2.pdf
+Text size: 158,800 chars
+BEST: 2026-01-22  via P1_DECLARANT  (raw='01/22/2026')
+
+All candidates considered:
+  [P1_DECLARANT  ] ACCEPTED    raw='01/22/2026'                    iso='2026-01-22'
+  [P1_DECLARANT  ] ACCEPTED    raw='1/29/26'                       iso='2026-01-29'
+  [P2_DATED      ] ACCEPTED    raw='1/26/2026'                     iso='2026-01-26'
+  [P2_DATED      ] REJECTED    raw='August 9, 2021'                iso='2021-08-09'  rejected_by='deed of trust'
+  [P2_DATED      ] ACCEPTED    raw='1/12/2026'                     iso='2026-01-12'
+  [P4_DATE_LABEL ] ACCEPTED    raw='January 12, 2026'              iso='2026-01-12'
+  [P4_DATE_LABEL ] REJECTED    raw='February 15, 2024'             iso='2024-02-15'  rejected_by='deed of trust'
+  [P4_DATE_LABEL ] REJECTED    raw='March 03, 2026'                iso='2026-03-03'  rejected_by='Place of Sale'
+  [P4_DATE_LABEL ] REJECTED    raw='March 03, 2026'                iso='2026-03-03'  rejected_by='Place of Sale'
+
+================================================================================
+PDF: March\Dallas_3.pdf
+Text size: 99,145 chars
+NO EXTRACTION
+
+All candidates considered:
+  [P2_DATED      ] REJECTED    raw='Febrnary 1, 2022'              iso=None  rejected_by='deed of trust'
+  [P2_DATED      ] REJECTED    raw='February 5, 2026'              iso='2026-02-05'  rejected_by='Notice of Sale'
+  [P4_DATE_LABEL ] REJECTED    raw='February 3, 2026'              iso='2026-02-03'  rejected_by='Notice of Sale'
+  [P4_DATE_LABEL ] REJECTED    raw='March 03, 2026'                iso='2026-03-03'  rejected_by='Place of Sale'
+
+================================================================================
+PDF: March\Dallas_4 (1).pdf
+Text size: 103,663 chars
+BEST: 2026-02-06  via P2_DATED  (raw='February 6, 2026')
+
+All candidates considered:
+  [P2_DATED      ] ACCEPTED    raw='February 6, 2026'              iso='2026-02-06'
+  [P2_DATED      ] ACCEPTED    raw='October 21, 2021'              iso='2021-10-21'
+  [P2_DATED      ] ACCEPTED    raw='December 30, 2024'             iso='2024-12-30'
+  [P2_DATED      ] REJECTED    raw='February 9, 2026'              iso='2026-02-09'  rejected_by='Notice of Sale'
+  [P4_DATE_LABEL ] ACCEPTED    raw='January 31, 2026'              iso='2026-01-31'
+  [P4_DATE_LABEL ] REJECTED    raw='August 25, 2022'               iso='2022-08-25'  rejected_by='deed of trust'
+  [P4_DATE_LABEL ] REJECTED    raw='December 30, 2024'             iso='2024-12-30'  rejected_by='deed of trust'
+  [P4_DATE_LABEL ] ACCEPTED    raw='February 9, 2026'              iso='2026-02-09'
+  [P4_DATE_LABEL ] ACCEPTED    raw='May 14, 2025'                  iso='2025-05-14'
+  [P4_DATE_LABEL ] REJECTED    raw='May 14, 2025'                  iso='2025-05-14'  rejected_by='deed of trust'
+  [P4_DATE_LABEL ] ACCEPTED    raw='February 9, 2026'              iso='2026-02-09'
+  [P4_DATE_LABEL ] ACCEPTED    raw='October 6, 2022'               iso='2022-10-06'
+  [P4_DATE_LABEL ] REJECTED    raw='October 6, 2022'               iso='2022-10-06'  rejected_by='deed of trust'
+
+================================================================================
+PDF: March\Dallas_4 (2).pdf
+Text size: 103,622 chars
+BEST: 2025-02-05  via P2_DATED  (raw='February 5, 2025')
+
+All candidates considered:
+  [P2_DATED      ] REJECTED    raw='Febrnary 9, 2026'              iso=None  rejected_by='Notice of Sale'
+  [P2_DATED      ] REJECTED    raw='September 10, 2012'            iso='2012-09-10'  rejected_by='deed of trust'
+  [P2_DATED      ] REJECTED    raw='June 18, 2019'                 iso='2019-06-18'  rejected_by='deed of trust'
+  [P2_DATED      ] ACCEPTED    raw='February 5, 2025'              iso='2025-02-05'
+  [P2_DATED      ] REJECTED    raw='June 22, 2023'                 iso='2023-06-22'  rejected_by='executed'
+  [P2_DATED      ] REJECTED    raw='March 31, 2023'                iso='2023-03-31'  rejected_by='executed'
+  [P2_DATED      ] REJECTED    raw='February 7, 2023'              iso='2023-02-07'  rejected_by='executed'
+  [P2_DATED      ] REJECTED    raw='March 7, 2025'                 iso='2025-03-07'  rejected_by='deed of trust'
+  [P2_DATED      ] REJECTED    raw='September 15, 2022'            iso='2022-09-15'  rejected_by='deed of trust'
+  [P2_DATED      ] REJECTED    raw='August 25, 2023'               iso='2023-08-25'  rejected_by='deed of trust'
+  [P4_DATE_LABEL ] ACCEPTED    raw='February 9, 2026'              iso='2026-02-09'
+  [P4_DATE_LABEL ] ACCEPTED    raw='October 6, 2022'               iso='2022-10-06'
+  [P4_DATE_LABEL ] REJECTED    raw='October 6, 2022'               iso='2022-10-06'  rejected_by='deed of trust'
+  [P4_DATE_LABEL ] REJECTED    raw='March 3, 2026'                 iso='2026-03-03'  rejected_by='executed'
+  [P4_DATE_LABEL ] REJECTED    raw='March 3, 2026'                 iso='2026-03-03'  rejected_by='executed'
+  [P4_DATE_LABEL ] REJECTED    raw='January 26, 2023'              iso='2023-01-26'  rejected_by='deed of trust'
+  [P4_DATE_LABEL ] ACCEPTED    raw='March 3, 2026'                 iso='2026-03-03'
+  [P4_DATE_LABEL ] ACCEPTED    raw='March 3, 2026'                 iso='2026-03-03'
+  [P4_DATE_LABEL ] REJECTED    raw='March 3, 2026'                 iso='2026-03-03'  rejected_by='deed of trust'
+  [P4_DATE_LABEL ] ACCEPTED    raw='February 6, 2026'              iso='2026-02-06'
+  [P4_DATE_LABEL ] REJECTED    raw='August 3, 2023'                iso='2023-08-03'  rejected_by='promissory note'
+  [P4_DATE_LABEL ] REJECTED    raw='August 3, 2023'                iso='2023-08-03'  rejected_by='deed of trust'
+
+================================================================================
+PDF: March\Dallas_4 (3).pdf
+Text size: 76,536 chars
+BEST: 2026-02-06  via P3_WITNESS  (raw='6th day of FEBRUARY 2026')
+
+All candidates considered:
+  [P3_WITNESS    ] ACCEPTED    raw='6th day of FEBRUARY 2026'      iso='2026-02-06'
+  [P3_WITNESS    ] ACCEPTED    raw='6th day of FEBRUARY 2026'      iso='2026-02-06'
+  [P3_WITNESS    ] ACCEPTED    raw='6th day of February, 2026'     iso='2026-02-06'
+  [P3_WITNESS    ] ACCEPTED    raw='6th day of February, 2026'     iso='2026-02-06'
+  [P3_WITNESS    ] ACCEPTED    raw='6th day of February, 2026'     iso='2026-02-06'
+  [P3_WITNESS    ] ACCEPTED    raw='6th day of February, 2026'     iso='2026-02-06'
+  [P2_DATED      ] ACCEPTED    raw='February 10, 2026'             iso='2026-02-10'
+  [P2_DATED      ] ACCEPTED    raw='February 10, 2026'             iso='2026-02-10'
+  [P2_DATED      ] ACCEPTED    raw='2/9/2026'                      iso='2026-02-09'
+  [P4_DATE_LABEL ] PARSE_FAIL  raw='FEBRUARY 6, 2026'              iso=None
+  [P4_DATE_LABEL ] REJECTED    raw='October 8, 2020'               iso='2020-10-08'  rejected_by='promissory note'
+  [P4_DATE_LABEL ] REJECTED    raw='October 8, 2020'               iso='2020-10-08'  rejected_by='deed of trust'
+  [P4_DATE_LABEL ] ACCEPTED    raw='January 28, 2026'              iso='2026-01-28'
+  [P4_DATE_LABEL ] REJECTED    raw='March 3, 2026'                 iso='2026-03-03'  rejected_by='sale is scheduled'
+  [P4_DATE_LABEL ] ACCEPTED    raw='February 9, 2026'              iso='2026-02-09'
+  [P4_DATE_LABEL ] REJECTED    raw='August 8, 2024'                iso='2024-08-08'  rejected_by='deed of trust'
+
+================================================================================
+PDF: March\DeSoto_1.pdf
+Text size: 16,335 chars
+BEST: 2026-01-12  via P1_DECLARANT  (raw='1/12/26')
+
+All candidates considered:
+  [P1_DECLARANT  ] ACCEPTED    raw='1/12/26'                       iso='2026-01-12'
+  [P1_DECLARANT  ] ACCEPTED    raw='01/08/2026'                    iso='2026-01-08'
+  [P4_DATE_LABEL ] REJECTED    raw='March 03, 2026'                iso='2026-03-03'  rejected_by='Place of Sale'
+
+================================================================================
+PDF: March\DeSoto_2.pdf
+Text size: 22,981 chars
+BEST: 2026-01-15  via P2_DATED  (raw='01/15/2026')
+
+All candidates considered:
+  [P2_DATED      ] ACCEPTED    raw='01/15/2026'                    iso='2026-01-15'
+  [P4_DATE_LABEL ] REJECTED    raw='April 17, 2007'                iso='2007-04-17'  rejected_by='deed of trust'
+
+================================================================================
+PDF: March\DeSoto_3.pdf
+Text size: 6,502 chars
+BEST: 2026-02-05  via P1_DECLARANT  (raw='2/5/26')
+
+All candidates considered:
+  [P1_DECLARANT  ] ACCEPTED    raw='2/5/26'                        iso='2026-02-05'
+  [P4_DATE_LABEL ] REJECTED    raw='December 6, 2006'              iso='2006-12-06'  rejected_by='deed of trust'
+
+================================================================================
+PDF: March\DeSoto_4.pdf
+Text size: 24,720 chars
+BEST: 2026-02-09  via P1_DECLARANT  (raw='02/09/2026')
+
+All candidates considered:
+  [P1_DECLARANT  ] ACCEPTED    raw='02/09/2026'                    iso='2026-02-09'
+  [P1_DECLARANT  ] ACCEPTED    raw='2/10/26'                       iso='2026-02-10'
+  [P2_DATED      ] REJECTED    raw='January 14, 2025'              iso='2025-01-14'  rejected_by='deed of trust'
+  [P4_DATE_LABEL ] REJECTED    raw='March 03, 2026'                iso='2026-03-03'  rejected_by='Place of Sale'
+  [P4_DATE_LABEL ] REJECTED    raw='March 03, 2026'                iso='2026-03-03'  rejected_by='Place of Sale'
+
+================================================================================
+PDF: March\Duncanville_1.pdf
+Text size: 8,712 chars
+NO EXTRACTION
+
+All candidates considered:
+  [P4_DATE_LABEL ] REJECTED    raw='January 2, 2019'               iso='2019-01-02'  rejected_by='deed of trust'
+
+================================================================================
+PDF: March\Duncanville_2.pdf
+Text size: 27,048 chars
+BEST: 2026-01-22  via P1_DECLARANT  (raw='1/22/26')
+
+All candidates considered:
+  [P1_DECLARANT  ] ACCEPTED    raw='1/22/26'                       iso='2026-01-22'
+  [P1_DECLARANT  ] ACCEPTED    raw='1/29/26'                       iso='2026-01-29'
+  [P2_DATED      ] ACCEPTED    raw='01/15/2026'                    iso='2026-01-15'
+  [P4_DATE_LABEL ] REJECTED    raw='December 30, 2021'             iso='2021-12-30'  rejected_by='deed of trust'
+  [P4_DATE_LABEL ] REJECTED    raw='March 03, 2026'                iso='2026-03-03'  rejected_by='Place of Sale'
+
+================================================================================
+PDF: March\Duncanville_4.pdf
+Text size: 8,962 chars
+NO EXTRACTION
+
+All candidates considered:
+  [P2_DATED      ] REJECTED    raw='August 15, 2019'               iso='2019-08-15'  rejected_by='deed of trust'
+
+================================================================================
+PDF: March\Farmers-Branch_1.pdf
+Text size: 9,058 chars
+BEST: 2026-01-02  via P4_DATE_LABEL  (raw='January 2, 2026')
+
+All candidates considered:
+  [P4_DATE_LABEL ] ACCEPTED    raw='January 2, 2026'               iso='2026-01-02'
+
+================================================================================
+PDF: March\Farmers-Branch_4.pdf
+Text size: 4,940 chars
+BEST: 2026-02-06  via P4_DATE_LABEL  (raw='February 6, 2026')
+
+All candidates considered:
+  [P4_DATE_LABEL ] ACCEPTED    raw='February 6, 2026'              iso='2026-02-06'
+  [P4_DATE_LABEL ] ACCEPTED    raw='July 19, 2024'                 iso='2024-07-19'
+
+================================================================================
+PDF: March\Garland_1.pdf
+Text size: 24,954 chars
+BEST: 2025-12-29  via P4_DATE_LABEL  (raw='December 29, 2025')
+
+All candidates considered:
+  [P2_DATED      ] REJECTED    raw='October 4, 2021'               iso='2021-10-04'  rejected_by='deed of trust'
+  [P4_DATE_LABEL ] ACCEPTED    raw='December 29, 2025'             iso='2025-12-29'
+
+================================================================================
+PDF: March\Garland_2.pdf
+Text size: 52,863 chars
+NO EXTRACTION
+
+All candidates considered:
+  [P4_DATE_LABEL ] REJECTED    raw='January 28, 2026'              iso='2026-01-28'  rejected_by='Notice of Sale'
+  [P4_DATE_LABEL ] REJECTED    raw='January 13, 2026'              iso='2026-01-13'  rejected_by='Notice of Sale'
+  [P4_DATE_LABEL ] REJECTED    raw='November 29, 2007'             iso='2007-11-29'  rejected_by='deed of trust'
+
+================================================================================
+PDF: March\Garland_3.pdf
+Text size: 14,564 chars
+NO EXTRACTION
+
+All candidates considered:
+
+================================================================================
+PDF: March\Garland_4.pdf
+Text size: 35,589 chars
+BEST: 2026-02-09  via P1_DECLARANT  (raw='02/09/2026')
+
+All candidates considered:
+  [P1_DECLARANT  ] ACCEPTED    raw='02/09/2026'                    iso='2026-02-09'
+  [P2_DATED      ] REJECTED    raw='October 26, 2020'              iso='2020-10-26'  rejected_by='executed'
+  [P4_DATE_LABEL ] REJECTED    raw='March 03, 2026'                iso='2026-03-03'  rejected_by='Place of Sale'
+  [P4_DATE_LABEL ] PARSE_FAIL  raw='Octohet 15, 2024'              iso=None
+  [P4_DATE_LABEL ] REJECTED    raw='Octobet 15, 2024'              iso=None  rejected_by='deed of trust'
+  [P4_DATE_LABEL ] ACCEPTED    raw='February 6, 2026'              iso='2026-02-06'
+
+================================================================================
+PDF: March\Glenn Heights_1.pdf
+Text size: 7,162 chars
+BEST: 2026-01-08  via P2_DATED  (raw='01/08/2026')
+
+All candidates considered:
+  [P2_DATED      ] ACCEPTED    raw='01/08/2026'                    iso='2026-01-08'
+
+================================================================================
+PDF: March\Glenn-Heights_3.pdf
+Text size: 5,291 chars
+NO EXTRACTION
+
+All candidates considered:
+
+================================================================================
+PDF: March\Grand-Prairie_1.pdf
+Text size: 17,608 chars
+BEST: 2025-12-31  via P2_DATED  (raw='12/31/2025')
+
+All candidates considered:
+  [P2_DATED      ] ACCEPTED    raw='12/31/2025'                    iso='2025-12-31'
+  [P2_DATED      ] REJECTED    raw='July 18, 2019'                 iso='2019-07-18'  rejected_by='deed of trust'
+  [P4_DATE_LABEL ] REJECTED    raw='October 3, 1996'               iso='1996-10-03'  rejected_by='deed of trust'
+
+================================================================================
+PDF: March\Grand-Prairie_2.pdf
+Text size: 37,300 chars
+BEST: 2026-01-15  via P1_DECLARANT  (raw='01/15/2026')
+
+All candidates considered:
+  [P1_DECLARANT  ] ACCEPTED    raw='01/15/2026'                    iso='2026-01-15'
+  [P4_DATE_LABEL ] REJECTED    raw='March 03, 2026'                iso='2026-03-03'  rejected_by='Place of Sale'
+  [P4_DATE_LABEL ] REJECTED    raw='April 30, 2014'                iso='2014-04-30'  rejected_by='deed of trust'
+  [P4_DATE_LABEL ] ACCEPTED    raw='February 2, 2026'              iso='2026-02-02'
+  [P4_DATE_LABEL ] REJECTED    raw='February 26, 2016'             iso='2016-02-26'  rejected_by='deed of trust'
+
+================================================================================
+PDF: March\Grand-Prairie_3.pdf
+Text size: 8,051 chars
+BEST: 2026-02-05  via P2_DATED  (raw='2/5/26')
+
+All candidates considered:
+  [P2_DATED      ] ACCEPTED    raw='2/5/26'                        iso='2026-02-05'
+
+================================================================================
+PDF: March\Grand-Prairie_4.pdf
+Text size: 29,323 chars
+BEST: 2026-02-09  via P3_WITNESS  (raw='9th day of February, 2026')
+
+All candidates considered:
+  [P3_WITNESS    ] ACCEPTED    raw='9th day of February, 2026'     iso='2026-02-09'
+  [P2_DATED      ] REJECTED    raw='May 18, 2018'                  iso='2018-05-18'  rejected_by='deed of trust'
+  [P2_DATED      ] REJECTED    raw='November 12, 2021'             iso='2021-11-12'  rejected_by='deed of trust'
+  [P4_DATE_LABEL ] ACCEPTED    raw='February 4, 2026'              iso='2026-02-04'
+  [P4_DATE_LABEL ] REJECTED    raw='February 10, 2026'             iso='2026-02-10'  rejected_by='Notice of Sale'
+  [P4_DATE_LABEL ] REJECTED    raw='March 17, 2023'                iso='2023-03-17'  rejected_by='deed of trust'
+
+================================================================================
+PDF: March\Hutchins_1.pdf
+Text size: 6,899 chars
+BEST: 2026-01-08  via P2_DATED  (raw='01/08/2026')
+
+All candidates considered:
+  [P2_DATED      ] ACCEPTED    raw='01/08/2026'                    iso='2026-01-08'
+
+================================================================================
+PDF: March\Irving_1.pdf
+Text size: 18,152 chars
+BEST: 2026-01-08  via P1_DECLARANT  (raw='01/08/2026')
+
+All candidates considered:
+  [P1_DECLARANT  ] ACCEPTED    raw='01/08/2026'                    iso='2026-01-08'
+  [P4_DATE_LABEL ] ACCEPTED    raw='December 8, 2025'              iso='2025-12-08'
+  [P4_DATE_LABEL ] REJECTED    raw='March 03, 2026'                iso='2026-03-03'  rejected_by='Place of Sale'
+  [P4_DATE_LABEL ] REJECTED    raw='April 30, 2008'                iso='2008-04-30'  rejected_by='deed of trust'
+
+================================================================================
+PDF: March\Irving_2.pdf
+Text size: 25,852 chars
+NO EXTRACTION
+
+All candidates considered:
+  [P4_DATE_LABEL ] REJECTED    raw='March 03, 2026'                iso='2026-03-03'  rejected_by='Place of Sale'
+
+================================================================================
+PDF: March\Irving_3.pdf
+Text size: 28,439 chars
+NO EXTRACTION
+
+All candidates considered:
+
+================================================================================
+PDF: March\Irving_4.pdf
+Text size: 10,879 chars
+NO EXTRACTION
+
+All candidates considered:
+  [P2_DATED      ] REJECTED    raw='November 18, 2024'             iso='2024-11-18'  rejected_by='deed of trust'
+
+================================================================================
+PDF: March\Lancaster_1.pdf
+Text size: 25,310 chars
+BEST: 2025-12-18  via P1_DECLARANT  (raw='12/18/25')
+
+All candidates considered:
+  [P1_DECLARANT  ] ACCEPTED    raw='12/18/25'                      iso='2025-12-18'
+  [P4_DATE_LABEL ] REJECTED    raw='March 03, 2026'                iso='2026-03-03'  rejected_by='Place of Sale'
+
+================================================================================
+PDF: March\Lancaster_2.pdf
+Text size: 22,927 chars
+BEST: 2026-01-29  via P1_DECLARANT  (raw='1/29/26')
+
+All candidates considered:
+  [P1_DECLARANT  ] ACCEPTED    raw='1/29/26'                       iso='2026-01-29'
+
+================================================================================
+PDF: March\Lancaster_4.pdf
+Text size: 7,440 chars
+BEST: 2026-02-09  via P1_DECLARANT  (raw='02/09/2026')
+
+All candidates considered:
+  [P1_DECLARANT  ] ACCEPTED    raw='02/09/2026'                    iso='2026-02-09'
+  [P4_DATE_LABEL ] REJECTED    raw='March 03, 2026'                iso='2026-03-03'  rejected_by='Place of Sale'
+  [P4_DATE_LABEL ] REJECTED    raw='October 31, 2019'              iso='2019-10-31'  rejected_by='deed of trust'
+  [P4_DATE_LABEL ] REJECTED    raw='October 31, 2019'              iso='2019-10-31'  rejected_by='deed of trust'
+
+================================================================================
+PDF: March\Mesquite_1.pdf
+Text size: 19,271 chars
+NO EXTRACTION
+
+All candidates considered:
+  [P4_DATE_LABEL ] REJECTED    raw='March 3, 2026'                 iso='2026-03-03'  rejected_by='Place of Sale'
+  [P4_DATE_LABEL ] REJECTED    raw='December 22, 2025'             iso='2025-12-22'  rejected_by='Notice of Sale'
+
+================================================================================
+PDF: March\Mesquite_2.pdf
+Text size: 27,516 chars
+NO EXTRACTION
+
+All candidates considered:
+
+================================================================================
+PDF: March\Mesquite_3.pdf
+Text size: 13,124 chars
+BEST: 2026-02-05  via P2_DATED  (raw='2/5/26')
+
+All candidates considered:
+  [P2_DATED      ] ACCEPTED    raw='2/5/26'                        iso='2026-02-05'
+
+================================================================================
+PDF: March\Mesquite_4.pdf
+Text size: 39,099 chars
+BEST: 2026-02-11  via P2_DATED  (raw='2/11/26')
+
+All candidates considered:
+  [P2_DATED      ] ACCEPTED    raw='2/11/26'                       iso='2026-02-11'
+  [P2_DATED      ] ACCEPTED    raw='June 14, 2024'                 iso='2024-06-14'
+  [P2_DATED      ] REJECTED    raw='June 14, 2024'                 iso='2024-06-14'  rejected_by='deed of trust'
+  [P2_DATED      ] ACCEPTED    raw='February 9, 2026'              iso='2026-02-09'
+  [P4_DATE_LABEL ] REJECTED    raw='March 3, 2026'                 iso='2026-03-03'  rejected_by='executed'
+  [P4_DATE_LABEL ] REJECTED    raw='February 6, 2026'              iso='2026-02-06'  rejected_by='Notary'
+  [P4_DATE_LABEL ] REJECTED    raw='October 2, 2023'               iso='2023-10-02'  rejected_by='deed of trust'
+
+================================================================================
+PDF: March\Other_1.pdf
+Text size: 10,034 chars
+BEST: 2025-12-30  via P2_DATED  (raw='12/30/2025')
+
+All candidates considered:
+  [P2_DATED      ] ACCEPTED    raw='12/30/2025'                    iso='2025-12-30'
+  [P4_DATE_LABEL ] REJECTED    raw='August 28, 2024'               iso='2024-08-28'  rejected_by='deed of trust'
+
+================================================================================
+PDF: March\Other_2.pdf
+Text size: 36,983 chars
+BEST: 2026-01-22  via P1_DECLARANT  (raw='01/22/2026')
+
+All candidates considered:
+  [P1_DECLARANT  ] ACCEPTED    raw='01/22/2026'                    iso='2026-01-22'
+  [P4_DATE_LABEL ] REJECTED    raw='January 15, 2026'              iso='2026-01-15'  rejected_by='Notice of Sale'
+  [P4_DATE_LABEL ] REJECTED    raw='March 03, 2026'                iso='2026-03-03'  rejected_by='Place of Sale'
+
+================================================================================
+PDF: March\Other_3.pdf
+Text size: 9,665 chars
+NO EXTRACTION
+
+All candidates considered:
+
+================================================================================
+PDF: March\Other_4.pdf
+Text size: 55,948 chars
+BEST: 2026-02-06  via P3_WITNESS  (raw='6th day of February, 2026')
+
+All candidates considered:
+  [P3_WITNESS    ] ACCEPTED    raw='6th day of February, 2026'     iso='2026-02-06'
+  [P4_DATE_LABEL ] ACCEPTED    raw='February 6, 2026'              iso='2026-02-06'
+  [P4_DATE_LABEL ] ACCEPTED    raw='October 4, 2024'               iso='2024-10-04'
+
+================================================================================
+PDF: March\Richardson_3.pdf
+Text size: 4,379 chars
+BEST: 2026-02-05  via P1_DECLARANT  (raw='02/05/26')
+
+All candidates considered:
+  [P1_DECLARANT  ] ACCEPTED    raw='02/05/26'                      iso='2026-02-05'
+  [P4_DATE_LABEL ] REJECTED    raw='March 03, 2026'                iso='2026-03-03'  rejected_by='Place of Sale'
+
+================================================================================
+PDF: March\Richardson_4.pdf
+Text size: 56,170 chars
+BEST: 2026-02-06  via P3_WITNESS  (raw='6th day of FEBRUARY 2026')
+
+All candidates considered:
+  [P3_WITNESS    ] ACCEPTED    raw='6th day of FEBRUARY 2026'      iso='2026-02-06'
+  [P4_DATE_LABEL ] ACCEPTED    raw='February 9, 2026'              iso='2026-02-09'
+  [P4_DATE_LABEL ] REJECTED    raw='November 1, 2018'              iso='2018-11-01'  rejected_by='deed of trust'
+
+================================================================================
+PDF: March\Rowlett_1.pdf
+Text size: 4,202 chars
+NO EXTRACTION
+
+All candidates considered:
+
+================================================================================
+PDF: March\Rowlett_2.pdf
+Text size: 10,776 chars
+NO EXTRACTION
+
+All candidates considered:
+
+================================================================================
+PDF: March\Sachse_3.pdf
+Text size: 4,063 chars
+NO EXTRACTION
+
+All candidates considered:
+
+================================================================================
+PDF: March\Sachse_4.pdf
+Text size: 4,869 chars
+BEST: 2026-02-06  via P4_DATE_LABEL  (raw='February 6, 2026')
+
+All candidates considered:
+  [P4_DATE_LABEL ] ACCEPTED    raw='February 6, 2026'              iso='2026-02-06'
+  [P4_DATE_LABEL ] ACCEPTED    raw='December 29, 2023'             iso='2023-12-29'
+
+================================================================================
+PDF: March\Seagoville_4.pdf
+Text size: 10,533 chars
+NO EXTRACTION
+
+All candidates considered:
+  [P4_DATE_LABEL ] REJECTED    raw='February 5, 2026'              iso='2026-02-05'  rejected_by='Notice of Sale'
+
+================================================================================
+PDF: March\Wilmer_2.pdf
+Text size: 5,896 chars
+NO EXTRACTION
+
+All candidates considered:
+
+================================================================================
+PDF: March\Wylie_2.pdf
+Text size: 4,517 chars
+NO EXTRACTION
+
+All candidates considered:
+
+================================================================================
+PDF: May\Dallas_1.pdf
+Text size: 27,833 chars
+BEST: 2026-02-19  via P1_DECLARANT  (raw='02/19/26')
+
+All candidates considered:
+  [P1_DECLARANT  ] ACCEPTED    raw='02/19/26'                      iso='2026-02-19'
+  [P4_DATE_LABEL ] REJECTED    raw='May 05, 2026'                  iso='2026-05-05'  rejected_by='Place of Sale'
+  [P4_DATE_LABEL ] REJECTED    raw='May 05, 2026'                  iso='2026-05-05'  rejected_by='Place of Sale'
+
+================================================================================
+PDF: May\Glenn-Heights_1.pdf
+Text size: 10,481 chars
+BEST: 2026-02-19  via P1_DECLARANT  (raw='02/19/26')
+
+All candidates considered:
+  [P1_DECLARANT  ] ACCEPTED    raw='02/19/26'                      iso='2026-02-19'
+  [P4_DATE_LABEL ] REJECTED    raw='May 05, 2026'                  iso='2026-05-05'  rejected_by='Place of Sale'
+
+================================================================================
+PDF: May\Mesquite_1.pdf
+Text size: 4,402 chars
+NO EXTRACTION
+
+All candidates considered:
+
+================================================================================
+PDF: May\Rowlett_1.pdf
+Text size: 6,086 chars
+NO EXTRACTION
+
+All candidates considered:
+
+================================================================================
+CORPUS SUMMARY
+================================================================================
+
+Total PDFs processed: 98
+  Failed to read:     0
+  Extracted date:     58  (59.2%)
+  No extraction:      40  (40.8%)
+
+Patterns used (for extractions):
+  P1_DECLARANT    29
+  P2_DATED        20
+  P4_DATE_LABEL   5
+  P3_WITNESS      4
+
+Age of extracted dates (today = 2026-05-15):
+  31-90 days      11
+  91-365 days     46
+  over 1 year     1
+
+SUSPICIOUS - extracted dates older than 90 days:
+  April\Dallas_1 (1).pdf                             -> 2026-01-29  via P2_DATED  raw='1/29/2026'
+  April\Dallas_1 (2).pdf                             -> 2026-02-12  via P1_DECLARANT  raw='02/12/26'
+  April\DeSoto_1.pdf                                 -> 2026-01-22  via P1_DECLARANT  raw='01/22/2026'
+  April\Garland_1.pdf                                -> 2026-01-29  via P1_DECLARANT  raw='1/29/26'
+  April\Garland_2.pdf                                -> 2026-02-12  via P2_DATED  raw='2/12/2026'
+  April\Grand-Prairie_1.pdf                          -> 2026-02-12  via P1_DECLARANT  raw='02/12/26'
+  April\Irving_1.pdf                                 -> 2026-01-22  via P1_DECLARANT  raw='01/22/2026'
+  April\Lancaster_1.pdf                              -> 2026-02-09  via P1_DECLARANT  raw='02/09/2026'
+  April\Mesquite_1.pdf                               -> 2026-02-09  via P1_DECLARANT  raw='02/09/2026'
+  April\Seagoville_1.pdf                             -> 2026-02-05  via P1_DECLARANT  raw='02/05/26'
+  March\Carrollton_4.pdf                             -> 2026-02-09  via P2_DATED  raw='02/09/2026'
+  March\Cedar-Hill_1.pdf                             -> 2025-12-30  via P1_DECLARANT  raw='12-30-25'
+  March\Cedar-Hill_3.pdf                             -> 2026-02-05  via P1_DECLARANT  raw='02/05/26'
+  March\Coppell_2.pdf                                -> 2026-01-15  via P2_DATED  raw='01/15/2026'
+  March\Coppell_4.pdf                                -> 2026-02-09  via P1_DECLARANT  raw='02/09/2026'
+  March\Dallas_1.pdf                                 -> 2026-01-12  via P1_DECLARANT  raw='1/12/26'
+  March\Dallas_2.pdf                                 -> 2026-01-22  via P1_DECLARANT  raw='01/22/2026'
+  March\Dallas_4 (1).pdf                             -> 2026-02-06  via P2_DATED  raw='February 6, 2026'
+  March\Dallas_4 (2).pdf                             -> 2025-02-05  via P2_DATED  raw='February 5, 2025'
+  March\Dallas_4 (3).pdf                             -> 2026-02-06  via P3_WITNESS  raw='6th day of FEBRUARY 2026'
+  March\DeSoto_1.pdf                                 -> 2026-01-12  via P1_DECLARANT  raw='1/12/26'
+  March\DeSoto_2.pdf                                 -> 2026-01-15  via P2_DATED  raw='01/15/2026'
+  March\DeSoto_3.pdf                                 -> 2026-02-05  via P1_DECLARANT  raw='2/5/26'
+  March\DeSoto_4.pdf                                 -> 2026-02-09  via P1_DECLARANT  raw='02/09/2026'
+  March\Duncanville_2.pdf                            -> 2026-01-22  via P1_DECLARANT  raw='1/22/26'
+  March\Farmers-Branch_1.pdf                         -> 2026-01-02  via P4_DATE_LABEL  raw='January 2, 2026'
+  March\Farmers-Branch_4.pdf                         -> 2026-02-06  via P4_DATE_LABEL  raw='February 6, 2026'
+  March\Garland_1.pdf                                -> 2025-12-29  via P4_DATE_LABEL  raw='December 29, 2025'
+  March\Garland_4.pdf                                -> 2026-02-09  via P1_DECLARANT  raw='02/09/2026'
+  March\Glenn Heights_1.pdf                          -> 2026-01-08  via P2_DATED  raw='01/08/2026'
+  March\Grand-Prairie_1.pdf                          -> 2025-12-31  via P2_DATED  raw='12/31/2025'
+  March\Grand-Prairie_2.pdf                          -> 2026-01-15  via P1_DECLARANT  raw='01/15/2026'
+  March\Grand-Prairie_3.pdf                          -> 2026-02-05  via P2_DATED  raw='2/5/26'
+  March\Grand-Prairie_4.pdf                          -> 2026-02-09  via P3_WITNESS  raw='9th day of February, 2026'
+  March\Hutchins_1.pdf                               -> 2026-01-08  via P2_DATED  raw='01/08/2026'
+  March\Irving_1.pdf                                 -> 2026-01-08  via P1_DECLARANT  raw='01/08/2026'
+  March\Lancaster_1.pdf                              -> 2025-12-18  via P1_DECLARANT  raw='12/18/25'
+  March\Lancaster_2.pdf                              -> 2026-01-29  via P1_DECLARANT  raw='1/29/26'
+  March\Lancaster_4.pdf                              -> 2026-02-09  via P1_DECLARANT  raw='02/09/2026'
+  March\Mesquite_3.pdf                               -> 2026-02-05  via P2_DATED  raw='2/5/26'
+  March\Mesquite_4.pdf                               -> 2026-02-11  via P2_DATED  raw='2/11/26'
+  March\Other_1.pdf                                  -> 2025-12-30  via P2_DATED  raw='12/30/2025'
+  March\Other_2.pdf                                  -> 2026-01-22  via P1_DECLARANT  raw='01/22/2026'
+  March\Other_4.pdf                                  -> 2026-02-06  via P3_WITNESS  raw='6th day of February, 2026'
+  March\Richardson_3.pdf                             -> 2026-02-05  via P1_DECLARANT  raw='02/05/26'
+  March\Richardson_4.pdf                             -> 2026-02-06  via P3_WITNESS  raw='6th day of FEBRUARY 2026'
+  March\Sachse_4.pdf                                 -> 2026-02-06  via P4_DATE_LABEL  raw='February 6, 2026'
+
+PDFs WITH NO EXTRACTION (40):
+  April\Addison_1.pdf
+  April\Balch-Springs_1.pdf
+  April\Balch-Springs_2.pdf
+  April\Cedar-Hill_1.pdf
+  April\DeSoto_2.pdf
+  April\Duncanville_1.pdf
+  April\Duncanville_2.pdf
+  April\Glenn-Heights_1.pdf
+  April\Glenn-Heights_2.pdf
+  April\Other_1.pdf
+  April\Other_2.pdf
+  April\Rowlett_1.pdf
+  April\Rowlett_2.pdf
+  April\Sachse_1.pdf
+  March\Addison_4.pdf
+  March\Balch-Springs_1.pdf
+  March\Balch-Springs_4.pdf
+  March\Carrollton_2.pdf
+  March\Carrollton_3.pdf
+  March\Cedar-Hill_4.pdf
+  March\Dallas_3.pdf
+  March\Duncanville_1.pdf
+  March\Duncanville_4.pdf
+  March\Garland_2.pdf
+  March\Garland_3.pdf
+  March\Glenn-Heights_3.pdf
+  March\Irving_2.pdf
+  March\Irving_3.pdf
+  March\Irving_4.pdf
+  March\Mesquite_1.pdf
+  March\Mesquite_2.pdf
+  March\Other_3.pdf
+  March\Rowlett_1.pdf
+  March\Rowlett_2.pdf
+  March\Sachse_3.pdf
+  March\Seagoville_4.pdf
+  March\Wilmer_2.pdf
+  March\Wylie_2.pdf
+  May\Mesquite_1.pdf
+  May\Rowlett_1.pdf

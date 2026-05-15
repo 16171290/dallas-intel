@@ -144,47 +144,163 @@ class TestBuildAddressIndex:
 
     def test_basic_index(self):
         df = pd.DataFrame({
-            "ACCOUNT_NUM":   ["10001", "10002"],
-            "STREET_NUM":    ["100", "200"],
-            "STREET_NAME":   ["MAIN", "ELM"],
-            "STREET_SUFFIX": ["ST", "AVE"],
+            "ACCOUNT_NUM":      ["10001", "10002"],
+            "STREET_NUM":       ["100", "200"],
+            "FULL_STREET_NAME": ["MAIN ST", "ELM AVE"],
         })
         idx = dcad_bulk.build_address_index({"ACCOUNT_INFO": df})
-        # normalize.normalize_address keeps "100 MAIN ST"
         assert idx.get("100 MAIN ST") == "10001"
         assert idx.get("200 ELM AVE") == "10002"
 
-    def test_optional_directionals(self):
+    def test_with_directional_prefix(self):
+        """FULL_STREET_NAME may contain a directional prefix."""
         df = pd.DataFrame({
-            "ACCOUNT_NUM":   ["10001"],
-            "STREET_NUM":    ["100"],
-            "PREFIX_DIR":    ["N"],
-            "STREET_NAME":   ["MAIN"],
-            "STREET_SUFFIX": ["ST"],
+            "ACCOUNT_NUM":      ["10001"],
+            "STREET_NUM":       ["100"],
+            "FULL_STREET_NAME": ["N MAIN ST"],
         })
         idx = dcad_bulk.build_address_index({"ACCOUNT_INFO": df})
         assert idx.get("100 N MAIN ST") == "10001"
 
-    def test_index_uses_normalized_form(self):
-        """An address spelled as 'STREET' should normalize to 'ST' in the key."""
+    def test_with_half_num(self):
+        """STREET_HALF_NUM (e.g. '1/2') is included if present."""
         df = pd.DataFrame({
-            "ACCOUNT_NUM":   ["10001"],
-            "STREET_NUM":    ["100"],
-            "STREET_NAME":   ["MAIN"],
-            "STREET_SUFFIX": ["STREET"],
+            "ACCOUNT_NUM":      ["10001"],
+            "STREET_NUM":       ["100"],
+            "STREET_HALF_NUM":  ["1/2"],
+            "FULL_STREET_NAME": ["MAIN ST"],
         })
         idx = dcad_bulk.build_address_index({"ACCOUNT_INFO": df})
-        # The build_address_index sends to normalize_address which expands
-        # STREET → ST in the lookup; key should be "100 MAIN ST".
+        assert idx.get("100 1/2 MAIN ST") == "10001"
+
+    def test_index_uses_normalized_form(self):
+        """Suffix expansion happens in normalize_address."""
+        df = pd.DataFrame({
+            "ACCOUNT_NUM":      ["10001"],
+            "STREET_NUM":       ["100"],
+            "FULL_STREET_NAME": ["MAIN STREET"],
+        })
+        idx = dcad_bulk.build_address_index({"ACCOUNT_INFO": df})
+        # STREET → ST
         assert idx.get("100 MAIN ST") == "10001"
 
     def test_skips_blank_addresses(self):
         df = pd.DataFrame({
-            "ACCOUNT_NUM":   ["10001", "10002"],
-            "STREET_NUM":    ["100", ""],
-            "STREET_NAME":   ["MAIN", ""],
-            "STREET_SUFFIX": ["ST", ""],
+            "ACCOUNT_NUM":      ["10001", "10002"],
+            "STREET_NUM":       ["100", ""],
+            "FULL_STREET_NAME": ["MAIN ST", ""],
         })
         idx = dcad_bulk.build_address_index({"ACCOUNT_INFO": df})
         assert idx.get("100 MAIN ST") == "10001"
         assert len(idx) == 1
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# ZIP URL discovery
+# ═══════════════════════════════════════════════════════════════════════════
+
+# Fixture HTML modeled on the real DataProducts.aspx structure
+# (web-fetched 2026-05-13). The full page lists ~30 ZIPs across five
+# categories; this fixture preserves one representative entry per category
+# so the deny-list is exercised.
+_DATA_PRODUCTS_FIXTURE = """
+<html><body>
+<a href="https://www.dallascad.org/ViewPDFs.aspx?type=3&id=\\\\DCAD.ORG\\WEB\\WEBDATA\\WEBFORMS\\DATA PRODUCTS\\DCAD2026_CURRENT.ZIP">
+  2026 Data Files (No Values - Most Current Ownership)
+</a>
+<a href="https://www.dallascad.org/ViewPDFs.aspx?type=3&id=\\\\DCAD.ORG\\WEB\\WEBDATA\\WEBFORMS\\DATA PRODUCTS\\DCAD2025_CURRENT.ZIP">
+  2025 Certified Data Files with Supplemental Changes (Comma Delimited)
+</a>
+<a href="https://www.dallascad.org/ViewPDFs.aspx?type=3&id=\\\\DCAD.ORG\\WEB\\WEBDATA\\WEBFORMS\\DATA PRODUCTS\\DCAD2024_CURRENT.ZIP">
+  2024 Certified Data Files with Supplemental Changes (Comma Delimited)
+</a>
+<a href="https://www.dallascad.org/ViewPDFs.aspx?type=3&id=\\\\DCAD.ORG\\WEB\\WEBDATA\\WEBFORMS\\DATA PRODUCTS\\DCAD2025_BPP_DETAIL_CURRENT.zip">
+  2025 BPP Detailed Value Data File with Supplemental Changes (Comma Delimited)
+</a>
+<a href="https://www.dallascad.org/ViewPDFs.aspx?type=3&id=\\\\DCAD.ORG\\WEB\\WEBDATA\\WEBFORMS\\DATA PRODUCTS\\2025_REAL_PROPERTY_CERT_APPR_ROLL.zip">
+  2025 Real Property Certified Appraisal Roll (Fixed Format 07/24/2025)
+</a>
+<a href="https://www.dallascad.org/ViewPDFs.aspx?type=3&id=\\\\DCAD.ORG\\WEB\\WEBDATA\\WEBFORMS\\DATA PRODUCTS\\DCAD2025_CERTIFIED_07242025.zip">
+  2025 Certified Data Files at Certification (Comma Delimited 07/24/2025)
+</a>
+<a href="https://www.dallascad.org/ViewPDFs.aspx?type=3&id=\\\\DCAD.ORG\\WEB\\WEBDATA\\WEBFORMS\\DATA PRODUCTS\\ARB_CURRENT.zip">
+  2021 - 2025 Active Appraisal Review Board Data Files (Comma Delimited)
+</a>
+<a href="https://www.dallascad.org/ViewPDFs.aspx?type=3&id=\\\\DCAD.ORG\\WEB\\WEBDATA\\WEBFORMS\\DATA PRODUCTS\\MAIL1_APPRAISAL_NOTICE_DATA_2025.zip">
+  2025 Mail 1 Appraisal Notice Data (RES and COM)
+</a>
+</body></html>
+"""
+
+
+class _FakeResp:
+    """Mimic requests.Response for unit-testing _discover_zip_url."""
+    def __init__(self, content: bytes, status: int = 200):
+        self.content = content
+        self.status_code = status
+    def raise_for_status(self):
+        if self.status_code >= 400:
+            raise Exception(f"HTTP {self.status_code}")
+
+
+class TestDiscoverZipUrl:
+    """Pin the resolver against a fixture page mirroring real DCAD structure."""
+
+    def _patch_get(self, monkeypatch, html: str = _DATA_PRODUCTS_FIXTURE):
+        monkeypatch.setattr(
+            dcad_bulk.requests, "get",
+            lambda *a, **kw: _FakeResp(html.encode("utf-8")),
+        )
+
+    def test_picks_property_data_for_target_year(self, monkeypatch):
+        self._patch_get(monkeypatch)
+        url = dcad_bulk._discover_zip_url(2025)
+        assert "DCAD2025_CURRENT.ZIP" in url
+
+    def test_picks_2026_no_values_zip(self, monkeypatch):
+        """For year 2026, the 'No Values - Most Current Ownership' ZIP wins."""
+        self._patch_get(monkeypatch)
+        url = dcad_bulk._discover_zip_url(2026)
+        assert "DCAD2026_CURRENT.ZIP" in url
+
+    def test_rejects_arb_zip(self, monkeypatch):
+        self._patch_get(monkeypatch)
+        url = dcad_bulk._discover_zip_url(2025)
+        assert "ARB" not in url.upper()
+
+    def test_rejects_bpp_zip(self, monkeypatch):
+        self._patch_get(monkeypatch)
+        url = dcad_bulk._discover_zip_url(2025)
+        assert "BPP" not in url.upper()
+
+    def test_rejects_fixed_format_zip(self, monkeypatch):
+        self._patch_get(monkeypatch)
+        url = dcad_bulk._discover_zip_url(2025)
+        assert "REAL_PROPERTY_CERT" not in url.upper()
+        assert "APPR_ROLL" not in url.upper()
+
+    def test_rejects_appraisal_notice_zip(self, monkeypatch):
+        self._patch_get(monkeypatch)
+        url = dcad_bulk._discover_zip_url(2025)
+        assert "APPRAISAL_NOTICE" not in url.upper()
+        assert "MAIL" not in url.upper()
+
+    def test_rejects_certified_snapshot(self, monkeypatch):
+        """The dated _CERTIFIED_<DATE>.zip is a frozen snapshot; we want _CURRENT."""
+        self._patch_get(monkeypatch)
+        url = dcad_bulk._discover_zip_url(2025)
+        assert "CERTIFIED_07" not in url.upper()
+        assert "_CURRENT" in url.upper()
+
+    def test_missing_year_raises(self, monkeypatch):
+        """Year not present on the page → DCADFetchError with remediation hint."""
+        self._patch_get(monkeypatch)
+        with pytest.raises(dcad_bulk.DCADFetchError) as exc_info:
+            dcad_bulk._discover_zip_url(2099)
+        assert "DCAD_ZIP_URL" in str(exc_info.value)
+
+    def test_empty_page_raises(self, monkeypatch):
+        """No anchors at all → DCADFetchError."""
+        self._patch_get(monkeypatch, html="<html><body><p>nothing</p></body></html>")
+        with pytest.raises(dcad_bulk.DCADFetchError):
+            dcad_bulk._discover_zip_url(2025)

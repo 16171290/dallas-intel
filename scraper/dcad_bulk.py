@@ -105,35 +105,41 @@ def parse_dcad_tables(zip_path: Path) -> dict[str, pd.DataFrame]:
 def build_address_index(tables: dict[str, pd.DataFrame]) -> dict[str, str]:
     """Build a normalized-address → ACCOUNT_NUM lookup map.
 
-    Uses the ``ACCOUNT_INFO`` table per §A.4. STRONG INFERENCE on the
-    column names; the function defensively checks for the expected
-    columns and returns an empty dict if they're missing (so the
-    pipeline degrades gracefully and the enrichment-hit-rate metric
-    surfaces the schema mismatch).
+    Uses the ``ACCOUNT_INFO`` table. CONFIRMED schema (verified 2026-05-13
+    against DCAD 2025 bundle):
+
+      - ``ACCOUNT_NUM``       — primary key
+      - ``STREET_NUM``         — house number
+      - ``STREET_HALF_NUM``    — fractional component (e.g. "1/2")
+      - ``FULL_STREET_NAME``   — directional + name + suffix in one field
+                                 (e.g. "N MAIN ST")
+
+    See docs/DCAD_SCHEMA.md for the full table layout.
     """
     if "ACCOUNT_INFO" not in tables:
         logger.warning("ACCOUNT_INFO table not in DCAD bundle; address index empty")
         return {}
 
     df = tables["ACCOUNT_INFO"]
-    needed = {"ACCOUNT_NUM", "STREET_NUM", "STREET_NAME"}
+    needed = {"ACCOUNT_NUM", "STREET_NUM", "FULL_STREET_NAME"}
     missing = needed - set(df.columns)
     if missing:
         logger.warning(
             "ACCOUNT_INFO missing expected columns %s; address index empty. "
-            "Update §A.4 in docs/DCAD_SCHEMA.md with the actual column names.",
+            "Update docs/DCAD_SCHEMA.md with the actual column names.",
             missing,
         )
         return {}
 
     index: dict[str, str] = {}
-    optional_cols = ("STREET_NUM", "PREFIX_DIR", "STREET_NAME", "STREET_SUFFIX", "SUFFIX_DIR")
-    available = [c for c in optional_cols if c in df.columns]
+    has_half = "STREET_HALF_NUM" in df.columns
 
     for _, row in df.iterrows():
-        parts = [str(row.get(c, "")).strip() for c in available]
-        raw = " ".join(p for p in parts if p).strip()
-        norm = normalize.normalize_address(raw)
+        num   = str(row.get("STREET_NUM", "")).strip()
+        half  = str(row.get("STREET_HALF_NUM", "")).strip() if has_half else ""
+        name  = str(row.get("FULL_STREET_NAME", "")).strip()
+        raw   = " ".join(p for p in (num, half, name) if p).strip()
+        norm  = normalize.normalize_address(raw)
         if norm:
             index[norm] = str(row["ACCOUNT_NUM"]).strip()
 
@@ -168,9 +174,17 @@ def _resolve_zip_url(year: int) -> str:
 def _discover_zip_url(year: int) -> str:
     """Scrape DataProducts.aspx to find the year's comma-delimited ZIP.
 
-    STRONG INFERENCE — assumes links are <a> elements whose text or href
-    references the year and "comma" or ".zip". Scores candidates and
-    returns the highest. If nothing scores positive, raises.
+    CONFIRMED page structure (web-fetched 2026-05-13):
+    DataProducts.aspx contains several ZIP sections. The property data
+    we want has href ending in ``DCAD{YEAR}_CURRENT.zip`` (case-insensitive).
+    Other sections (BPP, ARB, appraisal notice mailings, fixed-format
+    certified rolls) are explicitly excluded via the deny-list.
+
+    Resolution order:
+      1. Primary — first href containing ``dcad{year}_current.zip``
+      2. Fallback — any year + "Data Files" / "Comma Delimited" link
+                    that isn't on the deny-list
+      3. Raise DCADFetchError with a remediation hint
     """
     resp = requests.get(
         config.DCAD_DATAPRODUCTS_URL,
@@ -179,50 +193,84 @@ def _discover_zip_url(year: int) -> str:
     )
     resp.raise_for_status()
 
-    soup = BeautifulSoup(resp.content, "lxml")
+    soup = BeautifulSoup(resp.content, "html.parser")
     year_str = str(year)
-    candidates: list[tuple[int, str, str]] = []
+    target_pattern = f"dcad{year}_current.zip"
 
-    for a in soup.find_all("a", href=True):
-        href = a["href"].strip()
-        text = a.get_text(strip=True)
-        if not href:
-            continue
-
-        score = 0
-        if year_str in text or year_str in href:
-            score += 10
-        text_lower = text.lower()
-        href_lower = href.lower()
-        if "comma" in text_lower:
-            score += 5
-        if "fixed" in text_lower:
-            score -= 3  # prefer comma over fixed-width
-        if href_lower.endswith(".zip"):
-            score += 3
-        if "zip" in href_lower:
-            score += 1
-        if score > 0:
-            candidates.append((score, href, text))
-
-    if not candidates:
-        raise DCADFetchError(
-            f"Could not auto-discover the {year} ZIP URL on "
-            f"{config.DCAD_DATAPRODUCTS_URL}. Inspect the page manually "
-            f"and set the DCAD_ZIP_URL env var to the direct ZIP URL."
-        )
-
-    candidates.sort(key=lambda x: -x[0])
-    best_score, best_href, best_text = candidates[0]
-    logger.info(
-        "Discovered DCAD ZIP (score=%d, text=%r): %s",
-        best_score, best_text, best_href,
+    # Categories present on DataProducts.aspx that are NOT the property
+    # database. If any of these terms appear in the link text or href,
+    # skip the candidate.
+    deny_terms = (
+        "arb",                 # Appraisal Review Board (protests)
+        "bpp",                 # Business Personal Property — separate dataset
+        "appraisal notice",    # Mail-1/2/3 annual notice data
+        "notice data",         # same as above, alternate phrasing
+        "real property cert",  # fixed-format certified appraisal roll
+        "fixed format",        # all fixed-format datasets
+        "appraisal roll",      # certified roll snapshots
     )
 
-    if not best_href.lower().startswith("http"):
-        best_href = urljoin(config.DCAD_BASE + "/", best_href)
+    def _on_deny_list(text_lower: str, href_lower: str) -> bool:
+        return any(term in text_lower or term in href_lower for term in deny_terms)
 
-    return best_href
+    # ─── Tier 1: exact DCAD{YEAR}_CURRENT.zip match ────────────────────
+    for a in soup.find_all("a", href=True):
+        href = a["href"].strip()
+        if not href:
+            continue
+        href_lower = href.lower()
+        text = a.get_text(strip=True)
+        text_lower = text.lower()
+
+        if _on_deny_list(text_lower, href_lower):
+            continue
+        if target_pattern not in href_lower:
+            continue
+
+        full_url = href if href_lower.startswith("http") else urljoin(
+            config.DCAD_BASE + "/", href
+        )
+        logger.info(
+            "DCAD ZIP URL resolved (tier-1 exact match) for year %s: %s "
+            "(link text=%r)",
+            year, full_url, text,
+        )
+        return full_url
+
+    # ─── Tier 2: year + "Data Files" / "Comma Delimited" fallback ──────
+    for a in soup.find_all("a", href=True):
+        href = a["href"].strip()
+        if not href:
+            continue
+        href_lower = href.lower()
+        text = a.get_text(strip=True)
+        text_lower = text.lower()
+
+        if _on_deny_list(text_lower, href_lower):
+            continue
+        if year_str not in text and year_str not in href:
+            continue
+        if "data files" not in text_lower and "comma delimited" not in text_lower:
+            continue
+        if not (href_lower.endswith(".zip") or ".zip" in href_lower):
+            continue
+
+        full_url = href if href_lower.startswith("http") else urljoin(
+            config.DCAD_BASE + "/", href
+        )
+        logger.warning(
+            "DCAD ZIP URL resolved (tier-2 fallback) for year %s: %s "
+            "(link text=%r). DCAD may have renamed the canonical _CURRENT "
+            "file — verify and consider updating the resolver.",
+            year, full_url, text,
+        )
+        return full_url
+
+    raise DCADFetchError(
+        f"Could not find a DCAD{year}_CURRENT.zip link on "
+        f"{config.DCAD_DATAPRODUCTS_URL}. Inspect the page manually and "
+        f"set the DCAD_ZIP_URL env var to the direct ZIP URL."
+    )
 
 
 def _download_zip(url: str, dest: Path) -> None:

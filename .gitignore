@@ -63,3 +63,10 @@ ms-playwright/
 # ─── Dashboard scratch ─────────────────────────────────────────────────────
 dashboard/dist/
 dashboard/build/
+
+probe_bankruptcy_output/
+
+probe_odyssey.py
+probe_bankruptcy.py
+probe_odyssey_output/
+probe_bankruptcy_output/

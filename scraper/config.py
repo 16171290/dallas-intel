@@ -12,6 +12,16 @@ Never hardcode secrets here. The Discord webhook URL is read from
 import os
 from pathlib import Path
 
+# Auto-load .env from the project root if present. This is a local-dev
+# convenience; in GitHub Actions the env vars come from real secrets and
+# load_dotenv() is a no-op (no .env file exists in CI).
+try:
+    from dotenv import load_dotenv
+    _project_root = Path(__file__).resolve().parent.parent
+    load_dotenv(_project_root / ".env")
+except ImportError:
+    pass
+
 # ═══════════════════════════════════════════════════════════════════════════
 # Environment-derived (run-specific)
 # ═══════════════════════════════════════════════════════════════════════════
@@ -24,9 +34,13 @@ CONTACT_EMAIL: str = os.getenv("CONTACT_EMAIL", "unset@example.com")
 # always read from the DISCORD_WEBHOOK_URL secret.
 DISCORD_WEBHOOK_URL: str = os.getenv("DISCORD_WEBHOOK_URL", "")
 
-# Year of DCAD bulk-data ZIP to use. Defaults to current operating year;
-# overridable for backfill or testing.
-DCAD_TARGET_YEAR: int = int(os.getenv("DCAD_TARGET_YEAR", "2026"))
+# Year of DCAD bulk-data ZIP to use. Defaults to 2025 — the most recent
+# certified-with-supplements dataset, which has both ownership AND values.
+# The 2026 ZIP exists but is labeled "No Values — Most Current Ownership"
+# (DCAD certifies values in late July each year). Switch to the next year
+# after that year's certification lands (~late July). Overridable via the
+# DCAD_TARGET_YEAR env var for backfill or testing.
+DCAD_TARGET_YEAR: int = int(os.getenv("DCAD_TARGET_YEAR", "2025"))
 
 # Optional ad-hoc override for the daily lookback window.
 _DAYS_BACK_OVERRIDE = os.getenv("DAYS_BACK_OVERRIDE")
@@ -86,7 +100,7 @@ RATE_LIMITS: dict[str, tuple[float, float]] = {
 CIRCUIT_BREAKER_THRESHOLD: int = 5
 
 # §3.7.9 — random delay 0..N minutes at run start (set 0 to disable jitter).
-CRON_JITTER_MINUTES: int = 30
+CRON_JITTER_MINUTES: int = 0
 
 # 429-handling exponential-backoff parameters.
 BACKOFF_BASE_SECONDS:  int = 60
@@ -113,23 +127,57 @@ DALLAS_CITY_ALIASES: dict[str, str] = {
 # Instrument code map (§A.3)
 # ═══════════════════════════════════════════════════════════════════════════
 # Harris-Intel category label → list of Dallas literal codes that map to it.
-# Mapping STRONG INFERENCE pending Phase 3 verification against publicsearch.us
-# advanced-search behavior. Verified subset: LP, NOF (dept FC), TD (dept FC).
+# VERIFIED 2026-05-13 against publicsearch.us RP (Real Property) department
+# document-type table.
+#
+# Codes appearing in INSTRUMENT_CODES but absent from DALLAS_CODE_DISPLAY_NAMES
+# below (e.g. NOF) are still valid labels for records from other sources —
+# the foreclosure-PDF walker, for example, tags its records dallas_code="NOF".
+# Such codes are simply skipped during publicsearch.us iteration.
 
 INSTRUMENT_CODES: dict[str, list[str]] = {
     "L/P":    ["LP", "RLP"],
-    "NOTICE": ["NOF"],          # also filter Department=FC
-    "TRSALE": ["TD"],           # also filter Department=FC
+    "NOTICE": ["NOF"],                                  # PDF walker only
+    "TRSALE": ["TD"],
     "LIEN":   ["LN", "LC", "ML"],
     "T/L":    ["TXL"],
     "JUDGE":  ["JUD"],
     "A/J":    ["AJ"],
     "PROB":   ["PB"],
-    "DEED":   ["D", "WD", "SWD", "GWD", "QCD", "SD"],
+    "DEED":   ["WD", "QCD", "SD", "DE", "SW", "GN"],    # was [D, WD, SWD, GWD, QCD, SD]
     "BNKRCY": ["BR"],
-    "LEVY":   ["SZS", "TXL"],
+    "LEVY":   ["SZS"],                                  # removed TXL (it's in T/L)
     "REL":    ["REL"],
-    "FTL":    ["FTL"],
+    # FTL category removed — no "FEDERAL TAX LIEN" code exists in Dallas RP
+}
+
+# Code → publicsearch.us display name. Used to type into the doc-type
+# typeahead filter, since the filter matches against display names rather
+# than literal codes. VERIFIED 2026-05-13 from window.__data.configuration
+# embedded on /results pages.
+#
+# Codes NOT in this map are not searchable on publicsearch.us:
+#   - NOF: Notice of Foreclosure (handled by the foreclosure-PDF walker)
+DALLAS_CODE_DISPLAY_NAMES: dict[str, str] = {
+    "LP":  "LIS PENDENS (NOTICE OF)",
+    "RLP": "RELEASE OF LIS PENDENS",
+    "TD":  "TRUSTEE'S/SUBSTITUTE TRUSTEE'S DEED",
+    "LN":  "LIEN",
+    "LC":  "LIEN AFFIDAVIT/CLAIM/NOTICE",
+    "ML":  "MECHANIC'S LIEN CONTRACT/AFFIDAVIT",
+    "TXL": "TAX LIEN",
+    "JUD": "JUDGMENT",
+    "AJ":  "ABSTRACT OF JUDGMENT",
+    "PB":  "PROBATE PROCEEDINGS",
+    "WD":  "WARRANTY DEED",
+    "QCD": "QUIT CLAIM DEED",
+    "SD":  "SHERIFF'S DEED",
+    "DE":  "DEED",
+    "SW":  "SPECIAL WARRANTY DEED",
+    "GN":  "GENERAL WARRANTY DEED",
+    "BR":  "BANKRUPTCY PROCEEDINGS",
+    "SZS": "SEIZURE & SALE",
+    "REL": "RELEASE",
 }
 
 # Codes that mark a previously-seen record as inactive.

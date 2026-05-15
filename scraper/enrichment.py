@@ -33,6 +33,16 @@ logger = logging.getLogger(__name__)
 CanonicalRecord = dict[str, Any]
 
 
+def _clean_owner(raw: str) -> str:
+    """Strip whitespace and trailing '&' separators from DCAD owner fields.
+
+    DCAD uses a trailing '&' on OWNER_NAME1 to signal that ownership continues
+    in OWNER_NAME2 or MULTI_OWNER. When NAME2 happens to be empty, the dangling
+    '&' would otherwise leak into the displayed name.
+    """
+    return raw.strip().rstrip("&").strip()
+
+
 # ═══════════════════════════════════════════════════════════════════════════
 # Canonicalization
 # ═══════════════════════════════════════════════════════════════════════════
@@ -55,6 +65,9 @@ def canonicalize_publicsearch(rec: PublicSearchRecord) -> CanonicalRecord:
         "dcad_owner":         None,
         "dcad_market_value":  None,
         "dcad_homestead":     None,
+        "dcad_over65":        None,
+        "dcad_disabled":      None,
+        "dcad_tax_deferred":  None,
         "amount":             rec.amount,
         "trustee":            None,
         "sale_date":          None,
@@ -93,6 +106,9 @@ def canonicalize_foreclosure(rec: ForeclosureRecord) -> CanonicalRecord:
         "dcad_owner":         None,
         "dcad_market_value":  None,
         "dcad_homestead":     None,
+        "dcad_over65":        None,
+        "dcad_disabled":      None,
+        "dcad_tax_deferred":  None,
         "amount":             rec.original_loan_amount,
         "trustee":            rec.trustee,
         "sale_date":          rec.sale_date_iso,
@@ -141,8 +157,18 @@ def enrich_record(
     """Add DCAD fields in place to a canonical record.
 
     Looks up the record's normalized address in ``address_index`` to
-    resolve the DCAD account number, then pulls owner / market-value /
-    homestead fields from the relevant DCAD tables.
+    resolve the DCAD account number, then pulls owner / value / exemption
+    fields from the verified DCAD tables (see docs/DCAD_SCHEMA.md).
+
+    Adds these fields when matched:
+      - ``dcad_account``       — DCAD account number
+      - ``dcad_owner``         — primary owner (OWNER_NAME1 from ACCOUNT_INFO,
+                                  joined with OWNER_NAME2 if both present)
+      - ``dcad_market_value``  — TOT_VAL from ACCOUNT_APPRL_YEAR for target year
+      - ``dcad_homestead``     — True if HOMESTEAD_EFF_DT populated
+      - ``dcad_over65``        — True if OVER65_DESC present (distressed signal)
+      - ``dcad_disabled``      — True if DISABLED_DESC present (distressed signal)
+      - ``dcad_tax_deferred``  — True if TAX_DEFERRED_DESC present (strong signal)
 
     Returns the same record dict (mutated).
     """
@@ -156,42 +182,94 @@ def enrich_record(
 
     record["dcad_account"] = account_num
 
-    # Owner — first row from MULTI_OWNER for this account.
-    if "MULTI_OWNER" in dcad_tables:
+    # Primary owner — from ACCOUNT_INFO.OWNER_NAME1 (and NAME2 if joint).
+    # ACCOUNT_INFO covers all 858k+ parcels; MULTI_OWNER (107k rows) is
+    # only for accounts with 3+ owners or fractional ownership.
+    #
+    # DCAD convention: a trailing "&" on NAME1 signals "joint owner continued
+    # in NAME2 / MULTI_OWNER". Strip it so the displayed name doesn't dangle.
+    if "ACCOUNT_INFO" in dcad_tables:
+        df = dcad_tables["ACCOUNT_INFO"]
+        if "ACCOUNT_NUM" in df.columns and "OWNER_NAME1" in df.columns:
+            rows = df[df["ACCOUNT_NUM"] == account_num]
+            if not rows.empty:
+                name1 = _clean_owner(str(rows.iloc[0].get("OWNER_NAME1", "")))
+                name2 = _clean_owner(str(rows.iloc[0].get("OWNER_NAME2", "")))
+                if name1 and name2:
+                    record["dcad_owner"] = f"{name1} & {name2}"
+                elif name1:
+                    record["dcad_owner"] = name1
+
+    # Fall back to MULTI_OWNER only if ACCOUNT_INFO didn't yield a name.
+    if not record.get("dcad_owner") and "MULTI_OWNER" in dcad_tables:
         df = dcad_tables["MULTI_OWNER"]
         if "ACCOUNT_NUM" in df.columns and "OWNER_NAME" in df.columns:
             rows = df[df["ACCOUNT_NUM"] == account_num]
             if not rows.empty:
-                record["dcad_owner"] = rows.iloc[0]["OWNER_NAME"].strip() or None
+                name = str(rows.iloc[0]["OWNER_NAME"]).strip()
+                record["dcad_owner"] = name or None
 
-    # Market value — current target-year row from ACCOUNT_APPRL_YEAR.
+    # Total appraised value (TOT_VAL = IMPR_VAL + LAND_VAL) for target year.
     if "ACCOUNT_APPRL_YEAR" in dcad_tables:
         df = dcad_tables["ACCOUNT_APPRL_YEAR"]
-        if "ACCOUNT_NUM" in df.columns and "MARKET_VAL" in df.columns:
+        if "ACCOUNT_NUM" in df.columns and "TOT_VAL" in df.columns:
             year_col = "APPRAISAL_YR" if "APPRAISAL_YR" in df.columns else None
             rows = df[df["ACCOUNT_NUM"] == account_num]
             if year_col:
                 rows = rows[rows[year_col] == str(config.DCAD_TARGET_YEAR)]
             if not rows.empty:
-                raw_val = str(rows.iloc[0]["MARKET_VAL"]).replace(",", "").strip()
+                raw_val = str(rows.iloc[0]["TOT_VAL"]).replace(",", "").strip()
                 try:
                     record["dcad_market_value"] = float(raw_val) if raw_val else None
                 except ValueError:
                     record["dcad_market_value"] = None
 
-    # Homestead exemption — presence of any APPLIED_STD_EXEMPT row with a
-    # homestead-style code (HS, HOM, etc.).
+    # Homestead + distressed-seller signals from APPLIED_STD_EXEMPT.
+    #
+    # DCAD sentinel convention (verified against DCAD2025_CURRENT):
+    #   HOMESTEAD_EFF_DT:   date like "01/01/2022" = active; "UNASSIGNED"/"" = none
+    #   OVER65_DESC:        "OVER 65" or "SURVIVING SPOUSE" = active; "UNASSIGNED"/"" = none
+    #   DISABLED_DESC:      "DISABLED" = active; "UNASSIGNED"/"" = none
+    #   TAX_DEFERRED_DESC:  "PERMANENT" = active; "UNASSIGNED"/"" = none
+    #
+    # An account may have multiple rows (one per OWNER_SEQ_NUM). If any owner
+    # has the exemption, the property gets the flag.
     if "APPLIED_STD_EXEMPT" in dcad_tables:
         df = dcad_tables["APPLIED_STD_EXEMPT"]
-        if "ACCOUNT_NUM" in df.columns and "EXEMPT_CD" in df.columns:
+        if "ACCOUNT_NUM" in df.columns:
             rows = df[df["ACCOUNT_NUM"] == account_num]
-            codes = {str(c).upper().strip() for c in rows["EXEMPT_CD"].tolist()}
-            record["dcad_homestead"] = any(
-                code.startswith("HS") or code.startswith("HOM")
-                for code in codes
-            )
+            if not rows.empty:
+                record["dcad_homestead"]     = _any_active(rows, "HOMESTEAD_EFF_DT")
+                record["dcad_over65"]        = _any_active(rows, "OVER65_DESC")
+                record["dcad_disabled"]      = _any_active(rows, "DISABLED_DESC")
+                record["dcad_tax_deferred"]  = _any_active(rows, "TAX_DEFERRED_DESC")
+            else:
+                # Account matched but no exemption row → all four are confirmed False.
+                record["dcad_homestead"]    = False
+                record["dcad_over65"]       = False
+                record["dcad_disabled"]     = False
+                record["dcad_tax_deferred"] = False
 
     return record
+
+
+# DCAD sentinel values meaning "this exemption does not apply".
+_EXEMPTION_FALSY_SENTINELS = frozenset({"", "UNASSIGNED", "NAN", "NONE"})
+
+
+def _any_active(rows: pd.DataFrame, col: str) -> bool:
+    """True if any row in ``rows`` has a truthy (non-sentinel) value in ``col``.
+
+    Handles DCAD's "UNASSIGNED" sentinel — distinct from empty string but
+    semantically equivalent to "no, this exemption is not active".
+    """
+    if col not in rows.columns:
+        return False
+    for v in rows[col]:
+        cleaned = str(v).strip().upper()
+        if cleaned and cleaned not in _EXEMPTION_FALSY_SENTINELS:
+            return True
+    return False
 
 
 def enrich_batch(
