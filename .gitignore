@@ -70,3 +70,19 @@ probe_odyssey.py
 probe_bankruptcy.py
 probe_odyssey_output/
 probe_bankruptcy_output/
+
+# Phase 3 diagnostic scripts (one-shot, not pipeline code)
+audit_leads.py
+audit_phase3e.py
+fix_test_basic.py
+
+# Phase logs
+phase3d_*.log
+phase3e_*.log
+
+# Extracted tarballs
+dallas-intel-phase-3d/
+dallas-intel-phase-3e/
+dallas-intel-phase-3e1/
+dallas-intel-phase-*.tar.gz
+dallas-intel-phase-*.tar
