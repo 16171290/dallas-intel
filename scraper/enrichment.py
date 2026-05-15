@@ -5,11 +5,11 @@ Source modules each produce their own record type:
   - publicsearch.PublicSearchRecord
   - foreclosure_pdfs.ForeclosureRecord
 
-This module converts them into a single canonical dict shape (§E.2) and
+This module converts them into a single canonical dict shape (Sec E.2) and
 joins each record to its DCAD parcel via the address index built by
 ``dcad_bulk.build_address_index``.
 
-§F.3.1 hit-rate target: ≥85% on first run, ≥95% within 3 months. The
+Sec F.3.1 hit-rate target: >=85% on first run, >=95% within 3 months. The
 :class:`EnrichmentStats` returned by :func:`enrich_batch` surfaces the
 current rate so downstream monitoring can alert on drops.
 """
@@ -29,7 +29,7 @@ from .publicsearch import PublicSearchRecord
 logger = logging.getLogger(__name__)
 
 
-# Canonical record is just a plain dict. Field set documented in §E.2.
+# Canonical record is just a plain dict. Field set documented in Sec E.2.
 CanonicalRecord = dict[str, Any]
 
 
@@ -43,12 +43,12 @@ def _clean_owner(raw: str) -> str:
     return raw.strip().rstrip("&").strip()
 
 
-# ═══════════════════════════════════════════════════════════════════════════
+# ============================================================================
 # Canonicalization
-# ═══════════════════════════════════════════════════════════════════════════
+# ============================================================================
 
 def canonicalize_publicsearch(rec: PublicSearchRecord) -> CanonicalRecord:
-    """Convert a PublicSearchRecord into the canonical dict shape (§E.2)."""
+    """Convert a PublicSearchRecord into the canonical dict shape (Sec E.2)."""
     norm_addr = normalize.normalize_address(rec.address) if rec.address else None
     return {
         "record_id":          rec.record_id,
@@ -81,22 +81,30 @@ def canonicalize_publicsearch(rec: PublicSearchRecord) -> CanonicalRecord:
 
 
 def canonicalize_foreclosure(rec: ForeclosureRecord) -> CanonicalRecord:
-    """Convert a ForeclosureRecord into the canonical dict shape (§E.2).
+    """Convert a ForeclosureRecord into the canonical dict shape (Sec E.2).
 
     Foreclosure PDFs map to the ``NOTICE`` category (Notice of Foreclosure)
-    with literal Dallas code ``NOF`` — see §A.3.
+    with literal Dallas code ``NOF`` - see Sec A.3.
+
+    2026-05-15: ``filing_date`` is now sourced from ``rec.notice_date_iso``
+    (the real clerk-filed notice date extracted from the PDF text) rather
+    than ``rec.sale_date_iso`` (the auction date, which was a misleading
+    proxy). When the parser can't extract a real notice date, filing_date
+    is None - the strict buy-box filter excludes such records.
     """
     norm_addr = (
         normalize.normalize_address(rec.property_address) if rec.property_address else None
     )
     # Synthesize a record_id from the PDF source + sale date + address.
+    # Intentionally still uses sale_date_iso to preserve record_id stability
+    # across runs for already-tracked records.
     synthetic_id = _synthesize_pdf_record_id(rec)
     return {
         "record_id":          synthetic_id,
         "source":             "foreclosure_pdf",
         "dallas_code":        "NOF",
         "category":           "NOTICE",
-        "filing_date":        rec.sale_date_iso,           # use sale date as a proxy
+        "filing_date":        rec.notice_date_iso,         # real notice filing date (None if not extractable)
         "instrument_num":     None,                         # not in PDF
         "grantor":            rec.trustee,
         "grantee":            rec.debtor,
@@ -122,7 +130,12 @@ def canonicalize_foreclosure(rec: ForeclosureRecord) -> CanonicalRecord:
 
 
 def _synthesize_pdf_record_id(rec: ForeclosureRecord) -> str:
-    """Deterministic synthetic ID for foreclosure-PDF records (no native ID)."""
+    """Deterministic synthetic ID for foreclosure-PDF records (no native ID).
+
+    Preserves stability across runs even after the filing_date source
+    changed: the seed still uses sale_date_iso so existing records keep
+    the same record_id and the dedup/first_seen logic continues to work.
+    """
     import hashlib
     seed = "|".join([
         rec.source_pdf or "",
@@ -134,9 +147,9 @@ def _synthesize_pdf_record_id(rec: ForeclosureRecord) -> str:
     return f"pdf-{h}"
 
 
-# ═══════════════════════════════════════════════════════════════════════════
+# ============================================================================
 # DCAD enrichment
-# ═══════════════════════════════════════════════════════════════════════════
+# ============================================================================
 
 @dataclass
 class EnrichmentStats:
@@ -161,14 +174,14 @@ def enrich_record(
     fields from the verified DCAD tables (see docs/DCAD_SCHEMA.md).
 
     Adds these fields when matched:
-      - ``dcad_account``       — DCAD account number
-      - ``dcad_owner``         — primary owner (OWNER_NAME1 from ACCOUNT_INFO,
+      - ``dcad_account``       - DCAD account number
+      - ``dcad_owner``         - primary owner (OWNER_NAME1 from ACCOUNT_INFO,
                                   joined with OWNER_NAME2 if both present)
-      - ``dcad_market_value``  — TOT_VAL from ACCOUNT_APPRL_YEAR for target year
-      - ``dcad_homestead``     — True if HOMESTEAD_EFF_DT populated
-      - ``dcad_over65``        — True if OVER65_DESC present (distressed signal)
-      - ``dcad_disabled``      — True if DISABLED_DESC present (distressed signal)
-      - ``dcad_tax_deferred``  — True if TAX_DEFERRED_DESC present (strong signal)
+      - ``dcad_market_value``  - TOT_VAL from ACCOUNT_APPRL_YEAR for target year
+      - ``dcad_homestead``     - True if HOMESTEAD_EFF_DT populated
+      - ``dcad_over65``        - True if OVER65_DESC present (distressed signal)
+      - ``dcad_disabled``      - True if DISABLED_DESC present (distressed signal)
+      - ``dcad_tax_deferred``  - True if TAX_DEFERRED_DESC present (strong signal)
 
     Returns the same record dict (mutated).
     """
@@ -182,7 +195,7 @@ def enrich_record(
 
     record["dcad_account"] = account_num
 
-    # Primary owner — from ACCOUNT_INFO.OWNER_NAME1 (and NAME2 if joint).
+    # Primary owner - from ACCOUNT_INFO.OWNER_NAME1 (and NAME2 if joint).
     # ACCOUNT_INFO covers all 858k+ parcels; MULTI_OWNER (107k rows) is
     # only for accounts with 3+ owners or fractional ownership.
     #
@@ -244,7 +257,7 @@ def enrich_record(
                 record["dcad_disabled"]      = _any_active(rows, "DISABLED_DESC")
                 record["dcad_tax_deferred"]  = _any_active(rows, "TAX_DEFERRED_DESC")
             else:
-                # Account matched but no exemption row → all four are confirmed False.
+                # Account matched but no exemption row -> all four are confirmed False.
                 record["dcad_homestead"]    = False
                 record["dcad_over65"]       = False
                 record["dcad_disabled"]     = False
@@ -260,7 +273,7 @@ _EXEMPTION_FALSY_SENTINELS = frozenset({"", "UNASSIGNED", "NAN", "NONE"})
 def _any_active(rows: pd.DataFrame, col: str) -> bool:
     """True if any row in ``rows`` has a truthy (non-sentinel) value in ``col``.
 
-    Handles DCAD's "UNASSIGNED" sentinel — distinct from empty string but
+    Handles DCAD's "UNASSIGNED" sentinel - distinct from empty string but
     semantically equivalent to "no, this exemption is not active".
     """
     if col not in rows.columns:

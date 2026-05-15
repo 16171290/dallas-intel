@@ -30,16 +30,34 @@ Parser strategy (2026-05-14 rewrite):
    Records without extractable addresses fall through to a legacy
    opener-anchored path so we don't completely drop a PDF whose
    address parsing failed.
+
+Notice-date extraction (2026-05-15):
+   Added a separate ``notice_date`` field distinct from ``sale_date``.
+   Sale date is the auction date (e.g. first Tuesday of next month).
+   Notice date is when the trustee filed the foreclosure notice with
+   the County Clerk - the operationally important "freshness" signal.
+
+   Four positive patterns (in confidence order):
+     P1_DECLARANT  -  "on MM/DD/YY I filed at the office of the DALLAS
+                        County Clerk"  (most authoritative)
+     P3_WITNESS    -  "WITNESS MY HAND this Xth day of MONTH, YYYY"
+     P2_DATED      -  "Dated: <date>" near trustee signature
+     P4_DATE_LABEL -  "Date: <Month> <day>, <year>" near trustee context
+
+   Rejection rules block dates appearing in Deed-of-Trust contexts,
+   sale-date contexts, notary commission lines, etc. Rejection
+   matching is whitespace-normalized to catch pdfplumber extraction
+   artifacts like ``deed·of trust`` (middle-dot instead of space).
 """
 
 import logging
 import random
 import re
-import time
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
 from urllib.parse import urljoin, urlparse, unquote
+import time
 
 import requests
 from bs4 import BeautifulSoup
@@ -246,6 +264,9 @@ class ForeclosureRecord:
     source_pdf: str
     sale_date: Optional[str] = None          # "October 7, 2025" or normalized
     sale_date_iso: Optional[str] = None      # "2025-10-07" if parseable
+    notice_date: Optional[str] = None        # raw form of when notice was filed
+    notice_date_iso: Optional[str] = None    # "2026-01-12" if parseable - the operationally important freshness signal
+    notice_date_pattern: Optional[str] = None  # which extractor pattern fired (audit)
     property_address: Optional[str] = None
     debtor: Optional[str] = None             # "Maker:" / "Borrower:" / homeowner
     trustee: Optional[str] = None            # Substitute trustee or beneficiary agent
@@ -449,6 +470,211 @@ _MONTH_NAME_TO_NUM = {
 
 
 # ============================================================================
+# Notice-date extraction (2026-05-15)
+# ============================================================================
+#
+# Validated across 98 PDF corpus. 58/98 (~59%) yield a notice date.
+# Four patterns in confidence order:
+#
+#   P1 - Declarant filing clause (most authoritative)
+#        "...on 02/19/26 I filed at the office of the DALLAS County Clerk..."
+#
+#   P2 - "Dated: <date>" near trustee signature
+#        "Dated: 1/12/2026"  -> the trustee-signing date, within days of clerk filing
+#
+#   P3 - "WITNESS MY HAND this Xth day of MONTH, YYYY" - legal formal version of P2
+#
+#   P4 - "Date: <Month> <day>, <year>" near trustee context
+#        "Date: February 9, 2026"  -> trustee signing date in label form
+#
+# A date candidate is REJECTED if its preceding 200 chars (after whitespace
+# normalization) contain a phrase indicating a Deed-of-Trust context, a
+# sale-date context, a notary commission line, etc.
+
+# Pattern 1: Declarant-filed (highest confidence)
+_NOTICE_DECLARANT_RE = re.compile(
+    r"on\s+(?P<date>\d{1,2}[/-]\d{1,2}[/-]\d{2,4})\s+I\s+filed\s+at\s+the\s+office\s+of\s+(?:the\s+)?DALLAS\s+County",
+    re.IGNORECASE,
+)
+
+# Pattern 2: Trustee Dated: line
+_NOTICE_DATED_RE = re.compile(
+    r"(?im)(?:^|\n)\s*Dated:?\s*(?P<date>\d{1,2}[/-]\d{1,2}[/-]\d{2,4}|[A-Z][a-z]+\s+\d{1,2},?\s+\d{4})",
+)
+
+# Pattern 3: WITNESS MY HAND this <date>
+_NOTICE_WITNESS_RE = re.compile(
+    r"WITNESS\s+(?:MY|my)\s+hand\s+this\s+(?P<date>\d{1,2}(?:st|nd|rd|th)?\s+day\s+of\s+[A-Z][a-z]+,?\s+\d{4}|\d{1,2}[/-]\d{1,2}[/-]\d{2,4})",
+    re.IGNORECASE,
+)
+
+# Pattern 4: Date: <Month> <day>, <year>
+_NOTICE_DATE_LABEL_RE = re.compile(
+    r"(?im)(?:^|\n)\s*Date:\s*(?P<date>[A-Z][a-z]+\s+\d{1,2},?\s+\d{4})",
+)
+
+# Phrases whose presence in the 200 chars BEFORE a date candidate marks
+# the date as NOT a notice-filing date (Deed-of-Trust, mortgage origination,
+# prior recording, sale date, notary expiry, etc.). Comparison is done
+# AFTER whitespace normalization so PDF artifacts like "deed.of trust"
+# (middle-dot) still match "deed of trust".
+_NOTICE_REJECT_PHRASES = (
+    "deed of trust",
+    "whereas",
+    "recorded",
+    "original mortgagee",
+    "instrument to be foreclosed",
+    "executed",
+    "mortgagor",
+    "grantor s",         # "Grantor(s):" after punctuation strip
+    "deed of trust date",
+    "in payment of a debt",
+    "note dated",
+    "promissory note",
+    "notice of sale",
+    "notary",
+    "commission expires",
+    "deed of trust information",
+    "date of sale",
+    "notice is hereby given that on",
+    "foreclosure sale will be conducted",
+    "sale is scheduled",
+    "first tuesday",
+    "time of sale",
+    "place of sale",
+)
+
+
+def _normalize_for_match(snippet: str) -> str:
+    """Collapse whitespace and non-alphanumeric runs to single spaces.
+
+    Used so the reject-phrase substring search catches pdfplumber
+    extraction artifacts like ``deed.of trust`` (middle-dot instead of
+    space) or ``deed  of   trust`` (collapsed whitespace).
+    """
+    if not snippet:
+        return ""
+    # Replace any sequence of non-alphanumeric chars (including unicode
+    # punctuation like U+00B7 middle dot) with a single space.
+    return re.sub(r"[^a-z0-9]+", " ", snippet.lower()).strip()
+
+
+def _has_notice_date_reject_context(
+    text: str,
+    position: int,
+    window: int = 200,
+) -> Optional[str]:
+    """Check the ``window`` chars before ``position`` for rejection phrases.
+
+    Returns the matching phrase if rejected, None if accepted.
+    """
+    if position <= 0:
+        return None
+    start = max(0, position - window)
+    snippet = text[start:position]
+    normalized = _normalize_for_match(snippet)
+    for phrase in _NOTICE_REJECT_PHRASES:
+        if phrase in normalized:
+            return phrase
+    return None
+
+
+def _notice_date_to_iso(raw: str) -> Optional[str]:
+    """Convert a raw date string (any of the four pattern formats) to ISO.
+
+    Returns None if unparseable.
+    """
+    if not raw:
+        return None
+    raw = raw.strip().replace("\n", " ")
+    raw = re.sub(r"\s+", " ", raw)
+
+    # M/D/YYYY or M/D/YY or M-D-YYYY etc.
+    m = re.match(r"^(\d{1,2})[/-](\d{1,2})[/-](\d{2,4})$", raw)
+    if m:
+        mo, d, y = int(m.group(1)), int(m.group(2)), int(m.group(3))
+        if y < 100:
+            # Two-digit year: 00-49 -> 2000s, 50-99 -> 1900s
+            y += 2000 if y < 50 else 1900
+        try:
+            from datetime import date
+            return date(y, mo, d).strftime("%Y-%m-%d")
+        except ValueError:
+            return None
+
+    # "Month D, YYYY" or "Month D YYYY"
+    m = re.match(r"^([A-Z][a-z]+)\s+(\d{1,2}),?\s+(\d{4})$", raw)
+    if m:
+        mo = _MONTH_NAME_TO_NUM.get(m.group(1))
+        if mo:
+            try:
+                from datetime import date
+                return date(int(m.group(3)), mo, int(m.group(2))).strftime("%Y-%m-%d")
+            except ValueError:
+                return None
+
+    # "Xth day of Month, YYYY"
+    m = re.match(
+        r"^(\d{1,2})(?:st|nd|rd|th)?\s+day\s+of\s+([A-Z][a-z]+),?\s+(\d{4})$",
+        raw,
+        re.IGNORECASE,
+    )
+    if m:
+        # Title-case the month for lookup since case-insensitive.
+        mo_name = m.group(2).capitalize()
+        mo = _MONTH_NAME_TO_NUM.get(mo_name)
+        if mo:
+            try:
+                from datetime import date
+                return date(int(m.group(3)), mo, int(m.group(1))).strftime("%Y-%m-%d")
+            except ValueError:
+                return None
+
+    return None
+
+
+def _extract_notice_date(text: str) -> tuple[Optional[str], Optional[str], Optional[str]]:
+    """Try each pattern in confidence order, apply rejection.
+
+    Returns ``(iso_or_None, raw_or_None, pattern_name_or_None)``. Returns
+    ``(None, None, None)`` if no valid candidate survives rejection.
+    """
+    if not text:
+        return (None, None, None)
+
+    candidates = []
+    for pattern_name, pattern, confidence in [
+        ("P1_DECLARANT",  _NOTICE_DECLARANT_RE,   1),
+        ("P3_WITNESS",    _NOTICE_WITNESS_RE,     2),
+        ("P2_DATED",      _NOTICE_DATED_RE,       3),
+        ("P4_DATE_LABEL", _NOTICE_DATE_LABEL_RE,  4),
+    ]:
+        for m in pattern.finditer(text):
+            raw = m.group("date").strip()
+            iso = _notice_date_to_iso(raw)
+            if not iso:
+                continue  # parse failure - skip
+            reject = _has_notice_date_reject_context(text, m.start())
+            if reject:
+                continue  # rejected - skip
+            candidates.append({
+                "pattern":    pattern_name,
+                "confidence": confidence,
+                "raw":        raw,
+                "iso":        iso,
+                "position":   m.start(),
+            })
+
+    if not candidates:
+        return (None, None, None)
+
+    # Sort by confidence (lower = higher conf), then position (earlier = better).
+    candidates.sort(key=lambda c: (c["confidence"], c["position"]))
+    best = candidates[0]
+    return (best["iso"], best["raw"], best["pattern"])
+
+
+# ============================================================================
 # Parsing helpers
 # ============================================================================
 
@@ -460,6 +686,13 @@ def _parse_fields_into_record(rec: ForeclosureRecord, block: str) -> None:
     elif m := _SALE_DATE_PROSE_RE.search(block):
         rec.sale_date = m.group("date").strip()
     rec.sale_date_iso = _parse_date_iso(rec.sale_date) if rec.sale_date else None
+
+    # Notice date - the operationally important field for "filed in last
+    # N days" filtering. Separate from sale_date.
+    notice_iso, notice_raw, notice_pattern = _extract_notice_date(block)
+    rec.notice_date_iso = notice_iso
+    rec.notice_date = notice_raw
+    rec.notice_date_pattern = notice_pattern
 
     # Debtor / homeowner - Maker line first, fallback to "present owner" prose.
     if m := _MAKER_RE.search(block):

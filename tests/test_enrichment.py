@@ -57,10 +57,16 @@ class TestCanonicalizePublicsearch:
 
 class TestCanonicalizeForeclosure:
     def test_basic(self):
+        # Phase 3.D: filing_date now sources from notice_date_iso (the real
+        # trustee-filed notice date), not sale_date_iso (the auction date).
+        # The previous proxy behavior was a known bug fixed 2026-05-15.
         rec = foreclosure_pdfs.ForeclosureRecord(
             source_pdf="Dallas_1.pdf",
             sale_date="October 7, 2025",
             sale_date_iso="2025-10-07",
+            notice_date="1/12/2026",
+            notice_date_iso="2026-01-12",
+            notice_date_pattern="P2_DATED",
             property_address="1004 Seago Drive, Seagoville, TX 75159",
             debtor="John Borrower",
             trustee="ABC Trustee Corp",
@@ -71,7 +77,7 @@ class TestCanonicalizeForeclosure:
         assert out["dallas_code"] == "NOF"
         assert out["category"]    == "NOTICE"
         assert out["sale_date"]   == "2025-10-07"
-        assert out["filing_date"] == "2025-10-07"
+        assert out["filing_date"] == "2026-01-12"
         assert out["grantor"]     == "ABC Trustee Corp"
         assert out["grantee"]     == "John Borrower"
 

@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="dallas-intel — daily property-intelligence dashboard for Dallas County, TX">
-  <title>dallas-intel · County Records Terminal</title>
+  <meta name="description" content="dallas-intel - daily property-intelligence dashboard for Dallas County, TX">
+  <title>dallas-intel | County Records Terminal</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,9 +14,9 @@
   <script defer src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
   <style>
-    /* ═══════════════════════════════════════════════════════════════════════
-       Design tokens — County Records Terminal
-       ═══════════════════════════════════════════════════════════════════════ */
+    /* ============================================================
+       Design tokens - County Records Terminal
+       ============================================================ */
     :root {
       /* surfaces */
       --bg:         #0A0A0B;
@@ -35,12 +35,22 @@
       --gold-dim:   #8E6E36;
       --teal:       #6FB8B0;
 
-      /* score bands (hot → cold) */
+      /* score bands (hot -> cold) */
       --score-extreme: #FF4757;
       --score-high:    #FF8800;
       --score-medium:  #FFB800;
       --score-low:     #4A90E2;
       --score-none:    #555560;
+
+      /* disposition palette */
+      --disp-none:        #5A5A65;
+      --disp-called:      #4A90E2;
+      --disp-voicemail:   #B084CC;
+      --disp-dnc:         #FF4757;
+      --disp-appointment: #6FB8B0;
+      --disp-wrong:       #888888;
+      --disp-notint:      #888888;
+      --disp-sent:        #E8B458;
 
       /* type */
       --font-display: "Instrument Serif", "Times New Roman", serif;
@@ -57,9 +67,9 @@
       --space-7: 48px;
     }
 
-    /* ═══════════════════════════════════════════════════════════════════════
+    /* ============================================================
        Reset
-       ═══════════════════════════════════════════════════════════════════════ */
+       ============================================================ */
     *, *::before, *::after { box-sizing: border-box; }
     html, body { margin: 0; padding: 0; }
     body {
@@ -72,10 +82,10 @@
       overflow-x: hidden;
       -webkit-font-smoothing: antialiased;
     }
-    button, input, select { font: inherit; color: inherit; }
+    button, input, select, textarea { font: inherit; color: inherit; }
     button { cursor: pointer; }
 
-    /* Subtle grain texture on the background — court-records-paper feel. */
+    /* Subtle grain texture on the background - court-records-paper feel. */
     body::before {
       content: "";
       position: fixed;
@@ -86,9 +96,9 @@
       background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/></filter><rect width='200' height='200' filter='url(%23n)' opacity='0.5'/></svg>");
     }
 
-    /* ═══════════════════════════════════════════════════════════════════════
+    /* ============================================================
        Top bar
-       ═══════════════════════════════════════════════════════════════════════ */
+       ============================================================ */
     .top-bar {
       position: sticky;
       top: 0;
@@ -136,9 +146,9 @@
     }
     .meta em { font-style: normal; color: var(--text); }
 
-    /* ═══════════════════════════════════════════════════════════════════════
+    /* ============================================================
        Tabs
-       ═══════════════════════════════════════════════════════════════════════ */
+       ============================================================ */
     .tabs {
       display: flex;
       gap: 0;
@@ -168,17 +178,17 @@
       border-bottom-color: var(--gold);
     }
 
-    /* ═══════════════════════════════════════════════════════════════════════
+    /* ============================================================
        Views
-       ═══════════════════════════════════════════════════════════════════════ */
+       ============================================================ */
     main { padding: var(--space-6); position: relative; z-index: 1; }
     .view { display: none; }
     .view.active { display: block; animation: fadeIn 200ms ease-out; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
 
-    /* ═══════════════════════════════════════════════════════════════════════
+    /* ============================================================
        Filters bar (records view)
-       ═══════════════════════════════════════════════════════════════════════ */
+       ============================================================ */
     .filters {
       display: flex;
       flex-wrap: wrap;
@@ -204,7 +214,7 @@
     .filters select:focus {
       border-color: var(--gold-dim);
     }
-    .filters input[type="text"] { flex: 1 1 280px; }
+    .filters input[type="text"] { flex: 1 1 240px; }
     .filters label {
       display: inline-flex; align-items: center; gap: 6px;
       color: var(--text-muted);
@@ -222,9 +232,50 @@
     }
     .filter-count em { color: var(--gold); font-style: normal; }
 
-    /* ═══════════════════════════════════════════════════════════════════════
+    /* Workflow toolbar -- export/import (Phase 3.E) */
+    .workflow-toolbar {
+      display: flex;
+      gap: var(--space-3);
+      align-items: center;
+      padding: var(--space-2) var(--space-4);
+      margin-bottom: var(--space-4);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      font-size: 12px;
+    }
+    .workflow-toolbar button {
+      background: var(--surface-2);
+      border: 1px solid var(--border-2);
+      color: var(--text);
+      padding: 6px var(--space-3);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      transition: border-color 120ms, color 120ms;
+    }
+    .workflow-toolbar button:hover {
+      border-color: var(--gold-dim);
+      color: var(--gold);
+    }
+    .workflow-toolbar button.danger:hover {
+      border-color: var(--score-extreme);
+      color: var(--score-extreme);
+    }
+    .workflow-toolbar .wf-info {
+      margin-left: auto;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
+    .workflow-toolbar .wf-info em {
+      color: var(--gold);
+      font-style: normal;
+    }
+
+    /* ============================================================
        Records table
-       ═══════════════════════════════════════════════════════════════════════ */
+       ============================================================ */
     .table-wrap {
       border: 1px solid var(--border);
       background: var(--surface);
@@ -236,8 +287,6 @@
       font-size: 13px;
     }
     thead th {
-      position: sticky;
-      top: 109px;  /* below the top bar + tabs */
       background: var(--surface-2);
       color: var(--text-muted);
       font-weight: 600;
@@ -252,6 +301,8 @@
       white-space: nowrap;
     }
     thead th:hover { color: var(--text); }
+    thead th.no-sort { cursor: default; }
+    thead th.no-sort:hover { color: var(--text-muted); }
     thead th::after {
       content: "";
       display: inline-block;
@@ -259,8 +310,8 @@
       margin-left: 4px;
       color: var(--text-dim);
     }
-    thead th.sort-asc::after  { content: "↑"; color: var(--gold); }
-    thead th.sort-desc::after { content: "↓"; color: var(--gold); }
+    thead th.sort-asc::after  { content: "^"; color: var(--gold); font-weight: 700; }
+    thead th.sort-desc::after { content: "v"; color: var(--gold); font-weight: 700; }
     tbody tr {
       border-bottom: 1px solid var(--border);
       cursor: pointer;
@@ -302,8 +353,8 @@
       min-width: 28px;
       text-align: right;
     }
-    .score-extreme  .score-fill, .score-extreme  .score-value { background: var(--score-extreme); }
-    .score-extreme  .score-value { background: transparent; color: var(--score-extreme); }
+    .score-extreme  .score-fill { background: var(--score-extreme); }
+    .score-extreme  .score-value { color: var(--score-extreme); }
     .score-high     .score-fill { background: var(--score-high); }
     .score-high     .score-value { color: var(--score-high); }
     .score-medium   .score-fill { background: var(--score-medium); }
@@ -328,8 +379,83 @@
     .badge-source-pdf  { color: var(--teal); border-color: var(--teal); }
     .badge-homestead   { color: var(--gold); border-color: var(--gold-dim); }
     .badge-inactive    { color: var(--text-dim); border-color: var(--border-2); }
+    .badge-commercial  { color: var(--text-dim); border-color: var(--border-2); font-style: italic; }
+    .badge-not-buy-box { color: var(--text-dim); border-color: var(--border-2); }
 
-    .row-inactive { opacity: 0.5; }
+    /* Distress icons (Phase 3.E) */
+    .distress-cell {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .distress-icon {
+      display: inline-block;
+      padding: 1px 6px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      border-radius: 2px;
+      background: var(--surface-2);
+    }
+    .distress-H   { background: var(--gold-dim);     color: var(--bg); }
+    .distress-65  { background: var(--score-high);   color: var(--bg); }
+    .distress-DIS { background: var(--score-extreme); color: var(--bg); }
+    .distress-TAX { background: var(--teal);         color: var(--bg); }
+
+    /* Disposition pill (Phase 3.E) */
+    .disp-pill {
+      display: inline-block;
+      padding: 2px 8px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      border-radius: 2px;
+      cursor: pointer;
+      background: var(--surface-2);
+      border: 1px solid var(--border-2);
+      color: var(--text-muted);
+      transition: border-color 100ms;
+    }
+    .disp-pill:hover { border-color: var(--gold-dim); }
+    .disp-called      { background: var(--disp-called);      color: var(--bg); border-color: var(--disp-called); }
+    .disp-voicemail   { background: var(--disp-voicemail);   color: var(--bg); border-color: var(--disp-voicemail); }
+    .disp-dnc         { background: var(--disp-dnc);         color: var(--bg); border-color: var(--disp-dnc); }
+    .disp-appointment { background: var(--disp-appointment); color: var(--bg); border-color: var(--disp-appointment); }
+    .disp-wrong       { background: var(--disp-wrong);       color: var(--bg); border-color: var(--disp-wrong); }
+    .disp-notint      { background: var(--disp-notint);      color: var(--bg); border-color: var(--disp-notint); }
+    .disp-sent        { background: var(--disp-sent);        color: var(--bg); border-color: var(--disp-sent); }
+
+    .workflow-cell {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .wf-indicator {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      text-align: center;
+      line-height: 18px;
+      font-size: 11px;
+      color: var(--text-dim);
+      border: 1px solid var(--border-2);
+      border-radius: 2px;
+      cursor: help;
+    }
+    .wf-indicator.active {
+      color: var(--gold);
+      border-color: var(--gold-dim);
+    }
+
+    .row-inactive       { opacity: 0.5; }
+    .row-not-buy-box    { opacity: 0.7; }
+    .row-commercial     { opacity: 0.65; }
+
     .empty-state {
       padding: var(--space-7);
       text-align: center;
@@ -340,14 +466,14 @@
     }
     .empty-state .em { color: var(--gold); font-style: normal; }
 
-    /* ═══════════════════════════════════════════════════════════════════════
+    /* ============================================================
        Detail panel (right slide-over)
-       ═══════════════════════════════════════════════════════════════════════ */
+       ============================================================ */
     .detail-panel {
       position: fixed;
       top: 0;
       right: 0;
-      width: min(520px, 100vw);
+      width: min(560px, 100vw);
       height: 100vh;
       background: var(--surface);
       border-left: 1px solid var(--border);
@@ -401,10 +527,105 @@
     }
     .detail-val { font-family: var(--font-mono); font-size: 12px; word-break: break-word; }
     .detail-val.is-number { text-align: right; }
+    .detail-val .stale-note {
+      display: block;
+      margin-top: 4px;
+      color: var(--text-muted);
+      font-size: 11px;
+      font-style: italic;
+    }
 
-    /* ═══════════════════════════════════════════════════════════════════════
+    /* Workflow section in detail panel (Phase 3.E) */
+    .workflow-section {
+      background: var(--surface-2);
+      border: 1px solid var(--border-2);
+      padding: var(--space-4);
+      margin: 0 0 var(--space-5);
+      border-radius: 2px;
+    }
+    .workflow-section h3 {
+      margin: 0 0 var(--space-3);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--gold);
+    }
+    .wf-field {
+      margin-bottom: var(--space-3);
+    }
+    .wf-field label {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+    }
+    .wf-field input[type="tel"],
+    .wf-field textarea {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border-2);
+      color: var(--text);
+      padding: 8px var(--space-3);
+      font-family: var(--font-mono);
+      font-size: 13px;
+      outline: none;
+      resize: vertical;
+    }
+    .wf-field input[type="tel"]:focus,
+    .wf-field textarea:focus { border-color: var(--gold-dim); }
+    .wf-field textarea { min-height: 80px; }
+    .wf-dispositions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 4px;
+    }
+    .wf-disp-btn {
+      padding: 4px 10px;
+      background: var(--surface);
+      border: 1px solid var(--border-2);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      border-radius: 2px;
+    }
+    .wf-disp-btn:hover {
+      border-color: var(--gold-dim);
+      color: var(--text);
+    }
+    .wf-disp-btn.active {
+      background: var(--gold);
+      border-color: var(--gold);
+      color: var(--bg);
+      font-weight: 600;
+    }
+    .wf-saved-indicator {
+      display: inline-block;
+      margin-left: var(--space-3);
+      font-size: 11px;
+      color: var(--teal);
+      font-style: italic;
+      opacity: 0;
+      transition: opacity 200ms;
+    }
+    .wf-saved-indicator.shown { opacity: 1; }
+    .wf-meta {
+      margin-top: var(--space-3);
+      padding-top: var(--space-3);
+      border-top: 1px solid var(--border);
+      font-size: 11px;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+
+    /* ============================================================
        Calculators
-       ═══════════════════════════════════════════════════════════════════════ */
+       ============================================================ */
     .calc-grid {
       display: grid;
       gap: var(--space-5);
@@ -480,9 +701,9 @@
     }
     .calc-output .result-value.negative { color: var(--score-extreme); }
 
-    /* ═══════════════════════════════════════════════════════════════════════
+    /* ============================================================
        Tax-list import
-       ═══════════════════════════════════════════════════════════════════════ */
+       ============================================================ */
     .dropzone {
       padding: var(--space-7);
       border: 2px dashed var(--border-2);
@@ -527,9 +748,9 @@
     }
     .import-results .match { color: var(--score-extreme); font-weight: 600; }
 
-    /* ═══════════════════════════════════════════════════════════════════════
+    /* ============================================================
        About
-       ═══════════════════════════════════════════════════════════════════════ */
+       ============================================================ */
     .about-grid {
       display: grid;
       gap: var(--space-5);
@@ -560,9 +781,9 @@
     .stat-key { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; }
     .stat-val { font-family: var(--font-mono); font-size: 14px; color: var(--text); }
 
-    /* ═══════════════════════════════════════════════════════════════════════
+    /* ============================================================
        Responsive
-       ═══════════════════════════════════════════════════════════════════════ */
+       ============================================================ */
     @media (max-width: 900px) {
       .top-bar { flex-wrap: wrap; gap: var(--space-3); }
       .brand h1 { font-size: 22px; }
@@ -578,21 +799,21 @@
 </head>
 <body>
 
-  <!-- ────────────────────────── Top bar ────────────────────────── -->
+  <!-- =========================== Top bar =========================== -->
   <header class="top-bar">
     <div class="brand">
       <span class="brand-mark"></span>
       <h1>dallas-intel</h1>
-      <span class="brand-sub">County Records Terminal · Dallas County, TX</span>
+      <span class="brand-sub">County Records Terminal | Dallas County, TX</span>
     </div>
     <div class="meta">
-      <span>Generated <em id="generated-at">—</em></span>
+      <span>Generated <em id="generated-at">--</em></span>
       <span><em id="record-count">0</em> records</span>
-      <span>Hit-rate <em id="hit-rate">—</em></span>
+      <span>Hit-rate <em id="hit-rate">--</em></span>
     </div>
   </header>
 
-  <!-- ────────────────────────── Tabs ───────────────────────────── -->
+  <!-- =========================== Tabs =========================== -->
   <nav class="tabs" role="tablist">
     <button class="tab active" data-tab="records"     role="tab">Records</button>
     <button class="tab"         data-tab="calculators" role="tab">Calculators</button>
@@ -601,28 +822,52 @@
   </nav>
 
   <main>
-    <!-- ────────────────────── Records view ─────────────────────── -->
+    <!-- ======================= Records view ======================= -->
     <section id="view-records" class="view active">
       <div class="filters">
-        <input type="text" id="search" placeholder="Search address, owner, or instrument…">
+        <input type="text" id="search" placeholder="Search address, owner, or phone...">
         <select id="filter-category">
           <option value="">All categories</option>
         </select>
         <select id="filter-score-band">
           <option value="">All scores</option>
           <option value="EXTREME">Extreme (90+)</option>
-          <option value="HIGH">High (75–89)</option>
-          <option value="MEDIUM">Medium (60–74)</option>
-          <option value="LOW">Low (40–59)</option>
+          <option value="HIGH">High (75-89)</option>
+          <option value="MEDIUM">Medium (60-74)</option>
+          <option value="LOW">Low (40-59)</option>
         </select>
         <select id="filter-source">
           <option value="">All sources</option>
-          <option value="publicsearch.us">publicsearch.us</option>
           <option value="foreclosure_pdf">foreclosure PDF</option>
+        </select>
+        <select id="filter-disposition">
+          <option value="">All dispositions</option>
+          <option value="none">Not yet contacted</option>
+          <option value="called">Called</option>
+          <option value="voicemail">Voicemail</option>
+          <option value="dnc">DNC</option>
+          <option value="appointment">Appointment</option>
+          <option value="wrong_number">Wrong number</option>
+          <option value="not_interested">Not interested</option>
+          <option value="sent_mail">Sent mail</option>
         </select>
         <label><input type="checkbox" id="active-only" checked> Active only</label>
         <label><input type="checkbox" id="homestead-only"> Homestead only</label>
+        <label><input type="checkbox" id="filter-buy-box" checked> In buy-box only</label>
+        <label><input type="checkbox" id="filter-hide-commercial" checked> Hide commercial</label>
+        <label><input type="checkbox" id="filter-dcad-only"> DCAD-matched only</label>
         <span class="filter-count"><em id="visible-count">0</em> of <em id="total-count">0</em></span>
+      </div>
+
+      <div class="workflow-toolbar">
+        <button id="wf-export"     type="button">Export workflow data</button>
+        <button id="wf-import"     type="button">Import workflow data</button>
+        <button id="wf-clear"      type="button" class="danger">Clear all workflow data</button>
+        <input id="wf-import-file" type="file" accept=".json" style="display:none">
+        <span class="wf-info">
+          <em id="wf-entry-count">0</em> records with workflow notes |
+          <em id="wf-storage-size">0 KB</em> stored locally
+        </span>
       </div>
 
       <div class="table-wrap">
@@ -633,28 +878,30 @@
               <th data-sort="address_normalized">Address</th>
               <th data-sort="grantee">Owner / Grantee</th>
               <th data-sort="category">Category</th>
-              <th data-sort="filing_date">Filed</th>
+              <th data-sort="first_seen">Detected</th>
               <th data-sort="dcad_market_value">Value</th>
-              <th>Tags</th>
+              <th class="no-sort">Distress</th>
+              <th class="no-sort">Workflow</th>
+              <th class="no-sort">Tags</th>
             </tr>
           </thead>
           <tbody id="records-tbody">
-            <tr><td colspan="7" class="empty-state">Loading records<span class="em">…</span></td></tr>
+            <tr><td colspan="9" class="empty-state">Loading records<span class="em">...</span></td></tr>
           </tbody>
         </table>
       </div>
     </section>
 
-    <!-- ────────────────────── Calculators view ─────────────────── -->
+    <!-- ======================= Calculators view ======================= -->
     <section id="view-calculators" class="view">
       <div class="calc-grid" id="calc-grid"></div>
     </section>
 
-    <!-- ────────────────────── Import view ──────────────────────── -->
+    <!-- ======================= Import view ======================= -->
     <section id="view-import" class="view">
       <div class="dropzone" id="dropzone">
         <div class="dz-title">Drop a tax-list XLSX here</div>
-        <div class="dz-sub">Cross-references the file's addresses against today's records — flags any that already appear in the pipeline.</div>
+        <div class="dz-sub">Cross-references the file's addresses against today's records, flags any that already appear in the pipeline.</div>
         <label class="dz-btn">
           Choose file
           <input type="file" id="file-input" accept=".xlsx,.xls,.csv">
@@ -663,7 +910,7 @@
       <div id="import-results" class="import-results" style="display: none;"></div>
     </section>
 
-    <!-- ────────────────────── About view ───────────────────────── -->
+    <!-- ======================= About view ======================= -->
     <section id="view-about" class="view">
       <div class="about-grid">
         <div>
@@ -683,51 +930,94 @@
             to records that are public under Texas Government Code Ch. 552
             (Public Information Act).
           </p>
+          <p style="margin-top: var(--space-5); font-size: 12px; color: var(--text-dim);">
+            Workflow data (notes, phone numbers, dispositions) is stored locally in your
+            browser's localStorage. It does NOT sync across devices. Export regularly to
+            avoid data loss.
+          </p>
         </div>
         <div class="stats-card">
           <div class="stat-row">
             <span class="stat-key">Last run</span>
-            <span class="stat-val" id="stat-generated">—</span>
+            <span class="stat-val" id="stat-generated">--</span>
           </div>
           <div class="stat-row">
             <span class="stat-key">Records</span>
-            <span class="stat-val" id="stat-records">—</span>
+            <span class="stat-val" id="stat-records">--</span>
           </div>
           <div class="stat-row">
             <span class="stat-key">Active</span>
-            <span class="stat-val" id="stat-active">—</span>
+            <span class="stat-val" id="stat-active">--</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-key">In buy-box</span>
+            <span class="stat-val" id="stat-in-buy-box">--</span>
           </div>
           <div class="stat-row">
             <span class="stat-key">Hit-rate</span>
-            <span class="stat-val" id="stat-hitrate">—</span>
+            <span class="stat-val" id="stat-hitrate">--</span>
           </div>
           <div class="stat-row">
             <span class="stat-key">EXTREME (90+)</span>
-            <span class="stat-val" id="stat-extreme">—</span>
+            <span class="stat-val" id="stat-extreme">--</span>
           </div>
           <div class="stat-row">
-            <span class="stat-key">HIGH (75–89)</span>
-            <span class="stat-val" id="stat-high">—</span>
+            <span class="stat-key">HIGH (75-89)</span>
+            <span class="stat-val" id="stat-high">--</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-key">Workflow entries</span>
+            <span class="stat-val" id="stat-wf-entries">--</span>
           </div>
         </div>
       </div>
     </section>
   </main>
 
-  <!-- ────────────────────── Detail panel ─────────────────────────── -->
+  <!-- =========================== Detail panel =========================== -->
   <aside class="detail-panel" id="detail-panel" aria-hidden="true">
     <div class="detail-panel-header">
       <h2 id="detail-title">Record</h2>
-      <button class="detail-close" id="detail-close" aria-label="Close detail">×</button>
+      <button class="detail-close" id="detail-close" aria-label="Close detail">x</button>
     </div>
     <div class="detail-content" id="detail-content"></div>
   </aside>
 
   <script>
-    /* ═══════════════════════════════════════════════════════════════════════
+    /* =====================================================================
        State
-       ═══════════════════════════════════════════════════════════════════════ */
+       ===================================================================== */
     const RECORDS_URL = "../data/records.json";
+
+    /* localStorage key namespace - keep stable for forward compatibility */
+    const WF_NS = "dallas-intel:workflow:";
+    const WF_SETTINGS_KEY = WF_NS + "_settings";
+    const WF_SCHEMA_VERSION = 1;
+
+    /* Disposition vocabulary (controlled) */
+    const DISPOSITIONS = [
+      { key: "none",           label: "None",           pillClass: "" },
+      { key: "called",         label: "Called",         pillClass: "disp-called" },
+      { key: "voicemail",      label: "Voicemail",      pillClass: "disp-voicemail" },
+      { key: "dnc",            label: "DNC",            pillClass: "disp-dnc" },
+      { key: "appointment",    label: "Appointment",    pillClass: "disp-appointment" },
+      { key: "wrong_number",   label: "Wrong number",   pillClass: "disp-wrong" },
+      { key: "not_interested", label: "Not interested", pillClass: "disp-notint" },
+      { key: "sent_mail",      label: "Sent mail",      pillClass: "disp-sent" },
+    ];
+    const DISPOSITION_MAP = Object.fromEntries(DISPOSITIONS.map(d => [d.key, d]));
+
+    /* Commercial-entity detection word list (Phase 3.E)
+       Match against UPPERCASE dcad_owner. Operator confirmed this filter
+       should be SUPPRESSIBLE (default hide, toggle to show) -- not destructive. */
+    const COMMERCIAL_TOKENS = [
+      "LLC", "INC", "CORP", "CORPORATION", "INCORPORATED", "COMPANY",
+      "HOLDINGS", "DEVELOPMENT", "PROPERTIES", "PARTNERS", "PARTNERSHIP",
+      "TRUST", "BROTHERS", "BROS", "INVESTMENTS", "ENTERPRISES",
+      "GROUP", "VENTURES", "REALTY", "REAL ESTATE",
+      "LTD", "LP", "LLP", "PLLC", "PA", "PC", "ASSOCIATES",
+      "BANK", "MORTGAGE", "FUND", "CAPITAL", "EQUITY",
+    ];
 
     const state = {
       records: [],          // raw from records.json
@@ -735,27 +1025,33 @@
       sortKey: "score",
       sortDir: "desc",
       filters: {
-        search:      "",
-        category:    "",
-        scoreBand:   "",
-        source:      "",
-        activeOnly:  true,
-        homesteadOnly: false,
+        search:         "",
+        category:       "",
+        scoreBand:      "",
+        source:         "",
+        disposition:    "",
+        activeOnly:     true,
+        homesteadOnly:  false,
+        buyBoxOnly:     true,
+        hideCommercial: true,
+        dcadOnly:       false,
       },
+      currentDetailRecord: null,
+      saveDebounce: null,
     };
 
-    /* ═══════════════════════════════════════════════════════════════════════
+    /* =====================================================================
        Helpers
-       ═══════════════════════════════════════════════════════════════════════ */
-    const $ = sel => document.querySelector(sel);
+       ===================================================================== */
+    const $  = sel => document.querySelector(sel);
     const $$ = sel => document.querySelectorAll(sel);
+
     const fmtMoney = n => {
-      if (n === null || n === undefined || n === "") return "—";
+      if (n === null || n === undefined || n === "") return "--";
       const num = typeof n === "number" ? n : parseFloat(n);
-      if (!Number.isFinite(num)) return "—";
+      if (!Number.isFinite(num)) return "--";
       return "$" + Math.round(num).toLocaleString();
     };
-    const fmtDate = d => d || "—";
     const scoreBand = s => {
       if (s >= 90) return "EXTREME";
       if (s >= 75) return "HIGH";
@@ -763,10 +1059,161 @@
       if (s >= 40) return "LOW";
       return "NONE";
     };
+    const escapeHtml = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+    }[c]));
 
-    /* ═══════════════════════════════════════════════════════════════════════
+    /* Commercial-entity detector. Returns true if dcad_owner contains
+       a commercial-entity token as a whole word. */
+    function isCommercialEntity(rec) {
+      const owner = (rec.dcad_owner || "").toUpperCase();
+      if (!owner) return false;
+      const words = new Set(owner.split(/[\s\.,&]+/).filter(Boolean));
+      for (const tok of COMMERCIAL_TOKENS) {
+        if (words.has(tok)) return true;
+      }
+      return false;
+    }
+
+    /* Year-extract from sale_date for the deed-of-trust annotation.
+       Accepts either ISO "YYYY-MM-DD" or human "October 7, 2025". */
+    function extractYear(dateStr) {
+      if (!dateStr) return null;
+      const m = String(dateStr).match(/(\d{4})/);
+      return m ? parseInt(m[1], 10) : null;
+    }
+
+    /* =====================================================================
+       localStorage workflow store (Phase 3.E)
+       Schema documented in docs/MIGRATION_PHASE_3E.md
+       ===================================================================== */
+    const workflow = {
+      _key(recordId) { return WF_NS + recordId; },
+
+      /** Get workflow data for a record. Returns {} if none. */
+      get(recordId) {
+        if (!recordId) return {};
+        try {
+          const raw = localStorage.getItem(this._key(recordId));
+          return raw ? JSON.parse(raw) : {};
+        } catch (e) {
+          console.warn("workflow.get failed for", recordId, e);
+          return {};
+        }
+      },
+
+      /** Merge data into the record's workflow entry. */
+      set(recordId, data) {
+        if (!recordId) return;
+        try {
+          const current = this.get(recordId);
+          const now = new Date().toISOString();
+          const merged = {
+            ...current,
+            ...data,
+            record_id: recordId,
+            updated_at: now,
+          };
+          // If disposition was updated, stamp it too.
+          if (data.disposition !== undefined && data.disposition !== current.disposition) {
+            merged.disposition_at = now;
+          }
+          // Drop empty values to keep storage clean.
+          if (merged.phone === "")        delete merged.phone;
+          if (merged.notes === "")        delete merged.notes;
+          if (merged.disposition === "" || merged.disposition === "none") {
+            delete merged.disposition;
+            delete merged.disposition_at;
+          }
+          // If nothing meaningful left, remove the entry entirely.
+          const hasContent = merged.phone || merged.notes || merged.disposition;
+          if (!hasContent) {
+            localStorage.removeItem(this._key(recordId));
+          } else {
+            localStorage.setItem(this._key(recordId), JSON.stringify(merged));
+          }
+        } catch (e) {
+          console.error("workflow.set failed for", recordId, e);
+          alert("Could not save workflow data: " + e.message);
+        }
+      },
+
+      /** List all record IDs that have workflow entries. */
+      allKeys() {
+        const keys = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i);
+          if (k && k.startsWith(WF_NS) && k !== WF_SETTINGS_KEY) {
+            keys.push(k.substring(WF_NS.length));
+          }
+        }
+        return keys;
+      },
+
+      /** Export all workflow entries as a JSON bundle. */
+      exportAll() {
+        const entries = {};
+        this.allKeys().forEach(recordId => {
+          entries[recordId] = this.get(recordId);
+        });
+        return {
+          schema_version: WF_SCHEMA_VERSION,
+          exported_at: new Date().toISOString(),
+          source: "dallas-intel-dashboard",
+          entries,
+        };
+      },
+
+      /** Import a bundle. Newer-wins on conflicts. */
+      importAll(bundle, opts = {}) {
+        if (!bundle || !bundle.entries || typeof bundle.entries !== "object") {
+          throw new Error("Invalid bundle: missing 'entries' object");
+        }
+        const stats = { imported: 0, skipped: 0, overwritten: 0 };
+        for (const [recordId, incoming] of Object.entries(bundle.entries)) {
+          if (!recordId || !incoming) continue;
+          const existing = this.get(recordId);
+          if (Object.keys(existing).length > 0) {
+            // Conflict resolution: newer updated_at wins.
+            const incomingTime = incoming.updated_at || "";
+            const existingTime = existing.updated_at || "";
+            if (incomingTime > existingTime) {
+              localStorage.setItem(this._key(recordId), JSON.stringify(incoming));
+              stats.overwritten++;
+            } else {
+              stats.skipped++;
+            }
+          } else {
+            localStorage.setItem(this._key(recordId), JSON.stringify(incoming));
+            stats.imported++;
+          }
+        }
+        return stats;
+      },
+
+      /** Wipe all workflow entries. Returns count cleared. */
+      clearAll() {
+        const keys = this.allKeys();
+        keys.forEach(recordId => {
+          localStorage.removeItem(this._key(recordId));
+        });
+        return keys.length;
+      },
+
+      /** Approximate storage size in bytes. */
+      storageBytes() {
+        let bytes = 0;
+        this.allKeys().forEach(recordId => {
+          const raw = localStorage.getItem(this._key(recordId));
+          if (raw) bytes += raw.length + this._key(recordId).length;
+        });
+        return bytes;
+      },
+    };
+
+    /* =====================================================================
        Boot
-       ═══════════════════════════════════════════════════════════════════════ */
+       ===================================================================== */
     async function boot() {
       setupTabs();
       setupFilters();
@@ -774,6 +1221,7 @@
       setupDetailPanel();
       setupCalculators();
       setupImport();
+      setupWorkflowToolbar();
       await loadRecords();
     }
 
@@ -783,15 +1231,16 @@
         if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
         const data = await resp.json();
         state.records = Array.isArray(data.records) ? data.records : [];
-        $("#generated-at").textContent = data.generated_at || "—";
-        $("#stat-generated").textContent = data.generated_at || "—";
+        $("#generated-at").textContent = data.generated_at || "--";
+        $("#stat-generated").textContent = data.generated_at || "--";
         populateCategoryFilter();
         applyAndRender();
+        updateWorkflowInfo();
       } catch (err) {
         $("#records-tbody").innerHTML =
-          `<tr><td colspan="7" class="empty-state">
+          `<tr><td colspan="9" class="empty-state">
              Could not load records.json<br>
-             <span style="font-size: 13px; font-style: normal; color: var(--text-muted)">${err.message}</span>
+             <span style="font-size: 13px; font-style: normal; color: var(--text-muted)">${escapeHtml(err.message)}</span>
            </td></tr>`;
       }
     }
@@ -800,12 +1249,12 @@
       const cats = [...new Set(state.records.map(r => r.category).filter(Boolean))].sort();
       const sel = $("#filter-category");
       sel.innerHTML = '<option value="">All categories</option>' +
-        cats.map(c => `<option value="${c}">${c}</option>`).join("");
+        cats.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("");
     }
 
-    /* ═══════════════════════════════════════════════════════════════════════
+    /* =====================================================================
        Tabs
-       ═══════════════════════════════════════════════════════════════════════ */
+       ===================================================================== */
     function setupTabs() {
       $$(".tab").forEach(btn => {
         btn.addEventListener("click", () => {
@@ -817,22 +1266,28 @@
       });
     }
 
-    /* ═══════════════════════════════════════════════════════════════════════
+    /* =====================================================================
        Filters + render
-       ═══════════════════════════════════════════════════════════════════════ */
+       ===================================================================== */
     function setupFilters() {
-      const bind = (sel, key, transform = v => v) => {
+      const bind = (sel, key) => {
         $(sel).addEventListener("input", e => {
-          state.filters[key] = transform(e.target.type === "checkbox" ? e.target.checked : e.target.value);
+          state.filters[key] = e.target.type === "checkbox"
+            ? e.target.checked
+            : e.target.value;
           applyAndRender();
         });
       };
-      bind("#search",            "search");
-      bind("#filter-category",   "category");
-      bind("#filter-score-band", "scoreBand");
-      bind("#filter-source",     "source");
-      bind("#active-only",       "activeOnly");
-      bind("#homestead-only",    "homesteadOnly");
+      bind("#search",                 "search");
+      bind("#filter-category",        "category");
+      bind("#filter-score-band",      "scoreBand");
+      bind("#filter-source",          "source");
+      bind("#filter-disposition",     "disposition");
+      bind("#active-only",            "activeOnly");
+      bind("#homestead-only",         "homesteadOnly");
+      bind("#filter-buy-box",         "buyBoxOnly");
+      bind("#filter-hide-commercial", "hideCommercial");
+      bind("#filter-dcad-only",       "dcadOnly");
     }
 
     function applyAndRender() {
@@ -842,26 +1297,63 @@
       state.visible = state.records.filter(r => {
         if (f.activeOnly    && r.active === false) return false;
         if (f.homesteadOnly && !r.dcad_homestead)  return false;
+        if (f.buyBoxOnly    && r.in_buy_box === false) return false;
+        if (f.hideCommercial && isCommercialEntity(r)) return false;
+        if (f.dcadOnly && !r.dcad_account) return false;
         if (f.category      && r.category !== f.category) return false;
         if (f.source        && r.source   !== f.source)   return false;
         if (f.scoreBand     && scoreBand(r.score || 0) !== f.scoreBand) return false;
+
+        // Disposition filter (workflow-side, not on the record itself)
+        if (f.disposition) {
+          const wfEntry = workflow.get(r.record_id);
+          const disp = wfEntry.disposition || "none";
+          if (disp !== f.disposition) return false;
+        }
+
         if (q) {
-          const hay = [r.address, r.address_normalized, r.grantee, r.grantor,
-                       r.dcad_owner, r.instrument_num].filter(Boolean).join(" ").toLowerCase();
+          // Include phone number from workflow store in search.
+          const wfEntry = workflow.get(r.record_id);
+          const hay = [
+            r.address, r.address_normalized, r.grantee, r.grantor,
+            r.dcad_owner, r.instrument_num,
+            wfEntry.phone, wfEntry.notes,
+          ].filter(Boolean).join(" ").toLowerCase();
           if (!hay.includes(q)) return false;
         }
         return true;
       });
 
-      // sort
+      // Sort with tiebreakers: primary key, then homestead desc, over65 desc,
+      // first_seen desc. This makes high-priority motivated-seller indicators
+      // bubble up at score ties.
       const k = state.sortKey;
       const dir = state.sortDir === "asc" ? 1 : -1;
       state.visible.sort((a, b) => {
         const av = a[k], bv = b[k];
-        if (av === bv) return 0;
-        if (av === null || av === undefined || av === "") return 1;
-        if (bv === null || bv === undefined || bv === "") return -1;
-        return av < bv ? -1 * dir : 1 * dir;
+        let cmp = 0;
+        if (av === bv) cmp = 0;
+        else if (av === null || av === undefined || av === "") cmp = 1;
+        else if (bv === null || bv === undefined || bv === "") cmp = -1;
+        else cmp = av < bv ? -1 : 1;
+        if (cmp !== 0) return cmp * dir;
+
+        // Tiebreaker 1: homestead desc (true above false)
+        const ah = a.dcad_homestead ? 1 : 0;
+        const bh = b.dcad_homestead ? 1 : 0;
+        if (ah !== bh) return bh - ah;
+
+        // Tiebreaker 2: over65 desc
+        const ao = a.dcad_over65 ? 1 : 0;
+        const bo = b.dcad_over65 ? 1 : 0;
+        if (ao !== bo) return bo - ao;
+
+        // Tiebreaker 3: first_seen desc (newest first)
+        const af = a.first_seen || "";
+        const bf = b.first_seen || "";
+        if (af !== bf) return bf < af ? -1 : 1;
+
+        return 0;
       });
 
       renderTable();
@@ -875,7 +1367,7 @@
       $("#record-count").textContent  = state.records.length.toLocaleString();
 
       if (state.visible.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" class="empty-state">
+        tbody.innerHTML = `<tr><td colspan="9" class="empty-state">
           No records match<span class="em">.</span>
         </td></tr>`;
         return;
@@ -883,62 +1375,98 @@
 
       const rows = state.visible.map((r, idx) => {
         const score = r.score || 0;
-        const band = scoreBand(score).toLowerCase();
-        const pct = Math.min(100, score) + "%";
+        const band  = scoreBand(score).toLowerCase();
+        const pct   = Math.min(100, score) + "%";
+
+        // Tag badges
         const homestead = r.dcad_homestead
           ? '<span class="badge badge-homestead">Homestead</span>' : "";
         const sourcePdf = r.source === "foreclosure_pdf"
           ? '<span class="badge badge-source-pdf">PDF</span>' : "";
         const inactive = r.active === false
           ? '<span class="badge badge-inactive">Inactive</span>' : "";
+        const notInBox = r.in_buy_box === false
+          ? '<span class="badge badge-not-buy-box">Out of buy-box</span>' : "";
+        const commercial = isCommercialEntity(r)
+          ? '<span class="badge badge-commercial">Commercial?</span>' : "";
+
+        // Distress icons cell
+        const distressIcons = [];
+        if (r.dcad_homestead)    distressIcons.push('<span class="distress-icon distress-H"   title="Homestead">H</span>');
+        if (r.dcad_over65)       distressIcons.push('<span class="distress-icon distress-65"  title="Over 65">65</span>');
+        if (r.dcad_disabled)     distressIcons.push('<span class="distress-icon distress-DIS" title="Disabled">DIS</span>');
+        if (r.dcad_tax_deferred) distressIcons.push('<span class="distress-icon distress-TAX" title="Tax deferred">TAX</span>');
+
+        // Workflow indicators (Phase 3.E)
+        const wfEntry = workflow.get(r.record_id);
+        const dispKey = wfEntry.disposition || "none";
+        const dispMeta = DISPOSITION_MAP[dispKey] || DISPOSITION_MAP.none;
+        const dispClass = dispMeta.pillClass || "";
+        const dispLabel = dispMeta.label;
+        const hasPhone = !!wfEntry.phone;
+        const hasNotes = !!wfEntry.notes;
+
+        // Row class flags
+        const rowClasses = [];
+        if (r.active === false)        rowClasses.push("row-inactive");
+        if (r.in_buy_box === false)    rowClasses.push("row-not-buy-box");
+        if (isCommercialEntity(r))     rowClasses.push("row-commercial");
 
         return `
-          <tr data-idx="${idx}" class="${r.active === false ? 'row-inactive' : ''}">
+          <tr data-idx="${idx}" class="${rowClasses.join(' ')}">
             <td>
               <div class="score-cell score-${band}">
                 <div class="score-bar"><div class="score-fill" style="width: ${pct}"></div></div>
                 <div class="score-value">${score}</div>
               </div>
             </td>
-            <td class="cell-address" title="${escapeHtml(r.address_normalized || r.address || '')}">${escapeHtml(r.address_normalized || r.address || '—')}</td>
-            <td class="cell-grantee" title="${escapeHtml(r.grantee || r.dcad_owner || '')}">${escapeHtml(r.grantee || r.dcad_owner || '—')}</td>
-            <td><span class="badge">${escapeHtml(r.category || r.dallas_code || '—')}</span></td>
-            <td class="cell-mono">${escapeHtml(r.filing_date || '—')}</td>
+            <td class="cell-address" title="${escapeHtml(r.address_normalized || r.address || '')}">${escapeHtml(r.address_normalized || r.address || '--')}</td>
+            <td class="cell-grantee" title="${escapeHtml(r.grantee || r.dcad_owner || '')}">${escapeHtml(r.grantee || r.dcad_owner || '--')}</td>
+            <td><span class="badge">${escapeHtml(r.category || r.dallas_code || '--')}</span></td>
+            <td class="cell-mono" title="When this record first appeared in the pipeline (not the legal filing date)">${escapeHtml(r.first_seen || '--')}</td>
             <td class="cell-num">${fmtMoney(r.dcad_market_value)}</td>
-            <td>${sourcePdf} ${homestead} ${inactive}</td>
+            <td><div class="distress-cell">${distressIcons.join(" ") || '<span style="color:var(--text-dim)">--</span>'}</div></td>
+            <td>
+              <div class="workflow-cell">
+                <span class="disp-pill ${dispClass}" title="Disposition (click row to edit)">${escapeHtml(dispLabel)}</span>
+                <span class="wf-indicator ${hasPhone ? 'active' : ''}" title="${hasPhone ? 'Phone: ' + escapeHtml(wfEntry.phone) : 'No phone yet'}">P</span>
+                <span class="wf-indicator ${hasNotes ? 'active' : ''}" title="${hasNotes ? 'Has notes' : 'No notes yet'}">N</span>
+              </div>
+            </td>
+            <td>${sourcePdf} ${homestead} ${commercial} ${notInBox} ${inactive}</td>
           </tr>
         `;
       }).join("");
       tbody.innerHTML = rows;
 
-      $$("#records-tbody tr").forEach(row => {
-        row.addEventListener("click", () => openDetail(state.visible[parseInt(row.dataset.idx)]));
+      $$("#records-tbody tr[data-idx]").forEach(row => {
+        row.addEventListener("click", () => {
+          const idx = parseInt(row.dataset.idx, 10);
+          if (state.visible[idx]) openDetail(state.visible[idx]);
+        });
       });
     }
 
     function renderStats() {
-      const total  = state.records.length;
-      const active = state.records.filter(r => r.active !== false).length;
-      const matched = state.records.filter(r => r.dcad_account).length;
-      const hitRate = total ? ((matched / total) * 100).toFixed(1) + "%" : "—";
+      const total    = state.records.length;
+      const active   = state.records.filter(r => r.active !== false).length;
+      const matched  = state.records.filter(r => r.dcad_account).length;
+      const inBuyBox = state.records.filter(r => r.in_buy_box === true).length;
+      const hitRate  = total ? ((matched / total) * 100).toFixed(1) + "%" : "--";
 
       $("#hit-rate").textContent       = hitRate;
       $("#stat-records").textContent   = total.toLocaleString();
       $("#stat-active").textContent    = active.toLocaleString();
+      $("#stat-in-buy-box").textContent = inBuyBox.toLocaleString();
       $("#stat-hitrate").textContent   = hitRate;
       $("#stat-extreme").textContent   = state.records.filter(r => (r.score || 0) >= 90).length;
       $("#stat-high").textContent      = state.records.filter(r => { const s = r.score || 0; return s >= 75 && s < 90; }).length;
+      $("#stat-wf-entries").textContent = workflow.allKeys().length;
     }
 
-    function escapeHtml(s) {
-      return String(s).replace(/[&<>"']/g, c => ({
-        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
-      }[c]));
-    }
-
-    /* ═══════════════════════════════════════════════════════════════════════
+    /* =====================================================================
        Sorting
-       ═══════════════════════════════════════════════════════════════════════ */
+       ===================================================================== */
     function setupSorting() {
       $$("thead th[data-sort]").forEach(th => {
         th.addEventListener("click", () => {
@@ -956,33 +1484,75 @@
       });
     }
 
-    /* ═══════════════════════════════════════════════════════════════════════
-       Detail panel
-       ═══════════════════════════════════════════════════════════════════════ */
+    /* =====================================================================
+       Detail panel + workflow editor (Phase 3.E)
+       ===================================================================== */
     function setupDetailPanel() {
       $("#detail-close").addEventListener("click", closeDetail);
       document.addEventListener("keydown", e => {
         if (e.key === "Escape") closeDetail();
       });
     }
+
     function openDetail(rec) {
+      state.currentDetailRecord = rec;
       $("#detail-title").textContent = rec.address_normalized || rec.address || rec.record_id || "Record";
+
+      const wfEntry = workflow.get(rec.record_id);
+
+      // Workflow editor section
+      const dispButtons = DISPOSITIONS.map(d => {
+        const isActive = (wfEntry.disposition || "none") === d.key;
+        return `<button type="button" class="wf-disp-btn ${isActive ? 'active' : ''}" data-disp="${d.key}">${escapeHtml(d.label)}</button>`;
+      }).join("");
+
+      const workflowHtml = `
+        <div class="workflow-section">
+          <h3>Workflow <span class="wf-saved-indicator" id="wf-saved">Saved</span></h3>
+          <div class="wf-field">
+            <label for="wf-phone">Phone</label>
+            <input id="wf-phone" type="tel" placeholder="(214) 555-1212" value="${escapeHtml(wfEntry.phone || '')}">
+          </div>
+          <div class="wf-field">
+            <label for="wf-notes">Notes</label>
+            <textarea id="wf-notes" placeholder="Skip-trace details, contact attempts, motivation observations...">${escapeHtml(wfEntry.notes || '')}</textarea>
+          </div>
+          <div class="wf-field">
+            <label>Disposition</label>
+            <div class="wf-dispositions" id="wf-disp-buttons">${dispButtons}</div>
+          </div>
+          ${wfEntry.disposition_at ? `<div class="wf-meta">Last disposition update: ${escapeHtml(wfEntry.disposition_at)}</div>` : ""}
+          ${wfEntry.updated_at ? `<div class="wf-meta">Last edited: ${escapeHtml(wfEntry.updated_at)}</div>` : ""}
+        </div>
+      `;
+
+      // Sale-date annotation (Phase 3.E): flag pre-2024 dates as likely deed-of-trust references.
+      const saleYear = extractYear(rec.sale_date);
+      const saleAnnotation = (saleYear && saleYear < 2024)
+        ? '<span class="stale-note">May be deed-of-trust date, not auction date.</span>'
+        : "";
 
       const fields = [
         ["Score",            rec.score],
         ["Category",         rec.category],
         ["Dallas code",      rec.dallas_code],
+        ["Detected",         rec.first_seen],
         ["Filing date",      rec.filing_date],
         ["Sale date",        rec.sale_date],
         ["Instrument #",     rec.instrument_num],
         ["Record ID",        rec.record_id],
         ["Source",           rec.source],
+        ["In buy-box",       rec.in_buy_box === true ? "Yes" : rec.in_buy_box === false ? "No" : "--"],
+        ["Buy-box reasons",  Array.isArray(rec.buy_box_reasons) && rec.buy_box_reasons.length ? rec.buy_box_reasons.join("; ") : null],
         ["Grantor",          rec.grantor],
         ["Grantee",          rec.grantee],
         ["DCAD account",     rec.dcad_account],
         ["DCAD owner",       rec.dcad_owner],
         ["Market value",     fmtMoney(rec.dcad_market_value)],
-        ["Homestead",        rec.dcad_homestead === true ? "Yes" : rec.dcad_homestead === false ? "No" : "—"],
+        ["Homestead",        rec.dcad_homestead === true ? "Yes" : rec.dcad_homestead === false ? "No" : "--"],
+        ["Over 65",          rec.dcad_over65 === true ? "Yes" : null],
+        ["Disabled",         rec.dcad_disabled === true ? "Yes" : null],
+        ["Tax deferred",     rec.dcad_tax_deferred === true ? "Yes" : null],
         ["Trustee",          rec.trustee],
         ["Amount",           rec.amount ? fmtMoney(rec.amount) : null],
         ["Address (raw)",    rec.address],
@@ -992,42 +1562,170 @@
         ["Parse warnings",   (rec.parse_warnings || []).join(", ")],
       ];
 
-      const html = fields
+      const fieldsHtml = fields
         .filter(([_, v]) => v !== null && v !== undefined && v !== "")
-        .map(([k, v]) => `
-          <div class="detail-row">
-            <div class="detail-key">${k}</div>
-            <div class="detail-val">${escapeHtml(String(v))}</div>
-          </div>
-        `).join("");
+        .map(([k, v]) => {
+          const valHtml = (k === "Sale date" && saleAnnotation)
+            ? `${escapeHtml(String(v))}${saleAnnotation}`
+            : escapeHtml(String(v));
+          return `
+            <div class="detail-row">
+              <div class="detail-key">${escapeHtml(k)}</div>
+              <div class="detail-val">${valHtml}</div>
+            </div>
+          `;
+        }).join("");
 
       const breakdownHtml = rec.score_breakdown && Object.keys(rec.score_breakdown).length
         ? `<div class="detail-row">
              <div class="detail-key">Score breakdown</div>
-             <div class="detail-val">${Object.entries(rec.score_breakdown).map(([k, v]) => `${k}: +${v}`).join("<br>")}</div>
+             <div class="detail-val">${Object.entries(rec.score_breakdown).map(([k, v]) => `${escapeHtml(k)}: +${v}`).join("<br>")}</div>
            </div>`
         : "";
 
-      $("#detail-content").innerHTML = html + breakdownHtml;
+      $("#detail-content").innerHTML = workflowHtml + fieldsHtml + breakdownHtml;
       $("#detail-panel").classList.add("open");
       $("#detail-panel").setAttribute("aria-hidden", "false");
+
+      // Wire workflow editor events
+      $("#wf-phone").addEventListener("input", onWorkflowEdit);
+      $("#wf-notes").addEventListener("input", onWorkflowEdit);
+      $$("#wf-disp-buttons .wf-disp-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          $$("#wf-disp-buttons .wf-disp-btn").forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+          saveWorkflowFromEditor();
+        });
+      });
     }
+
+    function onWorkflowEdit() {
+      clearTimeout(state.saveDebounce);
+      state.saveDebounce = setTimeout(saveWorkflowFromEditor, 400);
+    }
+
+    function saveWorkflowFromEditor() {
+      const rec = state.currentDetailRecord;
+      if (!rec) return;
+      const phone = $("#wf-phone").value.trim();
+      const notes = $("#wf-notes").value.trim();
+      const activeBtn = document.querySelector("#wf-disp-buttons .wf-disp-btn.active");
+      const disposition = activeBtn ? activeBtn.dataset.disp : "none";
+      workflow.set(rec.record_id, { phone, notes, disposition });
+
+      // Visual confirmation
+      const ind = $("#wf-saved");
+      if (ind) {
+        ind.classList.add("shown");
+        setTimeout(() => ind.classList.remove("shown"), 1200);
+      }
+
+      // Re-render table so workflow indicators update without closing the panel.
+      applyAndRender();
+      updateWorkflowInfo();
+    }
+
     function closeDetail() {
       $("#detail-panel").classList.remove("open");
       $("#detail-panel").setAttribute("aria-hidden", "true");
+      state.currentDetailRecord = null;
     }
 
-    /* ═══════════════════════════════════════════════════════════════════════
-       Calculators
-       ═══════════════════════════════════════════════════════════════════════ */
+    /* =====================================================================
+       Workflow toolbar (export / import / clear) -- Phase 3.E
+       ===================================================================== */
+    function setupWorkflowToolbar() {
+      $("#wf-export").addEventListener("click", handleExport);
+      $("#wf-import").addEventListener("click", () => $("#wf-import-file").click());
+      $("#wf-import-file").addEventListener("change", handleImportFile);
+      $("#wf-clear").addEventListener("click", handleClear);
+    }
+
+    function handleExport() {
+      const bundle = workflow.exportAll();
+      const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      const datestamp = new Date().toISOString().slice(0, 10);
+      a.download = `dallas-intel-workflow-${datestamp}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function handleImportFile(e) {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        try {
+          const bundle = JSON.parse(ev.target.result);
+          if (bundle.schema_version !== WF_SCHEMA_VERSION) {
+            if (!confirm(`Bundle is schema_version ${bundle.schema_version}; this dashboard expects ${WF_SCHEMA_VERSION}. Import anyway?`)) {
+              return;
+            }
+          }
+          const entryCount = Object.keys(bundle.entries || {}).length;
+          if (!confirm(`Import ${entryCount} workflow entries from "${file.name}"? Newer entries will overwrite existing ones (newer-wins).`)) {
+            return;
+          }
+          const stats = workflow.importAll(bundle);
+          alert(
+            `Import complete:\n` +
+            `  New entries:     ${stats.imported}\n` +
+            `  Overwritten:     ${stats.overwritten}\n` +
+            `  Skipped (older): ${stats.skipped}`
+          );
+          applyAndRender();
+          updateWorkflowInfo();
+        } catch (err) {
+          alert("Could not import: " + err.message);
+        } finally {
+          e.target.value = "";  // reset so re-selecting same file fires the event
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function handleClear() {
+      const count = workflow.allKeys().length;
+      if (count === 0) {
+        alert("No workflow data to clear.");
+        return;
+      }
+      if (!confirm(`Permanently delete all ${count} workflow entries? This cannot be undone. Consider exporting first.`)) {
+        return;
+      }
+      // Second confirmation for safety
+      if (!confirm(`Really delete ${count} entries? Last chance to cancel.`)) {
+        return;
+      }
+      const cleared = workflow.clearAll();
+      alert(`Cleared ${cleared} workflow entries.`);
+      applyAndRender();
+      updateWorkflowInfo();
+    }
+
+    function updateWorkflowInfo() {
+      const count = workflow.allKeys().length;
+      const bytes = workflow.storageBytes();
+      const kb = (bytes / 1024).toFixed(1);
+      $("#wf-entry-count").textContent = count.toLocaleString();
+      $("#wf-storage-size").textContent = `${kb} KB`;
+    }
+
+    /* =====================================================================
+       Calculators (unchanged from Phase 0.A)
+       ===================================================================== */
     function setupCalculators() {
       const grid = $("#calc-grid");
       grid.innerHTML = CALCULATORS.map(renderCalc).join("");
-      // Bind input listeners.
       CALCULATORS.forEach(calc => {
         const inputs = $$(`#calc-${calc.id} input`);
         inputs.forEach(inp => inp.addEventListener("input", () => recalc(calc)));
-        recalc(calc); // initial paint
+        recalc(calc);
       });
     }
     function renderCalc(calc) {
@@ -1040,7 +1738,7 @@
       const outputs = calc.outputs.map(o => `
         <div class="result" data-key="${o.key}">
           <span class="result-label">${o.label}</span>
-          <span class="result-value" id="${calc.id}-out-${o.key}">—</span>
+          <span class="result-value" id="${calc.id}-out-${o.key}">--</span>
         </div>
       `).join("");
       return `
@@ -1067,14 +1765,9 @@
       });
     }
 
-    /* Calculator definitions
-       ────────────────────────────────────────────────────────────────────
-       Each calculator is a pure function (compute) plus declarative
-       field + output schemas. Easy to add/remove without DOM surgery.
-    */
     const CALCULATORS = [
       {
-        id: "flip", name: "Fix & Flip", tag: "ARV − costs",
+        id: "flip", name: "Fix & Flip", tag: "ARV - costs",
         fields: [
           { key: "arv",     label: "ARV",            default: 320000 },
           { key: "rehab",   label: "Rehab cost",     default: 45000  },
@@ -1204,9 +1897,9 @@
       },
     ];
 
-    /* ═══════════════════════════════════════════════════════════════════════
-       Tax-list XLSX import
-       ═══════════════════════════════════════════════════════════════════════ */
+    /* =====================================================================
+       Tax-list XLSX import (unchanged from Phase 0.A)
+       ===================================================================== */
     function setupImport() {
       const dz = $("#dropzone");
       const fileInput = $("#file-input");
@@ -1225,7 +1918,7 @@
 
     async function handleFile(file) {
       if (typeof XLSX === "undefined") {
-        showImportResults(`<div>SheetJS still loading — try again in a moment.</div>`);
+        showImportResults(`<div>SheetJS still loading - try again in a moment.</div>`);
         return;
       }
       try {
@@ -1258,7 +1951,6 @@
         return;
       }
 
-      // Build normalized lookup from current records.
       const recordsByAddr = new Map();
       state.records.forEach(r => {
         if (r.address_normalized) recordsByAddr.set(r.address_normalized, r);
@@ -1276,23 +1968,20 @@
 
       const matchListHtml = matches.length
         ? matches.slice(0, 50).map(m =>
-            `<div>• <span class="match">${m.match.score}</span> · ` +
-            `${escapeHtml(m.normalized)} → ${escapeHtml(m.match.category || "")}</div>`
+            `<div>* <span class="match">${m.match.score}</span> | ` +
+            `${escapeHtml(m.normalized)} -> ${escapeHtml(m.match.category || "")}</div>`
           ).join("")
         : `<div style="color: var(--text-muted)">No matches found.</div>`;
 
       showImportResults(`
         <div><strong>${rows.length}</strong> tax-list rows imported from <em>${escapeHtml(filename)}</em></div>
-        <div>Address column: <code>${escapeHtml(addrCol)}</code>${ownerCol ? ` · Owner column: <code>${escapeHtml(ownerCol)}</code>` : ""}</div>
+        <div>Address column: <code>${escapeHtml(addrCol)}</code>${ownerCol ? ` | Owner column: <code>${escapeHtml(ownerCol)}</code>` : ""}</div>
         <div style="margin-top: 12px"><strong class="match">${matches.length}</strong> matches against current records:</div>
         <div style="margin-top: 8px">${matchListHtml}</div>
-        ${matches.length > 50 ? `<div style="margin-top: 8px; color: var(--text-muted)">…and ${matches.length - 50} more.</div>` : ""}
+        ${matches.length > 50 ? `<div style="margin-top: 8px; color: var(--text-muted)">...and ${matches.length - 50} more.</div>` : ""}
       `);
     }
 
-    /* Simple client-side address normalizer for cross-reference.
-       Approximate parity with scraper.normalize.normalize_address — kept
-       intentionally simple. Server-side normalization is authoritative. */
     function normalizeForMatch(raw) {
       if (!raw) return "";
       let s = String(raw).toUpperCase()
@@ -1300,9 +1989,7 @@
         .replace(/#\s*/g, "UNIT ")
         .replace(/\s+/g, " ")
         .trim();
-      // Strip unit portion
       s = s.replace(/\b(APT|APARTMENT|STE|SUITE|UNIT|BLDG|FL|FLOOR|RM|ROOM)\s+[A-Z0-9\-]+/g, "").trim();
-      // Common suffix expansions
       const repl = [
         [/\bSTREET\b/g, "ST"], [/\bAVENUE\b/g, "AVE"], [/\bBOULEVARD\b/g, "BLVD"],
         [/\bDRIVE\b/g, "DR"], [/\bROAD\b/g, "RD"], [/\bLANE\b/g, "LN"],
@@ -1323,9 +2010,9 @@
       el.style.display = "block";
     }
 
-    /* ═══════════════════════════════════════════════════════════════════════
+    /* =====================================================================
        Go
-       ═══════════════════════════════════════════════════════════════════════ */
+       ===================================================================== */
     boot();
   </script>
 </body>
