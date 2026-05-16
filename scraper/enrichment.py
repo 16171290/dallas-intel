@@ -1,4 +1,4 @@
-"""
+﻿"""
 Canonicalization and DCAD enrichment for County Clerk records.
 
 Source modules each produce their own record type:
@@ -73,7 +73,11 @@ def canonicalize_publicsearch(rec: PublicSearchRecord) -> CanonicalRecord:
         "sale_date":          None,
         "raw_excerpt":        rec.raw_html_snippet[:500] if rec.raw_html_snippet else None,
         "active":             True,
-        "release_record_id":  None,
+                "release_record_id":  None,
+        "signal_metadata":    None,
+        "address_city":       None,
+        "address_state":      None,
+        "address_zip":        None,
         "score":              0,
         "score_breakdown":    {},
         "parse_warnings":     list(rec.parse_warnings),
@@ -122,7 +126,11 @@ def canonicalize_foreclosure(rec: ForeclosureRecord) -> CanonicalRecord:
         "sale_date":          rec.sale_date_iso,
         "raw_excerpt":        rec.raw_excerpt[:500] if rec.raw_excerpt else None,
         "active":             True,
-        "release_record_id":  None,
+                "release_record_id":  None,
+        "signal_metadata":    None,
+        "address_city":       None,
+        "address_state":      None,
+        "address_zip":        None,
         "score":              0,
         "score_breakdown":    {},
         "parse_warnings":     list(rec.parse_warnings),

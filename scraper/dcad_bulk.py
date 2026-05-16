@@ -1,16 +1,16 @@
-"""
+﻿"""
 DCAD bulk-data ZIP fetcher and parser.
 
-Per §3.7.6 = (a) — direct download from DCAD's /DataProducts.aspx with a
+Per Â§3.7.6 = (a) â€” direct download from DCAD's /DataProducts.aspx with a
 weekly local cache. No Google Drive mirror.
 
 CONFIRMED (audit-derived):
-  - DCAD bulk data is free and explicitly sanctioned (§B.2.3, §A.2.3)
+  - DCAD bulk data is free and explicitly sanctioned (Â§B.2.3, Â§A.2.3)
   - robots.txt permits /DataProducts.aspx
 
 STRONG INFERENCE (Phase 1 verification step D.1.1 confirms):
   - The DataProducts.aspx page lists per-year ZIPs as <a> links
-  - The exact column schema inside each table file (§A.4)
+  - The exact column schema inside each table file (Â§A.4)
   - File extension is .csv or .txt with comma delimiter
 
 Fallback for failed discovery: set DCAD_ZIP_URL env var to the literal
@@ -30,13 +30,14 @@ import requests
 from bs4 import BeautifulSoup
 
 from . import config, normalize
+from .normalize import normalize_address
 
 logger = logging.getLogger(__name__)
 
 
-# ═══════════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # Public API
-# ═══════════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 def fetch_dcad_zip(
     year: Optional[int] = None,
@@ -103,15 +104,15 @@ def parse_dcad_tables(zip_path: Path) -> dict[str, pd.DataFrame]:
 
 
 def build_address_index(tables: dict[str, pd.DataFrame]) -> dict[str, str]:
-    """Build a normalized-address → ACCOUNT_NUM lookup map.
+    """Build a normalized-address â†’ ACCOUNT_NUM lookup map.
 
     Uses the ``ACCOUNT_INFO`` table. CONFIRMED schema (verified 2026-05-13
     against DCAD 2025 bundle):
 
-      - ``ACCOUNT_NUM``       — primary key
-      - ``STREET_NUM``         — house number
-      - ``STREET_HALF_NUM``    — fractional component (e.g. "1/2")
-      - ``FULL_STREET_NAME``   — directional + name + suffix in one field
+      - ``ACCOUNT_NUM``       â€” primary key
+      - ``STREET_NUM``         â€” house number
+      - ``STREET_HALF_NUM``    â€” fractional component (e.g. "1/2")
+      - ``FULL_STREET_NAME``   â€” directional + name + suffix in one field
                                  (e.g. "N MAIN ST")
 
     See docs/DCAD_SCHEMA.md for the full table layout.
@@ -151,9 +152,9 @@ class DCADFetchError(Exception):
     """Raised when DCAD bulk-data fetching fails (network or discovery)."""
 
 
-# ═══════════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # Internals
-# ═══════════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 def _cache_path(year: int) -> Path:
     """Cache location: ``<DCAD_CACHE_DIR>/dcad-{year}-week{YYYYWW}.zip``."""
@@ -181,8 +182,8 @@ def _discover_zip_url(year: int) -> str:
     certified rolls) are explicitly excluded via the deny-list.
 
     Resolution order:
-      1. Primary — first href containing ``dcad{year}_current.zip``
-      2. Fallback — any year + "Data Files" / "Comma Delimited" link
+      1. Primary â€” first href containing ``dcad{year}_current.zip``
+      2. Fallback â€” any year + "Data Files" / "Comma Delimited" link
                     that isn't on the deny-list
       3. Raise DCADFetchError with a remediation hint
     """
@@ -202,7 +203,7 @@ def _discover_zip_url(year: int) -> str:
     # skip the candidate.
     deny_terms = (
         "arb",                 # Appraisal Review Board (protests)
-        "bpp",                 # Business Personal Property — separate dataset
+        "bpp",                 # Business Personal Property â€” separate dataset
         "appraisal notice",    # Mail-1/2/3 annual notice data
         "notice data",         # same as above, alternate phrasing
         "real property cert",  # fixed-format certified appraisal roll
@@ -213,7 +214,7 @@ def _discover_zip_url(year: int) -> str:
     def _on_deny_list(text_lower: str, href_lower: str) -> bool:
         return any(term in text_lower or term in href_lower for term in deny_terms)
 
-    # ─── Tier 1: exact DCAD{YEAR}_CURRENT.zip match ────────────────────
+    # â”€â”€â”€ Tier 1: exact DCAD{YEAR}_CURRENT.zip match â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     for a in soup.find_all("a", href=True):
         href = a["href"].strip()
         if not href:
@@ -237,7 +238,7 @@ def _discover_zip_url(year: int) -> str:
         )
         return full_url
 
-    # ─── Tier 2: year + "Data Files" / "Comma Delimited" fallback ──────
+    # â”€â”€â”€ Tier 2: year + "Data Files" / "Comma Delimited" fallback â”€â”€â”€â”€â”€â”€
     for a in soup.find_all("a", href=True):
         href = a["href"].strip()
         if not href:
@@ -261,7 +262,7 @@ def _discover_zip_url(year: int) -> str:
         logger.warning(
             "DCAD ZIP URL resolved (tier-2 fallback) for year %s: %s "
             "(link text=%r). DCAD may have renamed the canonical _CURRENT "
-            "file — verify and consider updating the resolver.",
+            "file â€” verify and consider updating the resolver.",
             year, full_url, text,
         )
         return full_url
@@ -311,3 +312,83 @@ def _is_data_member(member_name: str) -> bool:
         return False
     name_lower = p.stem.lower()
     return not any(skip in name_lower for skip in _SKIP_PATTERNS)
+
+
+def build_account_index(tables: "dict[str, pd.DataFrame]") -> "dict[str, dict]":
+    """Build ``{ACCOUNT_NUM: {address_normalized, address_city, address_state, address_zip}}``.
+
+    The companion to ``build_address_index``: same ``ACCOUNT_INFO`` source,
+    same address-normalization rules, but keyed the *other* direction so a
+    caller holding a DCAD account number can recover the property's
+    canonical address fields.
+
+    Added for PR 3 of the probate integration. Probate canonicalization
+    (PR 5) matches a decedent name to a list of DCAD ``ACCOUNT_NUM`` values
+    via ``dcad_owner_index``; we then need each account's address parts so
+    the resulting canonical record can carry a full address all the way to
+    the CSV writer.
+
+    Defensive about missing optional columns: ``PROPERTY_CITY`` and
+    ``PROPERTY_ZIPCODE`` are common in DCAD's bundle but the function
+    tolerates their absence and emits ``None`` for those fields rather
+    than failing.
+
+    Args:
+        tables: dict of DCAD tables as returned by ``parse_dcad_tables``.
+
+    Returns:
+        ``{account_num: {"address_normalized", "address_city",
+        "address_state", "address_zip"}}``. Empty dict if ACCOUNT_INFO is
+        absent or has no usable rows.
+    """
+    df = tables.get("ACCOUNT_INFO")
+    if df is None or df.empty:
+        return {}
+
+    needed_min = {"ACCOUNT_NUM", "STREET_NUM", "FULL_STREET_NAME"}
+    missing = needed_min - set(df.columns)
+    if missing:
+        logger.warning(
+            "build_account_index: ACCOUNT_INFO missing required columns %s; "
+            "returning empty index",
+            sorted(missing),
+        )
+        return {}
+
+    has_city = "PROPERTY_CITY" in df.columns
+    has_zip  = "PROPERTY_ZIPCODE" in df.columns
+    has_half = "STREET_HALF_NUM" in df.columns
+
+    index: "dict[str, dict]" = {}
+    for row in df.itertuples(index=False):
+        # itertuples uses underscored attribute names for columns with spaces,
+        # but DCAD's columns are already underscore-safe so direct access works
+        account = str(getattr(row, "ACCOUNT_NUM", "") or "").strip()
+        if not account:
+            continue
+
+        num   = str(getattr(row, "STREET_NUM", "") or "").strip()
+        half  = str(getattr(row, "STREET_HALF_NUM", "") or "").strip() if has_half else ""
+        name  = str(getattr(row, "FULL_STREET_NAME", "") or "").strip()
+
+        # Build a raw "NNN HALF NAME" then run it through the same address
+        # normalizer the foreclosure pipeline uses, so we land on the same
+        # canonical form (collisions with build_address_index will tie out).
+        parts = [p for p in (num, half, name) if p]
+        if not parts:
+            continue
+        raw_addr = " ".join(parts)
+        norm = normalize_address(raw_addr) or None
+
+        city = str(getattr(row, "PROPERTY_CITY", "") or "").strip() if has_city else ""
+        zipc = str(getattr(row, "PROPERTY_ZIPCODE", "") or "").strip() if has_zip else ""
+
+        index[account] = {
+            "address_normalized": norm,
+            "address_city":       city or None,
+            "address_state":      "TX",
+            "address_zip":        zipc or None,
+        }
+
+    logger.info("Built DCAD account index: %d accounts", len(index))
+    return index
