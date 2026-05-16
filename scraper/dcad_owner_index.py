@@ -1,4 +1,4 @@
-"""
+﻿"""
 DCAD owner-name index.
 
 Builds a reverse-lookup index ``{normalized_owner_name: [account_nums]}``
@@ -24,6 +24,14 @@ Public API:
   build_owner_index(dcad_tables) -> dict[str, list[str]]
   normalize_dcad_owner_name(raw) -> str | None
   expand_joint_owners(raw) -> list[str]
+
+PR 2 fix (Phase 4 finding): the original ``_ROLE_SUFFIX_RE`` included
+a standalone ``LE`` token intended to match the "Life Estate"
+abbreviation. When applied to a name starting with the Vietnamese
+surname "Le" (a real common Dallas surname), the regex consumed the
+entire name and the entry normalized to None - silently excluding
+500+ owners from the index. The fix splits the LE handling: trailing
+LE is stripped separately, and the surname-LE collision is avoided.
 """
 
 from __future__ import annotations
@@ -71,18 +79,29 @@ def _first_field(row: Mapping, candidates: Iterable[str]) -> str:
 
 # Trailing role / fiduciary suffixes. Anything after these tokens is
 # stripped so "SMITH JOHN A TRUSTEE" -> "SMITH JOHN A".
+#
+# PR 2 fix: removed standalone "LE" from this alternation. It was meant
+# to catch the "Life Estate" abbreviation but matched Vietnamese
+# surname "Le" at the start of a name. Trailing LE is handled by
+# _TRAILING_LE_RE below instead.
 _ROLE_SUFFIX_RE = re.compile(
     r"\b(?:"
     r"TRUSTEE|TRUSTEES|"
     r"ETUX|ET\s+UX|ETAL|ET\s+AL|"
     r"FAMILY\s+TRUST|LIVING\s+TRUST|REVOCABLE\s+TRUST|TRUST|"
-    r"LIFE\s+ESTATE|LE|"
+    r"LIFE\s+ESTATE|"
     r"JR|SR|II|III|IV|"
     r"EXECUTOR|ADMINISTRATOR|HEIRS|HEIR\s+OF|"
     r"DECEASED|DEC\b"
     r")\b.*$",
     re.IGNORECASE,
 )
+
+# PR 2 fix: strip a trailing standalone LE token (Life Estate
+# abbreviation) only when it follows other content. Requires whitespace
+# before LE and end-of-string after, so a name that *starts* with LE
+# (Vietnamese surname) is preserved intact.
+_TRAILING_LE_RE = re.compile(r"(?<=\S)\s+LE\s*$", re.IGNORECASE)
 
 # Joint-owner separator. DCAD uses "&" with surrounding whitespace.
 _JOINT_SEP_RE = re.compile(r"\s*&\s*")
@@ -140,9 +159,11 @@ def normalize_dcad_owner_name(raw: str | None) -> str | None:
     Steps:
       1. Uppercase, strip whitespace.
       2. Remove punctuation (commas, periods, semicolons).
-      3. Strip trailing role suffix (TRUSTEE, ETUX, JR, etc.) and
-         everything after it.
-      4. Collapse whitespace.
+      3. Strip trailing "LE" only if preceded by other content
+         (Life Estate abbreviation; PR 2 fix preserves leading LE).
+      4. Strip trailing role suffix (TRUSTEE, JR, etc.) and everything
+         after it.
+      5. Collapse whitespace.
 
     Returns None if the result is empty.
     """
@@ -150,6 +171,8 @@ def normalize_dcad_owner_name(raw: str | None) -> str | None:
         return None
     s = str(raw).upper().strip()
     s = _PUNCT_RE.sub(" ", s)
+    # PR 2 fix: strip trailing LE before the general role-suffix sweep
+    s = _TRAILING_LE_RE.sub("", s)
     s = _ROLE_SUFFIX_RE.sub("", s)
     s = _WS_RE.sub(" ", s).strip()
     return s or None
@@ -181,8 +204,6 @@ def expand_joint_owners(raw: str) -> list[str]:
     if not segments:
         return []
 
-    # The primary owner is always emitted as-is (post-normalization
-    # happens later in normalize_dcad_owner_name).
     out: list[str] = [segments[0].strip()]
 
     primary_tokens = segments[0].strip().split()
@@ -194,10 +215,8 @@ def expand_joint_owners(raw: str) -> list[str]:
             continue
         tokens = seg.split()
         if len(tokens) <= 2 and primary_surname:
-            # Probably "MARY S" -> prepend "SMITH"
             out.append(f"{primary_surname} {seg}")
         else:
-            # Has its own surname (e.g. "JONES MARY S") or is malformed
             out.append(seg)
 
     return out

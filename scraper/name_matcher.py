@@ -1,4 +1,4 @@
-"""
+﻿"""
 Debtor-name to DCAD-owner matching.
 
 The bankruptcy RSS emits debtor names in "First Middle Last" mixed case
@@ -24,6 +24,12 @@ Strategy ladder (each tier strictly looser than the previous):
 
 Anything looser than this would create false positives. Last-name-only
 matching is intentionally not implemented; common surnames would over-match.
+
+PR 2 fix (Phase 4 finding): apply ``normalize_dcad_owner_name`` to the
+query side before lookup. The index already normalizes its keys with that
+function. Without the symmetric application, queries containing JR / SR /
+II / III / IV / TRUST / etc. failed to match index entries that had the
+suffix stripped during index build.
 """
 
 from __future__ import annotations
@@ -31,6 +37,8 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 from typing import Mapping, Optional
+
+from .dcad_owner_index import normalize_dcad_owner_name
 
 
 # ----------------------------------------------------------------------------
@@ -73,7 +81,6 @@ def convert_bankruptcy_to_dcad_format(name: str | None) -> str | None:
     tokens = s.split()
     if len(tokens) < 2:
         return None
-    # Last token becomes the surname; the rest stays in order.
     surname = tokens[-1]
     rest = " ".join(tokens[:-1])
     return f"{surname} {rest}"
@@ -84,7 +91,6 @@ def _make_no_middle_form(dcad_format: str) -> str | None:
     tokens = dcad_format.split()
     if len(tokens) < 3:
         return None
-    # Keep surname + first name only
     return f"{tokens[0]} {tokens[1]}"
 
 
@@ -93,7 +99,6 @@ def _make_initial_form(dcad_format: str) -> str | None:
     tokens = dcad_format.split()
     if len(tokens) < 3:
         return None
-    # Trim middle name to first initial.
     middle_initial = tokens[2][:1]
     if not middle_initial.isalpha():
         return None
@@ -119,13 +124,11 @@ def match_debtor_to_dcad(
     Returns None if no tier matches. Callers can interpret None as
     "this debtor doesn't own Dallas County property under this name."
 
-    Common reasons for no-match (informational - not bugs):
-      - Debtor rents
-      - Debtor owns property outside Dallas County
-      - Name in DCAD has a suffix we haven't normalized (Jr./Sr.,
-        deceased, etc.)
-      - Name spelling differs (Hispanic compound surnames, hyphens,
-        marriage name changes)
+    PR 2 fix: each tier's lookup key is normalized through
+    ``normalize_dcad_owner_name`` to match the same normalization the
+    index applied when it built its keys. Without this, suffixes like
+    JR / SR / II / III / IV / TRUST are present on the query side but
+    absent from the index side, causing silent no-match.
     """
     if not debtor_name or not owner_index:
         return None
@@ -134,16 +137,21 @@ def match_debtor_to_dcad(
     if not dcad_form:
         return None
 
+    # Symmetric normalization (PR 2 fix)
+    dcad_form_normed = normalize_dcad_owner_name(dcad_form)
+    if not dcad_form_normed:
+        return None
+
     # Tier 1: exact.
-    if dcad_form in owner_index:
+    if dcad_form_normed in owner_index:
         return MatchResult(
-            matched_name=dcad_form,
-            accounts=list(owner_index[dcad_form]),
+            matched_name=dcad_form_normed,
+            accounts=list(owner_index[dcad_form_normed]),
             match_strategy="exact",
         )
 
     # Tier 2: no middle name.
-    no_middle = _make_no_middle_form(dcad_form)
+    no_middle = _make_no_middle_form(dcad_form_normed)
     if no_middle and no_middle in owner_index:
         return MatchResult(
             matched_name=no_middle,
@@ -152,7 +160,7 @@ def match_debtor_to_dcad(
         )
 
     # Tier 3: first initial of middle name.
-    initial_form = _make_initial_form(dcad_form)
+    initial_form = _make_initial_form(dcad_form_normed)
     if initial_form and initial_form in owner_index:
         return MatchResult(
             matched_name=initial_form,
