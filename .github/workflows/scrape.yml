@@ -61,11 +61,16 @@ jobs:
       # Per §3.7.6 = (a): direct download from /DataProducts.aspx, cached
       # weekly. The ZIP is large (~50–200 MB); re-pulling weekly amortizes
       # the bandwidth cost.
+      #
+      # Cache key includes -y2025 suffix to pin to the DCAD_TARGET_YEAR
+      # below. When the target year rolls (e.g. to 2026 in July 2026 after
+      # DCAD certifies the new roll), bump this suffix to bust the stale
+      # cache from the prior year's bundle.
       - name: Cache DCAD bulk ZIP
         uses: actions/cache@v4
         with:
           path: ~/.dcad_cache
-          key: dcad-${{ steps.weekkey.outputs.yw }}
+          key: dcad-${{ steps.weekkey.outputs.yw }}-y2025
           restore-keys: |
             dcad-
 
@@ -91,12 +96,24 @@ jobs:
       # All secrets sourced from repo Settings → Secrets and variables → Actions.
       # DCAD_ZIP_URL is optional — set it only if discovery in dcad_bulk.py
       # ever breaks and you need a manual override.
+      #
+      # DCAD_TARGET_YEAR is "2025" because:
+      #   - The 2025 Certified bundle is the most recent FULL residential
+      #     dataset (ACCOUNT_INFO, RES_DETAIL, MULTI_OWNER, etc.).
+      #   - DCAD does not certify the new year's data until ~July (when the
+      #     county finalizes that tax year's rolls).
+      #   - The "2026" product on DataProducts.aspx is partial: BPP_DETAIL
+      #     only, which is business personal property and useless for
+      #     residential foreclosure enrichment.
+      #   - Flip this to "2026" AFTER July 2026 when DCAD certifies the 2026
+      #     residential bundle. At that point also bump the cache-key suffix
+      #     to -y2026 to bust the 2025 cache.
       - name: Run dallas-intel pipeline
         env:
           CONTACT_EMAIL:       ${{ secrets.CONTACT_EMAIL }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
           DCAD_ZIP_URL:        ${{ secrets.DCAD_ZIP_URL }}
-          DCAD_TARGET_YEAR:    "2026"
+          DCAD_TARGET_YEAR:    "2025"
           LOG_LEVEL:           INFO
         run: python -m scraper.main
 
