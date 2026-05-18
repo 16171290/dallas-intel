@@ -61,6 +61,7 @@ from . import (
     governmental_grantor,
     monitor,
     output,
+    probate,
     publicsearch,
     scorer,
 )
@@ -97,7 +98,7 @@ def _publicsearch_enabled() -> bool:
 
 def _run_pipeline() -> int:
     # 1. DCAD bulk data ------------------------------------------------------
-    logger.info("[1/11] Fetching DCAD bulk data")
+    logger.info("[1/12] Fetching DCAD bulk data")
     try:
         zip_path = dcad_bulk.fetch_dcad_zip()
         dcad_tables = dcad_bulk.parse_dcad_tables(zip_path)
@@ -106,7 +107,7 @@ def _run_pipeline() -> int:
         return _fail("DCAD fetch failed", exc, "dcad_bulk")
 
     # 2. Foreclosure-PDF walk ------------------------------------------------
-    logger.info("[2/11] Walking foreclosure-PDF index")
+    logger.info("[2/12] Walking foreclosure-PDF index")
     pdf_records_canonical: list[dict] = []
     try:
         index = foreclosure_pdfs.walk_foreclosure_index()
@@ -129,7 +130,7 @@ def _run_pipeline() -> int:
         )
 
     # 3. publicsearch.us scrape (gated) --------------------------------------
-    logger.info("[3/11] publicsearch.us scrape")
+    logger.info("[3/12] publicsearch.us scrape")
     ps_records_canonical: list[dict] = []
     if not _publicsearch_enabled():
         logger.info(
@@ -147,10 +148,40 @@ def _run_pipeline() -> int:
         except Exception as exc:
             return _fail("publicsearch.us scrape failed", exc, "publicsearch")
 
-    # 4. Merge sources -------------------------------------------------------
-    logger.info("[4/11] Merging %d publicsearch + %d PDF records",
-                len(ps_records_canonical), len(pdf_records_canonical))
-    all_records = ps_records_canonical + pdf_records_canonical
+    # 4. Probate (re:SearchTX) ----------------------------------------------
+    # Gated on config.PROBATE_ENABLED (default False). Non-fatal: probate is
+    # additive, so failures here must not kill the whole run. The fetch
+    # function itself returns [] on any error per its contract, so we only
+    # need defensive wrapping for catastrophic faults (e.g. import failure
+    # or unexpected exception types).
+    logger.info("[4/12] Probate fetch (re:SearchTX)")
+    probate_records_canonical: list[dict] = []
+    if not config.PROBATE_ENABLED:
+        logger.info(
+            "Probate SKIPPED - PROBATE_ENABLED env var not set. "
+            "Set PROBATE_ENABLED=true (with RESEARCH_TX_EMAIL and "
+            "RESEARCH_TX_PASSWORD secrets) to enable."
+        )
+    else:
+        try:
+            probate_records = probate.fetch_dallas_probate(days_back=config.DAYS_BACK)
+            probate_records_canonical = [
+                enrichment.canonicalize_probate(r) for r in probate_records
+            ]
+            logger.info("Probate: %d records fetched", len(probate_records_canonical))
+        except Exception as exc:
+            logger.warning("Probate stage failed: %s - continuing without probate", exc)
+            monitor.notify_failure(
+                error="Probate stage failed (non-fatal)",
+                context={"exception": str(exc)},
+            )
+
+    # 5. Merge sources -------------------------------------------------------
+    logger.info("[5/12] Merging %d publicsearch + %d PDF + %d probate records",
+                len(ps_records_canonical),
+                len(pdf_records_canonical),
+                len(probate_records_canonical))
+    all_records = ps_records_canonical + pdf_records_canonical + probate_records_canonical
 
     if not all_records:
         logger.warning(
@@ -159,24 +190,24 @@ def _run_pipeline() -> int:
             "the run, but this likely indicates a data-source problem."
         )
 
-    # 5. Merge first_seen / last_seen from prior archive ---------------------
-    logger.info("[5/11] Merging with prior records.json")
+    # 6. Merge first_seen / last_seen from prior archive ---------------------
+    logger.info("[6/12] Merging with prior records.json")
     prior_records = output.read_records_json(config.RECORDS_JSON)
     all_records = _merge_seen_dates(all_records, prior_records)
 
-    # 6. Enrich --------------------------------------------------------------
-    logger.info("[6/11] Enriching with DCAD")
+    # 7. Enrich --------------------------------------------------------------
+    logger.info("[7/12] Enriching with DCAD")
     all_records, enrich_stats = enrichment.enrich_batch(
         all_records, dcad_tables, address_index,
     )
 
-    # 7. Governmental-grantor suppression (Phase 0.A) ------------------------
+    # 8. Governmental-grantor suppression (Phase 0.A) ------------------------
     # Removes records where the grantor is a government entity (Trinity
     # River Authority, City of Dallas, DISD, IRS, etc.). Such records are
     # never motivated-seller leads - they're easements, condemnations, or
     # tax sales filed BY the government. Done BEFORE scoring so we don't
     # waste scoring cycles on noise.
-    logger.info("[7/11] Governmental-grantor suppression")
+    logger.info("[8/12] Governmental-grantor suppression")
     before = len(all_records)
     all_records, gov_removed = governmental_grantor.filter_governmental_records(all_records)
     gov_filtered_count = len(gov_removed)
@@ -190,17 +221,17 @@ def _run_pipeline() -> int:
             [r.get("grantor", "?") for r in gov_removed[:3]],
         )
 
-    # 8. Score + stack + suppress + HOA filter -------------------------------
-    logger.info("[8/11] Scoring + filtering")
+    # 9. Score + stack + suppress + HOA filter -------------------------------
+    logger.info("[9/12] Scoring + filtering")
     all_records, scoring_summary = scorer.score_and_filter(all_records)
 
-    # 9. Buy-box annotation (Phase 0.A) --------------------------------------
+    # 10. Buy-box annotation (Phase 0.A) -------------------------------------
     # Tags each record with `in_buy_box: bool` and `buy_box_reasons: list[str]`
     # based on operator-configured criteria (env vars: BUY_BOX_MIN_PRICE,
     # BUY_BOX_MAX_PRICE, BUY_BOX_ZIP_ALLOWLIST, etc). Does NOT remove records
     # - they remain in records.json for audit. The CSV writer filters on
     # in_buy_box=True so only in-box leads go to outreach.
-    logger.info("[9/11] Buy-box annotation")
+    logger.info("[10/12] Buy-box annotation")
     bb = buy_box.BuyBox.from_env()
     buy_box_summary = buy_box.annotate_records(all_records, bb)
     logger.info(
@@ -215,13 +246,13 @@ def _run_pipeline() -> int:
             buy_box_summary["top_exclusion_reasons"][:3],
         )
 
-    # 10. Write outputs ------------------------------------------------------
-    logger.info("[10/11] Writing records.json + daily CSV")
+    # 11. Write outputs -----------------------------------------------------
+    logger.info("[11/12] Writing records.json + daily CSV")
     output.write_records_json(all_records, config.RECORDS_JSON)
     output.write_daily_csv(all_records, date.today(), config.EXPORTS_DIR)
 
-    # 11. Notify -------------------------------------------------------------
-    logger.info("[11/11] Sending Discord notification")
+    # 12. Notify ------------------------------------------------------------
+    logger.info("[12/12] Sending Discord notification")
     summary = output.summarize_run(
         all_records,
         extra={

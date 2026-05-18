@@ -293,6 +293,72 @@ def _any_active(rows: pd.DataFrame, col: str) -> bool:
     return False
 
 
+
+def canonicalize_probate(rec: "ProbateRecord") -> CanonicalRecord:
+    """Convert a ProbateRecord into the canonical dict shape (Sec E.2).
+
+    Probate cases map to the ``PROB`` category with literal Dallas code ``PB``
+    (see Sec A.3). Per Phase 3 Option A decisions:
+      - ``grantor`` is the decedent (the party from whom the estate flows)
+      - ``grantee`` is the applicant (the party petitioning for letters)
+
+    Probate filings do not carry a property address at filing time, so
+    all address fields are ``None``. DCAD fan-out (matching applicants to
+    owned properties) is a downstream concern and lives outside this
+    canonicalizer.
+
+    Probate-specific context (judge, attorneys, case_type, case_status,
+    jurisdiction, additional_applicants) is preserved under ``signal_metadata``
+    rather than top-level keys, keeping the canonical schema stable across
+    sources.
+    """
+    # Strip Tyler ISO timestamp to YYYY-MM-DD to match the date-only convention
+    # used by publicsearch. Tyler returns dates as either "2026-05-14T17:00:00"
+    # or "2026-05-14T17:00:00+00:00"; slicing the first 10 chars yields the date
+    # portion deterministically.
+    filing_date = rec.date_filed[:10] if rec.date_filed else None
+
+    return {
+        "record_id":          f"pro-{rec.case_data_id}",
+        "source":             "probate.txcourts.gov",
+        "dallas_code":        "PB",
+        "category":           "PROB",
+        "filing_date":        filing_date,
+        "instrument_num":     rec.case_number,
+        "grantor":            rec.decedent_name,
+        "grantee":            rec.applicant_name,
+        "address":            None,
+        "address_normalized": None,
+        "dcad_account":       None,
+        "dcad_owner":         None,
+        "dcad_market_value":  None,
+        "dcad_homestead":     None,
+        "dcad_over65":        None,
+        "dcad_disabled":      None,
+        "dcad_tax_deferred":  None,
+        "amount":             None,
+        "trustee":            None,
+        "sale_date":          None,
+        "raw_excerpt":        None,
+        "active":             True,
+        "release_record_id":  None,
+        "signal_metadata":    {
+            "case_type":             rec.case_type,
+            "case_status":           rec.case_status,
+            "judge":                 rec.judge,
+            "attorneys":             list(rec.attorneys),
+            "jurisdiction":          rec.jurisdiction,
+            "additional_applicants": list(rec.additional_applicants),
+        },
+        "address_city":       None,
+        "address_state":      None,
+        "address_zip":        None,
+        "score":              0,
+        "score_breakdown":    {},
+        "parse_warnings":     list(rec.parse_warnings),
+    }
+
+
 def enrich_batch(
     records: list[CanonicalRecord],
     dcad_tables: dict[str, pd.DataFrame],

@@ -292,3 +292,111 @@ class TestEnrichBatch:
         assert stats.matched  == 0
         assert stats.hit_rate == 0.0
 
+
+# ============================================================================
+# Canonicalization - probate
+# ============================================================================
+
+class TestCanonicalizeProbate:
+    """Probate-source canonicalizer (PR 5)."""
+
+    def _make_record(self, **overrides):
+        from scraper.probate import ProbateRecord
+        defaults = dict(
+            case_data_id="abc123def456",
+            case_number="PR-26-01579-1",
+            case_type="Independent Administration",
+            case_status="Open",
+            date_filed="2026-05-14T17:00:00+00:00",
+            decedent_name="DOE, JANE",
+            applicant_name="DOE, JOHN",
+            additional_applicants=[],
+            judge="WARREN, INGRID M.",
+            attorneys=["SMITH, ATTORNEY"],
+            jurisdiction="Dallas County - County Clerk",
+            raw={},
+            parse_warnings=[],
+        )
+        defaults.update(overrides)
+        return ProbateRecord(**defaults)
+
+    def test_basic_fields(self):
+        rec = self._make_record()
+        out = enrichment.canonicalize_probate(rec)
+        assert out["record_id"]    == "pro-abc123def456"
+        assert out["source"]       == "probate.txcourts.gov"
+        assert out["dallas_code"]  == "PB"
+        assert out["category"]     == "PROB"
+        assert out["instrument_num"] == "PR-26-01579-1"
+        assert out["grantor"]      == "DOE, JANE"   # decedent
+        assert out["grantee"]      == "DOE, JOHN"   # applicant
+        assert out["active"] is True
+        assert out["score"]        == 0
+        assert out["score_breakdown"] == {}
+
+    def test_filing_date_normalized_to_date_only(self):
+        rec = self._make_record(date_filed="2026-05-14T17:00:00+00:00")
+        out = enrichment.canonicalize_probate(rec)
+        assert out["filing_date"] == "2026-05-14"
+
+    def test_filing_date_naive_timestamp(self):
+        rec = self._make_record(date_filed="2026-05-15T12:00:00")
+        out = enrichment.canonicalize_probate(rec)
+        assert out["filing_date"] == "2026-05-15"
+
+    def test_filing_date_none_passthrough(self):
+        rec = self._make_record(date_filed=None)
+        out = enrichment.canonicalize_probate(rec)
+        assert out["filing_date"] is None
+
+    def test_address_and_dcad_slots_are_none(self):
+        rec = self._make_record()
+        out = enrichment.canonicalize_probate(rec)
+        assert out["address"] is None
+        assert out["address_normalized"] is None
+        assert out["address_city"] is None
+        assert out["address_state"] is None
+        assert out["address_zip"] is None
+        assert out["dcad_account"] is None
+        assert out["dcad_owner"] is None
+        assert out["dcad_market_value"] is None
+        assert out["dcad_homestead"] is None
+        assert out["dcad_over65"] is None
+        assert out["dcad_disabled"] is None
+        assert out["dcad_tax_deferred"] is None
+        assert out["amount"] is None
+        assert out["trustee"] is None
+        assert out["sale_date"] is None
+
+    def test_signal_metadata_structure(self):
+        rec = self._make_record(
+            case_type="Dependent Administration",
+            case_status="OPEN",
+            judge="MALVEAUX, JULIA",
+            attorneys=["LAWYER ONE", "LAWYER TWO"],
+            jurisdiction="Dallas County - County Clerk",
+            additional_applicants=["DOE, SECOND APPLICANT"],
+        )
+        out = enrichment.canonicalize_probate(rec)
+        meta = out["signal_metadata"]
+        assert meta["case_type"]    == "Dependent Administration"
+        assert meta["case_status"]  == "OPEN"
+        assert meta["judge"]        == "MALVEAUX, JULIA"
+        assert meta["attorneys"]    == ["LAWYER ONE", "LAWYER TWO"]
+        assert meta["jurisdiction"] == "Dallas County - County Clerk"
+        assert meta["additional_applicants"] == ["DOE, SECOND APPLICANT"]
+
+    def test_parse_warnings_passthrough(self):
+        rec = self._make_record(parse_warnings=["missing_decedent", "applicant_truncated"])
+        out = enrichment.canonicalize_probate(rec)
+        assert out["parse_warnings"] == ["missing_decedent", "applicant_truncated"]
+        # Confirm it is a fresh list, not the underlying record list (mutation safety)
+        assert out["parse_warnings"] is not rec.parse_warnings
+
+    def test_attorneys_list_is_copied(self):
+        attorneys = ["ORIGINAL"]
+        rec = self._make_record(attorneys=attorneys)
+        out = enrichment.canonicalize_probate(rec)
+        assert out["signal_metadata"]["attorneys"] == ["ORIGINAL"]
+        assert out["signal_metadata"]["attorneys"] is not attorneys
+
