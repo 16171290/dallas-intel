@@ -229,3 +229,22 @@ DCAD_CACHE_DIR: Path = Path(
 # Ensure local-run directories exist on import.
 for _d in (DATA_DIR, EXPORTS_DIR, DCAD_CACHE_DIR):
     _d.mkdir(parents=True, exist_ok=True)
+
+
+# ============================================================================
+# Probate (re:SearchTX) - PR 4.1
+# ============================================================================
+
+# Master kill-switch for the probate stage. When False, scraper/probate.py
+# returns an empty list immediately without any HTTP call. Default False so
+# probate is opt-in until full integration cutover.
+PROBATE_ENABLED: bool = os.getenv("PROBATE_ENABLED", "").strip().lower() in {
+    "1", "true", "yes",
+}
+
+# Credentials for re:SearchTX login via Tyler Odyssey IdP.
+# In GitHub Actions: set as repository secrets RESEARCH_TX_EMAIL and
+# RESEARCH_TX_PASSWORD. Locally for testing: set as env vars before
+# running probe_probate_auth_live.py.
+PROBATE_EMAIL_ENV:    str = "RESEARCH_TX_EMAIL"
+PROBATE_PASSWORD_ENV: str = "RESEARCH_TX_PASSWORD"
