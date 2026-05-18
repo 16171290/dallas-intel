@@ -86,3 +86,8 @@ dallas-intel-phase-3e/
 dallas-intel-phase-3e1/
 dallas-intel-phase-*.tar.gz
 dallas-intel-phase-*.tar
+
+# Forensic and diagnostic output dirs (one-shot, regenerable)
+evidence_r*/
+probe_*_diag/
+equiv_check/
