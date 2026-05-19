@@ -110,11 +110,15 @@ jobs:
       #     to -y2026 to bust the 2025 cache.
       - name: Run dallas-intel pipeline
         env:
-          CONTACT_EMAIL:       ${{ secrets.CONTACT_EMAIL }}
-          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          DCAD_ZIP_URL:        ${{ secrets.DCAD_ZIP_URL }}
-          DCAD_TARGET_YEAR:    "2025"
-          LOG_LEVEL:           INFO
+          CONTACT_EMAIL:        ${{ secrets.CONTACT_EMAIL }}
+          DISCORD_WEBHOOK_URL:  ${{ secrets.DISCORD_WEBHOOK_URL }}
+          DCAD_ZIP_URL:         ${{ secrets.DCAD_ZIP_URL }}
+          DCAD_TARGET_YEAR:     "2025"
+          LOG_LEVEL:            INFO
+          # Probate (re:SearchTX) - PR 4.1 + PR 5
+          PROBATE_ENABLED:      "true"
+          RESEARCH_TX_EMAIL:    ${{ secrets.RESEARCH_TX_EMAIL }}
+          RESEARCH_TX_PASSWORD: ${{ secrets.RESEARCH_TX_PASSWORD }}
         run: python -m scraper.main
 
       # ─── Commit results ──────────────────────────────────────────────────
