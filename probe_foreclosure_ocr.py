@@ -59,34 +59,58 @@ logger = logging.getLogger(__name__)
 
 
 def _try_navigate_next(page, target_page: int) -> str:
-    """Try multiple strategies to advance the viewer to the next page.
+    """Try to advance the publicsearch.us viewer to the next document page.
 
-    Returns the name of the strategy that didn't throw. Doesn't guarantee
-    the click actually triggered a fetch -- the caller checks captured_urls
-    growth afterwards.
+    The viewer's pagination toolbar contains 4 nav buttons + a page-number
+    input + an "of N" label. Both prev (◁) and next (▷) buttons use the
+    same icon — operator-confirmed source:
+        /img/icon_jump_triangle.{hash}.svg
+    The hash changes across deploys; we match on the filename prefix only.
 
-    Strategy order is "click an obvious next-page button" first, since the
-    operator has confirmed clicking is what works. Keyboard / page-input
-    fallbacks are tried last in case the button selector is wrong.
+    Prev/next differ by visual rotation and by being enabled/disabled at
+    the boundaries (prev disabled on page 1; next disabled on page N).
+    Strategy: filter to ENABLED buttons matching that icon, take the LAST
+    one — that's always the next-page button when not at the final page.
+
+    Returns the name of the strategy that didn't raise. Doesn't guarantee
+    a click actually triggered a fetch — caller checks captured_urls
+    afterwards.
     """
-    next_re = re.compile(r"next", re.I)
     strategies: list[tuple[str, callable]] = [
+        # PRIMARY — operator-confirmed icon (2026-05-21). Last enabled
+        # button with icon_jump_triangle in its <img src> is "next page".
+        ("button:has(img[src*='icon_jump_triangle']):not[disabled]:last",
+            lambda: page.locator(
+                "button:not([disabled]):not([aria-disabled='true'])"
+                ":has(img[src*='icon_jump_triangle'])"
+            ).last.click(timeout=2500)),
+
+        # Variant without enabled-filter, in case disable state uses a
+        # CSS class instead of attribute.
+        ("button:has(img[src*='icon_jump_triangle']):last",
+            lambda: page.locator(
+                "button:has(img[src*='icon_jump_triangle'])"
+            ).last.click(timeout=2500)),
+
+        # Inline-SVG variant (if publicsearch ever switches from <img> to <svg>).
+        ("button:has(svg.icon_jump_triangle)",
+            lambda: page.locator(
+                "button:has(svg.icon_jump_triangle)"
+            ).last.click(timeout=2000)),
+
+        # Generic fallbacks (kept in case the icon name changes).
         ("get_by_role(button, name=re'next page')",
             lambda: page.get_by_role("button", name=re.compile(r"next\s*page", re.I)).first.click(timeout=2000)),
-        ("get_by_role(button, name=re'next')",
-            lambda: page.get_by_role("button", name=next_re).first.click(timeout=2000)),
         ("button[aria-label*='Next' i]",
             lambda: page.locator("button[aria-label*='Next' i]").first.click(timeout=2000)),
         ("button[title*='Next' i]",
             lambda: page.locator("button[title*='Next' i]").first.click(timeout=2000)),
-        ("[role=button][aria-label*='Next' i]",
-            lambda: page.locator("[role='button'][aria-label*='Next' i]").first.click(timeout=2000)),
-        ("a[aria-label*='Next' i]",
-            lambda: page.locator("a[aria-label*='Next' i]").first.click(timeout=2000)),
-        ("keyboard ArrowRight on body",
-            lambda: (page.locator("body").click(timeout=1000), page.keyboard.press("ArrowRight"))),
+
+        # Last-resort fallbacks
         ("page-number input fill+Enter",
             lambda: _fill_page_input(page, target_page)),
+        ("keyboard ArrowRight on body",
+            lambda: (page.locator("body").click(timeout=1000), page.keyboard.press("ArrowRight"))),
     ]
     for name, fn in strategies:
         try:
