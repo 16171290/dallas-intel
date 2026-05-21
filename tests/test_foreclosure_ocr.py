@@ -289,6 +289,32 @@ def test_no_extractable_fields():
 # Cross-field — a realistic Format C (PLG) example end-to-end
 # ============================================================================
 
+def test_ocr_pages_multi_page_uses_pool():
+    """2+ pages should be dispatched through the multiprocessing.Pool when
+    one is provided. We use a FakePool with a recording .map() to verify
+    the parallel path is taken without depending on Tesseract being
+    installed in the test environment."""
+    from scraper.foreclosure_ocr import _ocr_pages
+    class FakePool:
+        def __init__(self): self.received_args = None
+        def map(self, fn, args):
+            self.received_args = list(args)
+            return ["TEXT-P1", "TEXT-P2"]
+    fake = FakePool()
+    pages = {1: b"png-bytes-1", 2: b"png-bytes-2"}
+    result = _ocr_pages(pages, "/fake/tesseract", pool=fake)
+    assert fake.received_args is not None, "pool.map should be called for 2+ pages"
+    assert len(fake.received_args) == 2
+    # Each worker arg is (bytes, tess_cmd)
+    assert fake.received_args[0] == (b"png-bytes-1", "/fake/tesseract")
+    assert result == "TEXT-P1\n\nTEXT-P2"
+
+
+def test_ocr_pages_empty_returns_empty():
+    from scraper.foreclosure_ocr import _ocr_pages
+    assert _ocr_pages({}, "/fake/tesseract") == ""
+
+
 def test_format_C_end_to_end_PLG():
     """Format C — Padgett Law Group: structured tabular block with everything."""
     text = """NOTICE OF ACCELERATION AND NOTICE OF TRUSTEE'S SALE

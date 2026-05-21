@@ -278,13 +278,13 @@ def _run_pipeline() -> int:
             )
             logger.info(
                 "OCR: %d/%d captured, grantor=%d sale=%d addr=%d amount=%d legal=%d "
-                "(hoa_suppressed=%d, no_images=%d, errors=%d)",
+                "(hoa_suppressed=%d, past_sale_skipped=%d, no_images=%d, errors=%d)",
                 ocr_stats.captured_ok, ocr_stats.total,
                 ocr_stats.grantor_extracted, ocr_stats.sale_date_extracted,
                 ocr_stats.address_extracted, ocr_stats.loan_amount_extracted,
                 ocr_stats.legal_desc_extracted,
-                ocr_stats.hoa_lien_suppressed, ocr_stats.no_images,
-                ocr_stats.capture_errors,
+                ocr_stats.hoa_lien_suppressed, ocr_stats.skipped_past_sale_date,
+                ocr_stats.no_images, ocr_stats.capture_errors,
             )
         except Exception as exc:
             logger.warning(

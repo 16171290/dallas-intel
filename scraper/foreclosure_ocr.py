@@ -53,11 +53,13 @@ Cost on the pipeline:
 from __future__ import annotations
 
 import logging
+import multiprocessing
 import os
 import re
 import shutil
 import time
 from dataclasses import dataclass, field
+from datetime import date
 from pathlib import Path
 from typing import Any, Optional
 
@@ -439,20 +441,60 @@ def capture_with_retry(page, record_id: str, base_url: str,
 # OCR (Tesseract)
 # ═══════════════════════════════════════════════════════════════════════════
 
-def _ocr_pages(pages: dict[int, bytes], tess_cmd: str) -> str:
-    """Run Tesseract on each captured PNG and concatenate the text in page
-    order. Returns combined OCR text."""
+def _ocr_one_image_worker(args: tuple[bytes, str]) -> str:
+    """OCR a single PNG. Runs in a multiprocessing.Pool worker.
+
+    Top-level so it's picklable across processes on Windows (which uses
+    spawn, not fork). Each worker initializes pytesseract config inside
+    itself because the subprocess doesn't inherit the parent's config.
+    """
+    img_bytes, tess_cmd = args
+    try:
+        import pytesseract
+        from PIL import Image
+        from io import BytesIO
+        pytesseract.pytesseract.tesseract_cmd = tess_cmd
+        img = Image.open(BytesIO(img_bytes))
+        return pytesseract.image_to_string(img)
+    except Exception as e:
+        return f"<OCR_ERROR: {e}>"
+
+
+def _ocr_pages(pages: dict[int, bytes], tess_cmd: str,
+               pool: Optional["multiprocessing.pool.Pool"] = None) -> str:
+    """Run Tesseract on each captured PNG and concatenate the text in
+    page order. Returns combined OCR text.
+
+    If a multiprocessing.Pool is provided AND there are 2+ pages, OCR
+    runs in parallel (~3-4x speedup on a 4-core machine for typical
+    notices). Single-page records skip the pool overhead and run inline.
+    """
+    if not pages:
+        return ""
+
+    sorted_keys = sorted(pages.keys())
+    if pool is not None and len(sorted_keys) >= 2:
+        # Parallel: dispatch all pages to the pool at once.
+        args = [(pages[pn], tess_cmd) for pn in sorted_keys]
+        try:
+            results = pool.map(_ocr_one_image_worker, args)
+            return "\n\n".join(results)
+        except Exception as e:
+            logger.warning("Parallel OCR failed, falling back to serial: %s", e)
+            # fall through to the serial path below
+
+    # Serial fallback (also used for single-page docs where pool overhead
+    # would dominate).
     import pytesseract
     from PIL import Image
     from io import BytesIO
 
     pytesseract.pytesseract.tesseract_cmd = tess_cmd
     out_parts: list[str] = []
-    for pn in sorted(pages.keys()):
+    for pn in sorted_keys:
         try:
             img = Image.open(BytesIO(pages[pn]))
-            text = pytesseract.image_to_string(img)
-            out_parts.append(text)
+            out_parts.append(pytesseract.image_to_string(img))
         except Exception as e:
             logger.warning("OCR failed on page %d: %s", pn, e)
     return "\n\n".join(out_parts)
@@ -464,16 +506,17 @@ def _ocr_pages(pages: dict[int, bytes], tess_cmd: str) -> str:
 
 @dataclass
 class OCREnrichmentStats:
-    total:              int = 0
-    captured_ok:        int = 0
-    no_images:          int = 0
-    capture_errors:     int = 0
-    hoa_lien_suppressed: int = 0
-    grantor_extracted:  int = 0
-    sale_date_extracted: int = 0
-    address_extracted:  int = 0
-    loan_amount_extracted: int = 0
-    legal_desc_extracted: int = 0
+    total:                  int = 0
+    captured_ok:            int = 0
+    no_images:              int = 0
+    capture_errors:         int = 0
+    hoa_lien_suppressed:    int = 0
+    skipped_past_sale_date: int = 0  # auction already happened — skip OCR
+    grantor_extracted:      int = 0
+    sale_date_extracted:    int = 0
+    address_extracted:      int = 0
+    loan_amount_extracted:  int = 0
+    legal_desc_extracted:   int = 0
 
 
 def enrich_foreclosure_records(
@@ -512,8 +555,18 @@ def enrich_foreclosure_records(
             r.setdefault("parse_warnings", []).append("ocr_skipped_no_tesseract")
         return records, stats
 
-    logger.info("OCR enrichment starting on %d foreclosure records (Tesseract: %s)",
-                len(records), tess_cmd)
+    # Multiprocessing pool for parallel page OCR. Lazy init — only spawn
+    # workers when there's actually a record to OCR (so we don't pay
+    # spawn cost if all records are past-sale-date and skipped).
+    # Capped at 8 workers; Windows pool overhead dominates beyond that.
+    pool_size = min(multiprocessing.cpu_count(), 8)
+    pool: Optional[multiprocessing.pool.Pool] = None
+
+    today = date.today()
+
+    logger.info("OCR enrichment starting on %d foreclosure records "
+                "(Tesseract: %s, parallel-pool max=%d workers)",
+                len(records), tess_cmd, pool_size)
 
     with browser_context() as (_browser, context, _page):
         # Discard the initial page from browser_context; we use a fresh
@@ -529,6 +582,34 @@ def enrich_foreclosure_records(
             rid = rec.get("record_id")
             if not rid:
                 continue
+
+            # Skip OCR for records where the auction has already happened.
+            # Sale-date < today means the foreclosure is no longer a
+            # motivated-seller lead -- the property is either sold,
+            # withdrawn, or in post-auction processing. Saves ~10s/record
+            # for the ~10-15% of the pool that's already past.
+            sale_date_str = rec.get("sale_date")
+            if sale_date_str:
+                try:
+                    sd = date.fromisoformat(str(sale_date_str)[:10])
+                    if sd < today:
+                        rec.setdefault("parse_warnings", []).append("ocr_skipped_past_sale_date")
+                        stats.skipped_past_sale_date += 1
+                        continue
+                except (ValueError, TypeError):
+                    pass
+
+            # Lazy-init the OCR pool only once we know we'll actually need it.
+            if pool is None:
+                try:
+                    pool = multiprocessing.Pool(processes=pool_size)
+                except Exception as e:
+                    logger.warning(
+                        "Could not start OCR multiprocessing pool: %s; "
+                        "falling back to serial OCR", e,
+                    )
+                    pool = None  # explicit; _ocr_pages handles None
+
             t0 = time.time()
             # Fresh page per record — disposed after each capture so SPA
             # state, JS context, and memory don't accumulate.
@@ -557,7 +638,7 @@ def enrich_foreclosure_records(
                 continue
 
             stats.captured_ok += 1
-            text = _ocr_pages(cap.pages, tess_cmd)
+            text = _ocr_pages(cap.pages, tess_cmd, pool=pool)
             fields = extract_fields_from_text(text)
 
             if fields.is_hoa_lien:
@@ -624,14 +705,23 @@ def enrich_foreclosure_records(
                 "Y" if fields.property_address else "n",
             )
 
+    # Clean up the OCR multiprocessing pool.
+    if pool is not None:
+        try:
+            pool.close()
+            pool.join()
+        except Exception:
+            pass
+
     logger.info(
         "OCR enrichment complete: %d/%d captured; extracted "
         "grantor=%d, sale_date=%d, address=%d, amount=%d, legal=%d; "
-        "hoa_suppressed=%d, no_images=%d, errors=%d",
+        "hoa_suppressed=%d, skipped_past_sale=%d, no_images=%d, errors=%d",
         stats.captured_ok, stats.total,
         stats.grantor_extracted, stats.sale_date_extracted,
         stats.address_extracted, stats.loan_amount_extracted,
         stats.legal_desc_extracted,
-        stats.hoa_lien_suppressed, stats.no_images, stats.capture_errors,
+        stats.hoa_lien_suppressed, stats.skipped_past_sale_date,
+        stats.no_images, stats.capture_errors,
     )
     return records, stats
