@@ -58,6 +58,83 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
+def _try_navigate_next(page, target_page: int) -> str:
+    """Try multiple strategies to advance the viewer to the next page.
+
+    Returns the name of the strategy that didn't throw. Doesn't guarantee
+    the click actually triggered a fetch -- the caller checks captured_urls
+    growth afterwards.
+
+    Strategy order is "click an obvious next-page button" first, since the
+    operator has confirmed clicking is what works. Keyboard / page-input
+    fallbacks are tried last in case the button selector is wrong.
+    """
+    next_re = re.compile(r"next", re.I)
+    strategies: list[tuple[str, callable]] = [
+        ("get_by_role(button, name=re'next page')",
+            lambda: page.get_by_role("button", name=re.compile(r"next\s*page", re.I)).first.click(timeout=2000)),
+        ("get_by_role(button, name=re'next')",
+            lambda: page.get_by_role("button", name=next_re).first.click(timeout=2000)),
+        ("button[aria-label*='Next' i]",
+            lambda: page.locator("button[aria-label*='Next' i]").first.click(timeout=2000)),
+        ("button[title*='Next' i]",
+            lambda: page.locator("button[title*='Next' i]").first.click(timeout=2000)),
+        ("[role=button][aria-label*='Next' i]",
+            lambda: page.locator("[role='button'][aria-label*='Next' i]").first.click(timeout=2000)),
+        ("a[aria-label*='Next' i]",
+            lambda: page.locator("a[aria-label*='Next' i]").first.click(timeout=2000)),
+        ("keyboard ArrowRight on body",
+            lambda: (page.locator("body").click(timeout=1000), page.keyboard.press("ArrowRight"))),
+        ("page-number input fill+Enter",
+            lambda: _fill_page_input(page, target_page)),
+    ]
+    for name, fn in strategies:
+        try:
+            fn()
+            return name
+        except Exception:
+            continue
+    return "NONE"
+
+
+def _fill_page_input(page, target_page: int) -> None:
+    """Find the page-number text input and fill it with the target page."""
+    candidates = [
+        "input[aria-label*='page number' i]",
+        "input[aria-label*='page' i][type='text']",
+        "input[type='text']",
+        "input[type='number']",
+    ]
+    for sel in candidates:
+        loc = page.locator(sel).first
+        if loc.count() > 0:
+            loc.click(timeout=1000)
+            loc.fill(str(target_page))
+            page.keyboard.press("Enter")
+            return
+    raise RuntimeError("no page-number input found")
+
+
+def _dump_buttons(page) -> None:
+    """Diagnostic: log up to 30 button/role=button elements with their
+    text and aria-label so we can identify the right selector if nav
+    keeps failing."""
+    print(f"\n  [DIAGNOSTIC] enumerating up to 30 buttons on the page:")
+    try:
+        buttons = page.locator("button, [role='button']").all()
+        for i, b in enumerate(buttons[:30]):
+            try:
+                text = (b.inner_text(timeout=500) or "").strip()[:50]
+                aria = b.get_attribute("aria-label") or ""
+                title = b.get_attribute("title") or ""
+                if text or aria or title:
+                    print(f"    [{i}] text={text!r}  aria-label={aria!r}  title={title!r}")
+            except Exception:
+                pass
+    except Exception as e:
+        print(f"    button enumeration failed: {e}")
+
+
 def find_tesseract() -> Optional[str]:
     """Locate the Tesseract binary across platforms."""
     if cmd := os.environ.get("TESSERACT_CMD"):
@@ -137,21 +214,20 @@ def main() -> int:
 
     # ---------- capture stage ----------
     print(f"\n[1/5] Opening /doc/{record_id} ...")
-    # (url, bytes) tuples; we dedupe by extracted page number later
-    captured: list[tuple[str, bytes]] = []
+    # Collect URLs only in the response handler. Reading response.body()
+    # inline races against browser.close() if the response is late --
+    # we instead download via plain requests.get after the Playwright
+    # session ends. Signed URLs are valid for ~28 hours.
+    captured_urls: list[str] = []
 
     def on_response(response):
         url = response.url
         if "/files/documents/" in url and ".png" in url:
-            try:
-                body = response.body()
-                if body:
-                    captured.append((url, body))
-                    page_m = re.search(r"_(\d+)\.png", url)
-                    pn = page_m.group(1) if page_m else "?"
-                    logger.info(f"  captured page {pn}: {len(body)} bytes")
-            except Exception as e:
-                logger.warning(f"  could not read body for {url}: {e}")
+            if url not in captured_urls:
+                captured_urls.append(url)
+                m = re.search(r"_(\d+)\.png", url)
+                pn = m.group(1) if m else "?"
+                logger.info(f"  URL captured for page {pn}: {url[:90]}...")
 
     total_pages: Optional[int] = None
 
@@ -171,14 +247,12 @@ def main() -> int:
         url = f"{config.PUBLICSEARCH_BASE}/doc/{record_id}"
         page.goto(url, wait_until="networkidle", timeout=30_000)
 
-        # Passive wait — does the SPA prefetch all pages?
         print(f"  Passive wait {args.passive_wait}s for initial fetches ...")
         time.sleep(args.passive_wait)
-        initial_count = len(captured)
-        print(f"  After passive wait: {initial_count} PNG(s) captured")
+        initial_count = len(captured_urls)
+        print(f"  After passive wait: {initial_count} unique PNG URL(s)")
 
-        # Detect total page count from the viewer's "X of N" label.
-        # Look for any text containing "of <digits>" in the viewer area.
+        # Detect total page count from any "of N" text in the body.
         try:
             body_text = page.locator("body").inner_text()
             m = re.search(r"\bof\s+(\d+)\b", body_text)
@@ -190,66 +264,65 @@ def main() -> int:
 
         # Active navigation if we're missing pages.
         if total_pages and initial_count < total_pages:
-            print(f"\n[2/5] Need {total_pages - initial_count} more page(s); navigating ...")
-            # Click the document viewer area first so keyboard nav targets it.
-            try:
-                page.locator("section, main").first.click(position={"x": 100, "y": 200})
-            except Exception:
-                pass
+            print(f"\n[2/5] Need {total_pages - initial_count} more page(s); clicking through ...")
 
             for target_page in range(2, total_pages + 1):
-                pre = len(captured)
-                # Strategy 1: keyboard right-arrow (common viewer nav)
-                try:
-                    page.keyboard.press("ArrowRight")
-                except Exception:
-                    pass
+                pre = len(captured_urls)
+                strategy_used = _try_navigate_next(page, target_page)
                 time.sleep(args.per_page_wait)
-                if len(captured) > pre:
-                    print(f"  page {target_page}: captured via ArrowRight")
-                    continue
-
-                # Strategy 2: fill the page-number input and Enter
-                try:
-                    inp = page.locator("input[type='text'], input[type='number']").first
-                    inp.click()
-                    inp.fill(str(target_page))
-                    page.keyboard.press("Enter")
-                    time.sleep(args.per_page_wait)
-                    if len(captured) > pre:
-                        print(f"  page {target_page}: captured via page-input")
-                        continue
-                except Exception as e:
-                    logger.debug(f"  page-input nav failed: {e}")
-
-                print(f"  page {target_page}: NO new capture after both strategies")
+                if len(captured_urls) > pre:
+                    print(f"  page {target_page}: captured via {strategy_used}")
+                else:
+                    print(f"  page {target_page}: NO new URL after strategy={strategy_used}")
+                    # Dump button inventory once so we can diagnose the right selector
+                    if target_page == 2:
+                        _dump_buttons(page)
         else:
             if total_pages:
                 print(f"  All {total_pages} pages already captured passively")
+
+        # Final wait to let any in-flight responses arrive before close.
+        # Without this, the URL of the last navigated page may not be
+        # captured before the context tears down.
+        print(f"\n  Final 3s settle wait before close ...")
+        time.sleep(3)
 
         page.close()
         context.close()
         browser.close()
 
-    # ---------- dedupe + save ----------
-    unique: dict[int, tuple[str, bytes]] = {}
-    for url, body in captured:
+    if not captured_urls:
+        print("\nERROR: no PNG URLs captured. SPA never fetched any document images.")
+        return 1
+
+    # ---------- download via plain HTTP ----------
+    print(f"\n[2.5/5] Downloading {len(captured_urls)} PNG(s) via requests ...")
+    import requests
+
+    unique: dict[int, bytes] = {}
+    for url in captured_urls:
         m = re.search(r"_(\d+)\.png", url)
-        if m:
-            pn = int(m.group(1))
-            # Keep the largest body (most-complete capture) if duplicates
-            if pn not in unique or len(body) > len(unique[pn][1]):
-                unique[pn] = (url, body)
+        if not m:
+            continue
+        pn = int(m.group(1))
+        if pn in unique:
+            continue  # already have this page
+        try:
+            r = requests.get(url, timeout=30)
+            r.raise_for_status()
+            unique[pn] = r.content
+            print(f"  page {pn}: {len(r.content):,} bytes")
+        except Exception as e:
+            print(f"  page {pn}: download FAILED: {e}")
 
     if not unique:
-        print("\nERROR: no PNGs captured. Image responses never fired.")
-        print("Possible causes: SPA changed, selector blocked, network policy.")
+        print("\nERROR: every download failed. Signed URLs may have expired.")
         return 1
 
     print(f"\n[3/5] Saving {len(unique)} unique page(s)")
     saved_paths: dict[int, Path] = {}
     for pn in sorted(unique.keys()):
-        url, body = unique[pn]
+        body = unique[pn]
         path = out_dir / f"page_{pn}.png"
         path.write_bytes(body)
         saved_paths[pn] = path
