@@ -92,6 +92,15 @@ jobs:
         if: steps.playwright-cache.outputs.cache-hit == 'true'
         run: playwright install-deps chromium
 
+      # ─── Tesseract OCR binary ────────────────────────────────────────────
+      # Required by scraper/foreclosure_ocr.py to extract owner name + full
+      # property address from publicsearch.us foreclosure-notice PNG scans.
+      # ubuntu-latest doesn't ship Tesseract by default. Install is ~5s; the
+      # binary lives at /usr/bin/tesseract which the scraper locates via
+      # scraper.foreclosure_ocr.find_tesseract() (shutil.which on $PATH).
+      - name: Install Tesseract OCR
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends tesseract-ocr
+
       # ─── Run the pipeline ────────────────────────────────────────────────
       # All secrets sourced from repo Settings → Secrets and variables → Actions.
       # DCAD_ZIP_URL is optional — set it only if discovery in dcad_bulk.py
@@ -121,6 +130,12 @@ jobs:
           RESEARCH_TX_PASSWORD: ${{ secrets.RESEARCH_TX_PASSWORD }}
           # publicsearch.us SPA - re-enabled 2026-05-19 (Stage 3 now non-fatal)
           PUBLICSEARCH_ENABLED: "true"
+          # Foreclosure OCR enrichment (PR 12) - extracts owner name + full
+          # property address from publicsearch.us NOF PNG scans via Tesseract.
+          # Adds ~5-8 min to the run on a 4-vCPU ubuntu-latest runner.
+          # Past-sale-date records and HOA-lien sales are skipped/suppressed
+          # so the work stays focused on motivated-seller leads.
+          FORECLOSURE_OCR_ENABLED: "true"
         run: python -m scraper.main
 
       # ─── Commit results ──────────────────────────────────────────────────
