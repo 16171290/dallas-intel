@@ -98,6 +98,19 @@ def _publicsearch_enabled() -> bool:
     )
 
 
+def _foreclosure_pdf_enabled() -> bool:
+    """Read the FORECLOSURE_PDF_ENABLED env var. Defaults to False.
+
+    The dallascounty.org PDF feed was deprecated for fresh foreclosure
+    notices on 2026-02-24 (per the county's own banner pointing operators
+    to publicsearch.us). The walker is kept available for archival
+    research but is off by default to avoid producing dead leads.
+    """
+    return os.getenv("FORECLOSURE_PDF_ENABLED", "false").strip().lower() in (
+        "true", "1", "yes", "on",
+    )
+
+
 def _run_pipeline() -> int:
     # 1. DCAD bulk data ------------------------------------------------------
     logger.info("[1/12] Fetching DCAD bulk data")
@@ -109,30 +122,41 @@ def _run_pipeline() -> int:
         return _fail("DCAD fetch failed", exc, "dcad_bulk")
 
     # 2. Foreclosure-PDF walk ------------------------------------------------
+    # dallascounty.org's foreclosure-PDF feed was deprecated as a source of
+    # fresh notices on 2026-02-24 (the county redirected operators to
+    # publicsearch.us). Default-off; set FORECLOSURE_PDF_ENABLED=true to
+    # re-enable for archival research.
     logger.info("[2/12] Walking foreclosure-PDF index")
     pdf_records_canonical: list[dict] = []
-    try:
-        index = foreclosure_pdfs.walk_foreclosure_index()
-        pdf_dest = config.DATA_DIR / "foreclosure_pdfs"
-        for ref in index:
-            local_path, downloaded = foreclosure_pdfs.download_pdf(ref, pdf_dest)
-            try:
-                records = foreclosure_pdfs.extract_pdf_records(
-                    local_path,
-                    pdf_url=ref.pdf_url,
-                )
-                pdf_records_canonical.extend(
-                    enrichment.canonicalize_foreclosure(r) for r in records
-                )
-            except Exception as exc:
-                logger.warning("PDF extract failed for %s: %s", local_path.name, exc)
-    except Exception as exc:
-        # PDF-side failure shouldn't kill the whole run; log + continue
-        logger.warning("Foreclosure-PDF stage failed: %s - continuing without PDFs", exc)
-        monitor.notify_failure(
-            error="Foreclosure-PDF stage failed (non-fatal)",
-            context={"exception": str(exc)},
+    if not _foreclosure_pdf_enabled():
+        logger.info(
+            "Foreclosure-PDF source SKIPPED - dallascounty.org PDF feed "
+            "deprecated 2026-02-24. Fresh foreclosure notices now live on "
+            "publicsearch.us. Set FORECLOSURE_PDF_ENABLED=true to re-enable."
         )
+    else:
+        try:
+            index = foreclosure_pdfs.walk_foreclosure_index()
+            pdf_dest = config.DATA_DIR / "foreclosure_pdfs"
+            for ref in index:
+                local_path, downloaded = foreclosure_pdfs.download_pdf(ref, pdf_dest)
+                try:
+                    records = foreclosure_pdfs.extract_pdf_records(
+                        local_path,
+                        pdf_url=ref.pdf_url,
+                    )
+                    pdf_records_canonical.extend(
+                        enrichment.canonicalize_foreclosure(r) for r in records
+                    )
+                except Exception as exc:
+                    logger.warning("PDF extract failed for %s: %s", local_path.name, exc)
+        except Exception as exc:
+            # PDF-side failure shouldn't kill the whole run; log + continue
+            logger.warning("Foreclosure-PDF stage failed: %s - continuing without PDFs", exc)
+            monitor.notify_failure(
+                error="Foreclosure-PDF stage failed (non-fatal)",
+                context={"exception": str(exc)},
+            )
 
     # 3. publicsearch.us scrape (gated) --------------------------------------
     logger.info("[3/12] publicsearch.us scrape")
@@ -323,7 +347,8 @@ def _run_pipeline() -> int:
             "hoa_filtered_count":  scoring_summary.get("hoa_filtered_count", 0),
             "gov_filtered_count":  gov_filtered_count,
             "buy_box":             buy_box_summary,
-            "publicsearch_enabled": _publicsearch_enabled(),
+            "publicsearch_enabled":   _publicsearch_enabled(),
+            "foreclosure_pdf_enabled": _foreclosure_pdf_enabled(),
         },
     )
     monitor.notify_run_complete(summary)
