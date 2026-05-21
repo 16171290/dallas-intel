@@ -58,6 +58,7 @@ from . import (
     dcad_bulk,
     enrichment,
     entity_filter,
+    foreclosure_ocr,
     foreclosure_pdfs,
     foreclosures_ps,
     governmental_grantor,
@@ -108,6 +109,24 @@ def _foreclosure_pdf_enabled() -> bool:
     research but is off by default to avoid producing dead leads.
     """
     return os.getenv("FORECLOSURE_PDF_ENABLED", "false").strip().lower() in (
+        "true", "1", "yes", "on",
+    )
+
+
+def _foreclosure_ocr_enabled() -> bool:
+    """Read the FORECLOSURE_OCR_ENABLED env var. Defaults to False.
+
+    The OCR stage downloads each foreclosure notice's PNG pages from
+    publicsearch.us and runs Tesseract over them to extract owner name,
+    full property address, loan amount, and legal description. Adds
+    ~6-10 seconds per record (~10-15 min for a typical 60-80 record
+    weekly run). Gated so operators can keep fast iteration on other
+    pipeline stages when not actively working foreclosure leads.
+
+    Set FORECLOSURE_OCR_ENABLED=true to enable. Requires Tesseract
+    binary installed locally (see scraper/foreclosure_ocr.py docstring).
+    """
+    return os.getenv("FORECLOSURE_OCR_ENABLED", "false").strip().lower() in (
         "true", "1", "yes", "on",
     )
 
@@ -243,6 +262,47 @@ def _run_pipeline() -> int:
                     "exception": str(exc),
                 },
             )
+
+    # 3.6. OCR enrichment of foreclosure notices ----------------------------
+    # Pulls owner name, full property address, loan amount, legal description
+    # from the PNG document scans on publicsearch.us. ~6-10s per record.
+    # Gated by FORECLOSURE_OCR_ENABLED (default False); requires Tesseract.
+    # HOA-assessment-lien records get active=False so they appear in
+    # records.json for audit but vanish from the CSV.
+    if foreclosure_ps_canonical and _foreclosure_ocr_enabled():
+        logger.info("[3.6/12] OCR enrichment of %d foreclosure records",
+                    len(foreclosure_ps_canonical))
+        try:
+            foreclosure_ps_canonical, ocr_stats = foreclosure_ocr.enrich_foreclosure_records(
+                foreclosure_ps_canonical
+            )
+            logger.info(
+                "OCR: %d/%d captured, grantor=%d sale=%d addr=%d amount=%d legal=%d "
+                "(hoa_suppressed=%d, no_images=%d, errors=%d)",
+                ocr_stats.captured_ok, ocr_stats.total,
+                ocr_stats.grantor_extracted, ocr_stats.sale_date_extracted,
+                ocr_stats.address_extracted, ocr_stats.loan_amount_extracted,
+                ocr_stats.legal_desc_extracted,
+                ocr_stats.hoa_lien_suppressed, ocr_stats.no_images,
+                ocr_stats.capture_errors,
+            )
+        except Exception as exc:
+            logger.warning(
+                "OCR enrichment failed: %s - continuing with un-enriched records", exc,
+            )
+            monitor.notify_failure(
+                error="OCR enrichment failed (non-fatal)",
+                context={
+                    "stage": "foreclosure_ocr",
+                    "exception_type": type(exc).__name__,
+                    "exception": str(exc),
+                },
+            )
+    elif foreclosure_ps_canonical:
+        logger.info(
+            "[3.6/12] OCR enrichment SKIPPED - set FORECLOSURE_OCR_ENABLED=true to enable. "
+            "Records will have list-view fields only (no owner name, no full address)."
+        )
 
     # 4. Probate (re:SearchTX) ----------------------------------------------
     # Gated on config.PROBATE_ENABLED (default False). Non-fatal: probate is
@@ -405,6 +465,7 @@ def _run_pipeline() -> int:
             "buy_box":             buy_box_summary,
             "publicsearch_enabled":   _publicsearch_enabled(),
             "foreclosure_pdf_enabled": _foreclosure_pdf_enabled(),
+            "foreclosure_ocr_enabled": _foreclosure_ocr_enabled(),
         },
     )
     monitor.notify_run_complete(summary)
