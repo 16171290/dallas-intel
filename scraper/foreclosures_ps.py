@@ -46,6 +46,7 @@ from .publicsearch import (
     CircuitBreaker,
     CircuitBreakerTripped,
     browser_context,
+    _open_home,
     _polite_delay,
 )
 
@@ -109,6 +110,12 @@ def scrape_foreclosures(
     out: list[ForeclosureNoticePSRecord] = []
 
     with browser_context() as (_browser, _context, page):
+        # The SPA establishes session cookies / bootstraps the React app on
+        # the home page. Direct navigation to /results without that prior
+        # visit yields an empty results state. Match the Real-Property
+        # scraper's lifecycle (publicsearch.scrape_all does the same).
+        _open_home(page)
+
         offset = 0
         while True:
             url = _build_results_url(
@@ -123,8 +130,16 @@ def scrape_foreclosures(
             _polite_delay("publicsearch.us")
 
             try:
+                logger.info("publicsearch foreclosures: GET %s", url)
                 page.goto(url, wait_until="networkidle", timeout=30_000)
-                page_records = _harvest_current_page(page)
+                # Wait for the results table or recognize the empty-results state.
+                try:
+                    page.locator(
+                        "section.search-results__results-wrap table"
+                    ).first.wait_for(state="visible", timeout=10_000)
+                except Exception:
+                    logger.debug("foreclosures: results table not visible within 10s")
+                page_records = _harvest_current_page(page, offset)
                 breaker.record_success()
             except CircuitBreakerTripped:
                 raise
@@ -137,7 +152,9 @@ def scrape_foreclosures(
                 break
 
             if not page_records:
-                logger.debug("publicsearch foreclosures: empty page at offset=%d; stopping", offset)
+                logger.info(
+                    "publicsearch foreclosures: empty page at offset=%d; stopping", offset
+                )
                 break
 
             new_count = 0
@@ -148,7 +165,7 @@ def scrape_foreclosures(
                 out.append(rec)
                 new_count += 1
 
-            logger.debug(
+            logger.info(
                 "publicsearch foreclosures: offset=%d, harvested=%d (new=%d, total=%d)",
                 offset, len(page_records), new_count, len(out),
             )
@@ -201,13 +218,13 @@ def _build_results_url(
     return f"{config.PUBLICSEARCH_BASE}/results?{urlencode(params)}"
 
 
-# One-shot probe: logs the first row's HTML on the first call so we can
-# verify the col-N mapping matches reality. Removed once the layout is
-# confirmed stable across runs.
-_PROBED_ROW_LAYOUT = False
+# One-shot probe: fires on the first _harvest_current_page call regardless
+# of row count. Logs page state + row layout so we can diagnose empty-page
+# cases (selector mismatch, session not established, redirect, etc.).
+_PROBED_PAGE_STATE = False
 
 
-def _harvest_current_page(page) -> list[ForeclosureNoticePSRecord]:
+def _harvest_current_page(page, offset: int = 0) -> list[ForeclosureNoticePSRecord]:
     """Extract one page of Notice-of-Foreclosure rows.
 
     Result-table structure (per 2026-05-21 inspection of the live page):
@@ -220,15 +237,15 @@ def _harvest_current_page(page) -> list[ForeclosureNoticePSRecord]:
       col-6   DOC NUMBER (instrument number)
       col-7   PROPERTY ADDRESS (full street when known; falls back to city)
     """
-    global _PROBED_ROW_LAYOUT
+    global _PROBED_PAGE_STATE
 
     rows = page.locator("section.search-results__results-wrap table tbody tr").all()
+
+    if not _PROBED_PAGE_STATE:
+        _probe_page_state(page, rows, offset)
+        _PROBED_PAGE_STATE = True
+
     records: list[ForeclosureNoticePSRecord] = []
-
-    if rows and not _PROBED_ROW_LAYOUT:
-        _probe_row_layout(rows[0])
-        _PROBED_ROW_LAYOUT = True
-
     for row in rows:
         try:
             rec = _parse_result_row(row)
@@ -240,18 +257,54 @@ def _harvest_current_page(page) -> list[ForeclosureNoticePSRecord]:
     return records
 
 
-def _probe_row_layout(row) -> None:
-    """One-shot defensive probe: log first row's HTML so col-N mapping
-    can be verified post-hoc. Cheap insurance against silent breakage if
-    publicsearch.us renumbers their columns."""
+def _probe_page_state(page, rows: list, offset: int) -> None:
+    """One-shot defensive probe: log page-level diagnostics on the first
+    harvest call so we can identify selector mismatches or empty-state
+    redirects WITHOUT needing 'rows' to be non-empty.
+
+    Logs:
+      - Current URL after navigation (catches redirects)
+      - Page title
+      - Count of <tr> elements anywhere on the page (broad selector)
+      - Count of <tr> our specific selector matched
+      - First row's outerHTML when a row exists, otherwise the first
+        2000 chars of the body's text content (so we can see what the SPA
+        actually rendered).
+    """
     try:
-        html = row.evaluate("el => el.outerHTML") or ""
+        logger.info("FORECLOSURES PROBE: page.url=%s", page.url)
+        try:
+            logger.info("FORECLOSURES PROBE: page.title=%s", page.title())
+        except Exception:
+            pass
+        try:
+            all_trs = page.locator("tr").count()
+        except Exception:
+            all_trs = -1
         logger.info(
-            "FORECLOSURES ROW PROBE: first-row html (first 2000 chars): %s",
-            html[:2000],
+            "FORECLOSURES PROBE: offset=%d, rows-found-by-specific-selector=%d, total-<tr>-on-page=%s",
+            offset, len(rows), all_trs,
         )
+        if rows:
+            try:
+                html = rows[0].evaluate("el => el.outerHTML") or ""
+                logger.info(
+                    "FORECLOSURES PROBE: first-row html (first 2000 chars): %s",
+                    html[:2000],
+                )
+            except Exception as e:
+                logger.info("FORECLOSURES PROBE: could not read first row html: %s", e)
+        else:
+            try:
+                body_text = page.locator("body").inner_text()[:1500]
+                logger.info(
+                    "FORECLOSURES PROBE: no rows; body text (first 1500 chars): %s",
+                    body_text,
+                )
+            except Exception as e:
+                logger.info("FORECLOSURES PROBE: could not read body text: %s", e)
     except Exception as e:
-        logger.info("FORECLOSURES ROW PROBE failed: %s", e)
+        logger.warning("FORECLOSURES PROBE failed: %s", e)
 
 
 def _parse_result_row(row) -> Optional[ForeclosureNoticePSRecord]:
