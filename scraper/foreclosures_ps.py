@@ -258,53 +258,86 @@ def _harvest_current_page(page, offset: int = 0) -> list[ForeclosureNoticePSReco
 
 
 def _probe_page_state(page, rows: list, offset: int) -> None:
-    """One-shot defensive probe: log page-level diagnostics on the first
-    harvest call so we can identify selector mismatches or empty-state
-    redirects WITHOUT needing 'rows' to be non-empty.
+    """One-shot defensive probe: capture authoritative evidence of what
+    publicsearch.us actually rendered to our scraper.
 
-    Logs:
-      - Current URL after navigation (catches redirects)
-      - Page title
-      - Count of <tr> elements anywhere on the page (broad selector)
-      - Count of <tr> our specific selector matched
-      - First row's outerHTML when a row exists, otherwise the first
-        2000 chars of the body's text content (so we can see what the SPA
-        actually rendered).
+    Saves THREE artifacts to ``data/probes/`` so we have ground truth
+    regardless of what the page looks like:
+      - ``foreclosures_<ts>.png``   — full-page screenshot
+      - ``foreclosures_<ts>.html``  — full page DOM (page.content())
+      - ``foreclosures_<ts>.txt``   — log summary (URL, title, counts)
+
+    Also logs the same summary at INFO so it appears in the terminal /
+    log file. The screenshot + HTML are the authoritative artifacts;
+    the log lines are convenience.
+
+    Operator: open the .png and .html files at data/probes/ after a run
+    to see exactly what the SPA rendered. No inference required.
     """
+    from datetime import datetime
+
+    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+    probe_dir = config.DATA_DIR / "probes"
     try:
-        logger.info("FORECLOSURES PROBE: page.url=%s", page.url)
-        try:
-            logger.info("FORECLOSURES PROBE: page.title=%s", page.title())
-        except Exception:
-            pass
-        try:
-            all_trs = page.locator("tr").count()
-        except Exception:
-            all_trs = -1
-        logger.info(
-            "FORECLOSURES PROBE: offset=%d, rows-found-by-specific-selector=%d, total-<tr>-on-page=%s",
-            offset, len(rows), all_trs,
-        )
-        if rows:
-            try:
-                html = rows[0].evaluate("el => el.outerHTML") or ""
-                logger.info(
-                    "FORECLOSURES PROBE: first-row html (first 2000 chars): %s",
-                    html[:2000],
-                )
-            except Exception as e:
-                logger.info("FORECLOSURES PROBE: could not read first row html: %s", e)
-        else:
-            try:
-                body_text = page.locator("body").inner_text()[:1500]
-                logger.info(
-                    "FORECLOSURES PROBE: no rows; body text (first 1500 chars): %s",
-                    body_text,
-                )
-            except Exception as e:
-                logger.info("FORECLOSURES PROBE: could not read body text: %s", e)
+        probe_dir.mkdir(parents=True, exist_ok=True)
     except Exception as e:
-        logger.warning("FORECLOSURES PROBE failed: %s", e)
+        logger.warning("FORECLOSURES PROBE: could not create %s: %s", probe_dir, e)
+        return
+
+    png_path  = probe_dir / f"foreclosures_{ts}.png"
+    html_path = probe_dir / f"foreclosures_{ts}.html"
+    txt_path  = probe_dir / f"foreclosures_{ts}.txt"
+
+    # Collect the basics safely — every field independently guarded so
+    # one failure doesn't lose the others.
+    info: dict[str, str] = {}
+    try:
+        info["page_url"] = page.url
+    except Exception as e:
+        info["page_url"] = f"<error: {e}>"
+    try:
+        info["page_title"] = page.title()
+    except Exception as e:
+        info["page_title"] = f"<error: {e}>"
+    try:
+        info["rows_by_specific_selector"] = str(len(rows))
+    except Exception:
+        info["rows_by_specific_selector"] = "<error>"
+    try:
+        info["total_tr_on_page"] = str(page.locator("tr").count())
+    except Exception as e:
+        info["total_tr_on_page"] = f"<error: {e}>"
+    try:
+        info["total_tables_on_page"] = str(page.locator("table").count())
+    except Exception as e:
+        info["total_tables_on_page"] = f"<error: {e}>"
+    info["offset"] = str(offset)
+    info["timestamp"] = ts
+
+    # ----- Authoritative artifacts -----
+    try:
+        page.screenshot(path=str(png_path), full_page=True)
+        info["screenshot"] = str(png_path)
+    except Exception as e:
+        info["screenshot"] = f"<failed: {e}>"
+
+    try:
+        html = page.content() or ""
+        html_path.write_text(html, encoding="utf-8")
+        info["html_dump"] = f"{html_path} ({len(html)} chars)"
+    except Exception as e:
+        info["html_dump"] = f"<failed: {e}>"
+
+    # ----- Log summary -----
+    summary_lines = [f"  {k}: {v}" for k, v in info.items()]
+    summary = "FORECLOSURES PROBE:\n" + "\n".join(summary_lines)
+    logger.info(summary)
+
+    # Also write the summary file
+    try:
+        txt_path.write_text(summary + "\n", encoding="utf-8")
+    except Exception:
+        pass
 
 
 def _parse_result_row(row) -> Optional[ForeclosureNoticePSRecord]:
