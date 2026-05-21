@@ -515,19 +515,37 @@ def enrich_foreclosure_records(
     logger.info("OCR enrichment starting on %d foreclosure records (Tesseract: %s)",
                 len(records), tess_cmd)
 
-    with browser_context() as (_browser, _context, page):
+    with browser_context() as (_browser, context, _page):
+        # Discard the initial page from browser_context; we use a fresh
+        # page per record to avoid React/SPA state accumulation that
+        # caused intermittent ~10% capture failures when one page was
+        # reused across 78 navigations.
+        try:
+            _page.close()
+        except Exception:
+            pass
+
         for i, rec in enumerate(records, 1):
             rid = rec.get("record_id")
             if not rid:
                 continue
             t0 = time.time()
+            # Fresh page per record — disposed after each capture so SPA
+            # state, JS context, and memory don't accumulate.
+            page = context.new_page()
             try:
-                cap = capture_with_retry(page, rid, base_url)
-            except Exception as e:
-                logger.warning("OCR capture uncaught error for %s: %s", rid, e)
-                rec.setdefault("parse_warnings", []).append(f"ocr_capture_error:{type(e).__name__}")
-                stats.capture_errors += 1
-                continue
+                try:
+                    cap = capture_with_retry(page, rid, base_url)
+                except Exception as e:
+                    logger.warning("OCR capture uncaught error for %s: %s", rid, e)
+                    rec.setdefault("parse_warnings", []).append(f"ocr_capture_error:{type(e).__name__}")
+                    stats.capture_errors += 1
+                    continue
+            finally:
+                try:
+                    page.close()
+                except Exception:
+                    pass
 
             if cap.status == "no_images":
                 rec.setdefault("parse_warnings", []).append("ocr_no_images")
