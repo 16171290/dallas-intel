@@ -72,39 +72,30 @@ def _try_navigate_next(page, target_page: int) -> str:
     Strategy: filter to ENABLED buttons matching that icon, take the LAST
     one — that's always the next-page button when not at the final page.
 
-    Returns the name of the strategy that didn't raise. Doesn't guarantee
-    a click actually triggered a fetch — caller checks captured_urls
-    afterwards.
+    Returns the name of the strategy that didn't raise. The caller wraps
+    the click in page.expect_response so timing/race issues with the
+    SPA's image-fetch are eliminated.
     """
     strategies: list[tuple[str, callable]] = [
-        # PRIMARY — operator-confirmed icon (2026-05-21). Last enabled
-        # button with icon_jump_triangle in its <img src> is "next page".
-        ("button:has(img[src*='icon_jump_triangle']):not[disabled]:last",
+        # PRIMARY — operator-confirmed exact aria-label (2026-05-21 diagnostic
+        # enumeration). publicsearch.us viewer uses literal "Go To Next Page".
+        ("button[aria-label='Go To Next Page']",
+            lambda: page.locator("button[aria-label='Go To Next Page']").click(timeout=3000)),
+
+        # Fallback variants in case the label or markup drifts.
+        ("button[aria-label*='Next Page' i]",
+            lambda: page.locator("button[aria-label*='Next Page' i]").first.click(timeout=2500)),
+        ("button[aria-label*='Next' i]",
+            lambda: page.locator("button[aria-label*='Next' i]").first.click(timeout=2500)),
+        ("get_by_role(button, name=re'next page')",
+            lambda: page.get_by_role("button", name=re.compile(r"next\s*page", re.I)).first.click(timeout=2000)),
+
+        # Icon-based fallback (operator-supplied SVG asset).
+        ("button:has(img[src*='icon_jump_triangle']):last",
             lambda: page.locator(
                 "button:not([disabled]):not([aria-disabled='true'])"
                 ":has(img[src*='icon_jump_triangle'])"
             ).last.click(timeout=2500)),
-
-        # Variant without enabled-filter, in case disable state uses a
-        # CSS class instead of attribute.
-        ("button:has(img[src*='icon_jump_triangle']):last",
-            lambda: page.locator(
-                "button:has(img[src*='icon_jump_triangle'])"
-            ).last.click(timeout=2500)),
-
-        # Inline-SVG variant (if publicsearch ever switches from <img> to <svg>).
-        ("button:has(svg.icon_jump_triangle)",
-            lambda: page.locator(
-                "button:has(svg.icon_jump_triangle)"
-            ).last.click(timeout=2000)),
-
-        # Generic fallbacks (kept in case the icon name changes).
-        ("get_by_role(button, name=re'next page')",
-            lambda: page.get_by_role("button", name=re.compile(r"next\s*page", re.I)).first.click(timeout=2000)),
-        ("button[aria-label*='Next' i]",
-            lambda: page.locator("button[aria-label*='Next' i]").first.click(timeout=2000)),
-        ("button[title*='Next' i]",
-            lambda: page.locator("button[title*='Next' i]").first.click(timeout=2000)),
 
         # Last-resort fallbacks
         ("page-number input fill+Enter",
@@ -224,7 +215,7 @@ def main() -> int:
     pytesseract.pytesseract.tesseract_cmd = tess_path
 
     try:
-        from playwright.sync_api import sync_playwright
+        from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeoutError
     except ImportError:
         print("\nERROR: playwright not installed. Run: pip install playwright && playwright install chromium")
         return 1
@@ -238,20 +229,28 @@ def main() -> int:
 
     # ---------- capture stage ----------
     print(f"\n[1/5] Opening /doc/{record_id} ...")
-    # Collect URLs only in the response handler. Reading response.body()
-    # inline races against browser.close() if the response is late --
-    # we instead download via plain requests.get after the Playwright
-    # session ends. Signed URLs are valid for ~28 hours.
-    captured_urls: list[str] = []
+    # Bodies captured by page number. Read inline via response.body() while
+    # the Playwright page is still alive -- avoids both the close() race
+    # and the bot-rejection issue we hit with plain requests.get earlier.
+    unique: dict[int, bytes] = {}
 
-    def on_response(response):
+    def on_response_initial(response):
+        """Handler for the initial passive load: pages that arrive without
+        active navigation. body() succeeds because the page is still active."""
         url = response.url
-        if "/files/documents/" in url and ".png" in url:
-            if url not in captured_urls:
-                captured_urls.append(url)
-                m = re.search(r"_(\d+)\.png", url)
-                pn = m.group(1) if m else "?"
-                logger.info(f"  URL captured for page {pn}: {url[:90]}...")
+        m = re.search(r"_(\d+)\.png", url)
+        if not (m and "/files/documents/" in url and ".png" in url):
+            return
+        pn = int(m.group(1))
+        if pn in unique:
+            return
+        try:
+            body = response.body()
+            if body and len(body) > 100:  # guard against error pages
+                unique[pn] = body
+                logger.info(f"  passively captured page {pn}: {len(body):,} bytes")
+        except Exception as e:
+            logger.warning(f"  passive body() failed for page {pn}: {e}")
 
     total_pages: Optional[int] = None
 
@@ -266,15 +265,14 @@ def main() -> int:
             locale="en-US",
         )
         page = context.new_page()
-        page.on("response", on_response)
+        page.on("response", on_response_initial)
 
         url = f"{config.PUBLICSEARCH_BASE}/doc/{record_id}"
         page.goto(url, wait_until="networkidle", timeout=30_000)
 
         print(f"  Passive wait {args.passive_wait}s for initial fetches ...")
         time.sleep(args.passive_wait)
-        initial_count = len(captured_urls)
-        print(f"  After passive wait: {initial_count} unique PNG URL(s)")
+        print(f"  After passive wait: {len(unique)} page(s) captured")
 
         # Detect total page count from any "of N" text in the body.
         try:
@@ -286,61 +284,49 @@ def main() -> int:
             logger.warning(f"  could not detect total page count: {e}")
         print(f"  Total pages reported by viewer: {total_pages or 'unknown'}")
 
-        # Active navigation if we're missing pages.
-        if total_pages and initial_count < total_pages:
-            print(f"\n[2/5] Need {total_pages - initial_count} more page(s); clicking through ...")
+        # For each remaining page: click the next-page button and wait
+        # for the matching image response. expect_response actively
+        # waits, so we don't have to guess timing -- click triggers the
+        # SPA's image fetch, and body() runs while the page is still
+        # alive (no close() race).
+        if total_pages and len(unique) < total_pages:
+            print(f"\n[2/5] Need {total_pages - len(unique)} more page(s); clicking through ...")
 
             for target_page in range(2, total_pages + 1):
-                pre = len(captured_urls)
-                strategy_used = _try_navigate_next(page, target_page)
-                time.sleep(args.per_page_wait)
-                if len(captured_urls) > pre:
-                    print(f"  page {target_page}: captured via {strategy_used}")
-                else:
-                    print(f"  page {target_page}: NO new URL after strategy={strategy_used}")
-                    # Dump button inventory once so we can diagnose the right selector
+                if target_page in unique:
+                    continue
+                url_pat = re.compile(rf"/files/documents/\d+/images/\d+_{target_page}\.png")
+                try:
+                    with page.expect_response(
+                        lambda r, pat=url_pat: bool(pat.search(r.url)),
+                        timeout=15_000,
+                    ) as response_info:
+                        strategy_used = _try_navigate_next(page, target_page)
+                    response = response_info.value
+                    body = response.body()
+                    if body and len(body) > 100:
+                        unique[target_page] = body
+                        print(f"  page {target_page}: captured via [{strategy_used}], {len(body):,} bytes")
+                    else:
+                        print(f"  page {target_page}: response body empty/tiny ({len(body) if body else 0} bytes)")
+                except PlaywrightTimeoutError:
+                    print(f"  page {target_page}: TIMEOUT (15s) waiting for image response")
+                    if target_page == 2:  # diagnose only once
+                        _dump_buttons(page)
+                except Exception as e:
+                    print(f"  page {target_page}: FAILED: {e}")
                     if target_page == 2:
                         _dump_buttons(page)
         else:
             if total_pages:
                 print(f"  All {total_pages} pages already captured passively")
 
-        # Final wait to let any in-flight responses arrive before close.
-        # Without this, the URL of the last navigated page may not be
-        # captured before the context tears down.
-        print(f"\n  Final 3s settle wait before close ...")
-        time.sleep(3)
-
         page.close()
         context.close()
         browser.close()
 
-    if not captured_urls:
-        print("\nERROR: no PNG URLs captured. SPA never fetched any document images.")
-        return 1
-
-    # ---------- download via plain HTTP ----------
-    print(f"\n[2.5/5] Downloading {len(captured_urls)} PNG(s) via requests ...")
-    import requests
-
-    unique: dict[int, bytes] = {}
-    for url in captured_urls:
-        m = re.search(r"_(\d+)\.png", url)
-        if not m:
-            continue
-        pn = int(m.group(1))
-        if pn in unique:
-            continue  # already have this page
-        try:
-            r = requests.get(url, timeout=30)
-            r.raise_for_status()
-            unique[pn] = r.content
-            print(f"  page {pn}: {len(r.content):,} bytes")
-        except Exception as e:
-            print(f"  page {pn}: download FAILED: {e}")
-
     if not unique:
-        print("\nERROR: every download failed. Signed URLs may have expired.")
+        print("\nERROR: no PNG bodies captured. SPA never fetched any document images.")
         return 1
 
     print(f"\n[3/5] Saving {len(unique)} unique page(s)")
