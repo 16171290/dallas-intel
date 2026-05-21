@@ -155,7 +155,6 @@ def scrape_all(
 
     with browser_context() as (_browser, _context, page):
         _open_home(page)
-        _probe_foreclosure_doctypes(page)  # one-shot; logs and returns
 
         for category in target_categories:
             for dallas_code in config.INSTRUMENT_CODES[category]:
@@ -429,62 +428,6 @@ def _harvest_all_pages(page, dallas_code: str) -> list[PublicSearchRecord]:
         page_num += 1
 
     return results
-
-
-_PROBED_FORECLOSURE_DOCTYPES = False
-
-
-def _probe_foreclosure_doctypes(page) -> None:
-    """One-shot probe: enumerate publicsearch.us doctype options matching
-    'foreclosure'.
-
-    Dallas County moved Notice-of-Foreclosure filings to publicsearch.us as
-    of 2026-02-24 (per the county's own banner on /foreclosures.php). The
-    exact display name on publicsearch.us is unknown without inspection.
-    This probe opens the doctype filter, types 'foreclosure', and logs
-    every matching option name at INFO so the operator can encode the
-    right string in ``config.DALLAS_CODE_DISPLAY_NAMES``.
-
-    Removed once the name is verified.
-
-    Idempotent: only runs on the first call per process.
-    """
-    global _PROBED_FORECLOSURE_DOCTYPES
-    if _PROBED_FORECLOSURE_DOCTYPES:
-        return
-    _PROBED_FORECLOSURE_DOCTYPES = True
-
-    try:
-        _open_advanced_search(page)
-        combo = page.get_by_role("combobox", name="Filter Document Types")
-        combo.click()
-        combo.fill("foreclosure")
-        page.wait_for_timeout(800)  # let typeahead settle
-
-        inputs = page.locator("#docTypes-listbox input.checkbox__input").all()
-        names: list[str] = []
-        for inp in inputs:
-            try:
-                n = inp.get_attribute("name")
-                if n:
-                    names.append(n)
-            except Exception:
-                pass
-
-        logger.info(
-            "FORECLOSURE DOCTYPE PROBE: %d matching options after typing 'foreclosure'",
-            len(names),
-        )
-        for n in names:
-            logger.info("FORECLOSURE DOCTYPE PROBE: name=%r", n)
-
-        # Clear filter so the regular scrape starts clean
-        try:
-            combo.fill("")
-        except Exception:
-            pass
-    except Exception as e:
-        logger.warning("FORECLOSURE DOCTYPE PROBE failed: %s", e)
 
 
 def _harvest_current_page(page, dallas_code: str) -> list[PublicSearchRecord]:

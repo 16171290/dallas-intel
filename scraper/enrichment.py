@@ -24,6 +24,7 @@ import pandas as pd
 
 from . import config, normalize
 from .foreclosure_pdfs import ForeclosureRecord
+from .foreclosures_ps import ForeclosureNoticePSRecord
 from .publicsearch import PublicSearchRecord
 
 logger = logging.getLogger(__name__)
@@ -147,6 +148,65 @@ def canonicalize_foreclosure(rec: ForeclosureRecord) -> CanonicalRecord:
         "address_state":      None,
         "address_zip":        None,
         "source_url":         rec.source_pdf_url,
+        "score":              0,
+        "score_breakdown":    {},
+        "parse_warnings":     list(rec.parse_warnings),
+    }
+
+
+def canonicalize_foreclosure_notice_ps(rec: ForeclosureNoticePSRecord) -> CanonicalRecord:
+    """Convert a ForeclosureNoticePSRecord (publicsearch.us Foreclosures
+    department) into the canonical dict shape.
+
+    These records are the motivated-seller core: a recorded notice of an
+    upcoming trustee's sale. `filing_date` is the recorded date (when the
+    notice was filed with the County Clerk). `sale_date` is the auction
+    date, populated from the search results (unlike Real-Property
+    publicsearch records where sale_date is None).
+
+    Source-URL template verified 2026-05-21: clicking a row in the SPA
+    navigates to /doc/{record_id}, same as Real-Property records.
+    """
+    norm_addr = (
+        normalize.normalize_address(rec.property_address) if rec.property_address else None
+    )
+    source_url = (
+        f"{config.PUBLICSEARCH_BASE}/doc/{rec.record_id}"
+        if rec.record_id else None
+    )
+    return {
+        "record_id":          rec.record_id,
+        "source":             "publicsearch.us",
+        "dallas_code":        "NOF",
+        "category":           "NOTICE",
+        "filing_date":        rec.recorded_date,
+        "instrument_num":     rec.doc_number,
+        "grantor":            None,   # not in list view
+        "grantee":            None,   # not in list view
+        "address":            rec.property_address,
+        "address_normalized": norm_addr or None,
+        "dcad_account":       None,
+        "dcad_owner":         None,
+        "dcad_market_value":  None,
+        "dcad_homestead":     None,
+        "dcad_over65":        None,
+        "dcad_disabled":      None,
+        "dcad_tax_deferred":  None,
+        "dcad_mailing_address": None,
+        "dcad_mailing_city":    None,
+        "dcad_mailing_state":   None,
+        "dcad_mailing_zip":     None,
+        "amount":             None,
+        "trustee":            None,
+        "sale_date":          rec.sale_date,
+        "raw_excerpt":        rec.raw_html_snippet[:500] if rec.raw_html_snippet else None,
+        "active":             True,
+        "release_record_id":  None,
+        "signal_metadata":    None,
+        "address_city":       None,
+        "address_state":      None,
+        "address_zip":        None,
+        "source_url":         source_url,
         "score":              0,
         "score_breakdown":    {},
         "parse_warnings":     list(rec.parse_warnings),

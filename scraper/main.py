@@ -59,6 +59,7 @@ from . import (
     enrichment,
     entity_filter,
     foreclosure_pdfs,
+    foreclosures_ps,
     governmental_grantor,
     legal_resolver,
     monitor,
@@ -196,6 +197,53 @@ def _run_pipeline() -> int:
                 context={"stage": "publicsearch", "exception_type": type(exc).__name__, "exception": str(exc)},
             )
 
+    # 3.5. publicsearch.us Foreclosures department (replaces deprecated PDF feed)
+    # Replaces the dallascounty.org foreclosure-PDF source (Stage 2, default-off
+    # since 2026-02-24). Notice-of-Foreclosure filings now live on publicsearch.us
+    # under the Foreclosures department. Each record is an upcoming trustee's
+    # sale -- the highest-motivation seller in the market.
+    logger.info("[3.5/12] publicsearch.us foreclosures scrape")
+    foreclosure_ps_canonical: list[dict] = []
+    if not _publicsearch_enabled():
+        logger.info("foreclosures scrape SKIPPED - PUBLICSEARCH_ENABLED not set.")
+    else:
+        try:
+            recorded_lookback = int(os.getenv("FORECLOSURE_RECORDED_LOOKBACK_DAYS", "7"))
+            sale_lookahead    = int(os.getenv("FORECLOSURE_SALE_LOOKAHEAD_DAYS",    "180"))
+            fps_records = foreclosures_ps.scrape_foreclosures(
+                recorded_lookback_days=recorded_lookback,
+                sale_lookahead_days=sale_lookahead,
+            )
+            foreclosure_ps_canonical = [
+                enrichment.canonicalize_foreclosure_notice_ps(r) for r in fps_records
+            ]
+            logger.info(
+                "publicsearch foreclosures: %d records fetched",
+                len(foreclosure_ps_canonical),
+            )
+        except publicsearch.CircuitBreakerTripped as exc:
+            logger.warning(
+                "publicsearch foreclosures circuit breaker tripped: %s - continuing",
+                exc,
+            )
+            monitor.notify_failure(
+                error="publicsearch foreclosures circuit breaker tripped (non-fatal)",
+                context={"stage": "foreclosures_ps", "exception": str(exc)},
+            )
+        except Exception as exc:
+            logger.warning(
+                "publicsearch foreclosures scrape failed: %s - continuing",
+                exc,
+            )
+            monitor.notify_failure(
+                error="publicsearch foreclosures scrape failed (non-fatal)",
+                context={
+                    "stage": "foreclosures_ps",
+                    "exception_type": type(exc).__name__,
+                    "exception": str(exc),
+                },
+            )
+
     # 4. Probate (re:SearchTX) ----------------------------------------------
     # Gated on config.PROBATE_ENABLED (default False). Non-fatal: probate is
     # additive, so failures here must not kill the whole run. The fetch
@@ -225,11 +273,19 @@ def _run_pipeline() -> int:
             )
 
     # 5. Merge sources -------------------------------------------------------
-    logger.info("[5/12] Merging %d publicsearch + %d PDF + %d probate records",
-                len(ps_records_canonical),
-                len(pdf_records_canonical),
-                len(probate_records_canonical))
-    all_records = ps_records_canonical + pdf_records_canonical + probate_records_canonical
+    logger.info(
+        "[5/12] Merging %d publicsearch + %d foreclosure-PS + %d PDF + %d probate records",
+        len(ps_records_canonical),
+        len(foreclosure_ps_canonical),
+        len(pdf_records_canonical),
+        len(probate_records_canonical),
+    )
+    all_records = (
+        ps_records_canonical
+        + foreclosure_ps_canonical
+        + pdf_records_canonical
+        + probate_records_canonical
+    )
 
     if not all_records:
         logger.warning(
