@@ -430,14 +430,58 @@ def _harvest_all_pages(page, dallas_code: str) -> list[PublicSearchRecord]:
     return results
 
 
+_PROBED_DOC_LINK = False
+
+
+def _probe_doc_link(row) -> None:
+    """One-shot probe: log all anchors + row HTML so we can lock down
+    the doc-detail URL pattern.
+
+    Called from ``_harvest_current_page`` on the first row of the first
+    non-empty page of a session. Logs at INFO so it surfaces in
+    ``last_run.log`` for review.
+
+    Removed once the URL template is verified and encoded in
+    ``canonicalize_publicsearch``.
+    """
+    try:
+        anchors = row.locator("a").all()
+        hrefs = []
+        for a in anchors:
+            try:
+                href = a.get_attribute("href")
+                text = (a.inner_text() or "").strip()[:80]
+                if href:
+                    hrefs.append(f"href={href!r} text={text!r}")
+            except Exception:
+                pass
+        logger.info("DOC-LINK PROBE: %d anchors on row", len(hrefs))
+        for h in hrefs:
+            logger.info("DOC-LINK PROBE: %s", h)
+        try:
+            row_html = row.evaluate("el => el.outerHTML") or ""
+            # Truncate so we don't flood the log
+            logger.info("DOC-LINK PROBE: row html (first 1500 chars): %s",
+                        row_html[:1500])
+        except Exception as e:
+            logger.info("DOC-LINK PROBE: could not get outerHTML: %s", e)
+    except Exception as e:
+        logger.info("DOC-LINK PROBE: failed: %s", e)
+
+
 def _harvest_current_page(page, dallas_code: str) -> list[PublicSearchRecord]:
     """Extract one page worth of result rows.
 
     VERIFIED 2026-05-13: Rows are <tr> elements inside the results
     table's <tbody>, each with role="row".
     """
+    global _PROBED_DOC_LINK
     rows = page.locator("section.search-results__results-wrap table tbody tr").all()
     records: list[PublicSearchRecord] = []
+
+    if rows and not _PROBED_DOC_LINK:
+        _probe_doc_link(rows[0])
+        _PROBED_DOC_LINK = True
 
     for row in rows:
         try:

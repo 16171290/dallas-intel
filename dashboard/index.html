@@ -1532,6 +1532,41 @@
         ? '<span class="stale-note">May be deed-of-trust date, not auction date.</span>'
         : "";
 
+      // Mailing address (DCAD-stamped): multi-line LINE1..4 + city/state/zip.
+      // Rendered with white-space: pre-line on .detail-val so the \n breaks
+      // survive into the DOM. When the mailing city/zip differs from the
+      // property's, surface a small "out-of-area" hint — that's a stronger
+      // motivated-seller signal (absentee owner).
+      const mailingStreet = rec.dcad_mailing_address || "";
+      const mailingCityStateZip = [rec.dcad_mailing_city, rec.dcad_mailing_state, rec.dcad_mailing_zip]
+        .filter(Boolean).join(" ").trim();
+      const mailingParts = [];
+      if (mailingStreet) mailingParts.push(mailingStreet);
+      if (mailingCityStateZip) mailingParts.push(mailingCityStateZip);
+      const mailingDisplay = mailingParts.join("\n") || null;
+
+      // "Out-of-area" hint: TX state and the property zip (when known) vs
+      // mailing zip; or mailing state != TX. Avoids false positives when
+      // we don't have either side.
+      let mailingHint = "";
+      if (mailingDisplay) {
+        const ms = (rec.dcad_mailing_state || "").toUpperCase();
+        if (ms && ms !== "TX") {
+          mailingHint = '<span class="stale-note">Out-of-state mailing address.</span>';
+        } else if (rec.address_zip && rec.dcad_mailing_zip
+                   && String(rec.address_zip).slice(0,5) !== String(rec.dcad_mailing_zip).slice(0,5)) {
+          mailingHint = '<span class="stale-note">Mailing zip differs from property zip.</span>';
+        }
+      }
+
+      // Source file link: rendered as a clickable anchor when source_url is set.
+      // For foreclosure_pdf records, links to the dallascounty.org PDF that
+      // contains the notice (one PDF can hold multiple notices — Ctrl-F the
+      // address inside the PDF to find the right one).
+      const sourceLinkHtml = rec.source_url
+        ? `<a href="${escapeHtml(rec.source_url)}" target="_blank" rel="noopener noreferrer">Open source file</a>`
+        : "";
+
       const fields = [
         ["Score",            rec.score],
         ["Category",         rec.category],
@@ -1539,7 +1574,7 @@
         ["Detected",         rec.first_seen],
         ["Filing date",      rec.filing_date],
         ["Sale date",        rec.sale_date],
-        ["Instrument #",     rec.instrument_num],
+        ["Doc # / Instrument #", rec.instrument_num],
         ["Record ID",        rec.record_id],
         ["Source",           rec.source],
         ["In buy-box",       rec.in_buy_box === true ? "Yes" : rec.in_buy_box === false ? "No" : "--"],
@@ -1548,6 +1583,8 @@
         ["Grantee",          rec.grantee],
         ["DCAD account",     rec.dcad_account],
         ["DCAD owner",       rec.dcad_owner],
+        ["Property address", rec.address_normalized || rec.address],
+        ["Mailing address",  mailingDisplay],
         ["Market value",     fmtMoney(rec.dcad_market_value)],
         ["Homestead",        rec.dcad_homestead === true ? "Yes" : rec.dcad_homestead === false ? "No" : "--"],
         ["Over 65",          rec.dcad_over65 === true ? "Yes" : null],
@@ -1565,9 +1602,15 @@
       const fieldsHtml = fields
         .filter(([_, v]) => v !== null && v !== undefined && v !== "")
         .map(([k, v]) => {
-          const valHtml = (k === "Sale date" && saleAnnotation)
-            ? `${escapeHtml(String(v))}${saleAnnotation}`
-            : escapeHtml(String(v));
+          let valHtml;
+          if (k === "Sale date" && saleAnnotation) {
+            valHtml = `${escapeHtml(String(v))}${saleAnnotation}`;
+          } else if (k === "Mailing address") {
+            // Preserve newlines from multi-line LINE1..4 + city/state/zip.
+            valHtml = `<span style="white-space: pre-line">${escapeHtml(String(v))}</span>${mailingHint}`;
+          } else {
+            valHtml = escapeHtml(String(v));
+          }
           return `
             <div class="detail-row">
               <div class="detail-key">${escapeHtml(k)}</div>
@@ -1576,6 +1619,13 @@
           `;
         }).join("");
 
+      const sourceLinkRow = sourceLinkHtml
+        ? `<div class="detail-row">
+             <div class="detail-key">Source file</div>
+             <div class="detail-val">${sourceLinkHtml}</div>
+           </div>`
+        : "";
+
       const breakdownHtml = rec.score_breakdown && Object.keys(rec.score_breakdown).length
         ? `<div class="detail-row">
              <div class="detail-key">Score breakdown</div>
@@ -1583,7 +1633,7 @@
            </div>`
         : "";
 
-      $("#detail-content").innerHTML = workflowHtml + fieldsHtml + breakdownHtml;
+      $("#detail-content").innerHTML = workflowHtml + fieldsHtml + sourceLinkRow + breakdownHtml;
       $("#detail-panel").classList.add("open");
       $("#detail-panel").setAttribute("aria-hidden", "false");
 

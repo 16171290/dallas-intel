@@ -262,6 +262,7 @@ def download_pdf(
 class ForeclosureRecord:
     """One foreclosure notice parsed from a PDF."""
     source_pdf: str
+    source_pdf_url: Optional[str] = None     # dallascounty.org URL of the containing PDF
     sale_date: Optional[str] = None          # "October 7, 2025" or normalized
     sale_date_iso: Optional[str] = None      # "2025-10-07" if parseable
     notice_date: Optional[str] = None        # raw form of when notice was filed
@@ -275,12 +276,19 @@ class ForeclosureRecord:
     parse_warnings: list[str] = field(default_factory=list)
 
 
-def extract_pdf_records(pdf_path: Path) -> list[ForeclosureRecord]:
+def extract_pdf_records(
+    pdf_path: Path,
+    pdf_url: Optional[str] = None,
+) -> list[ForeclosureRecord]:
     """Extract foreclosure-notice records from a PDF.
 
     Thin wrapper around :func:`extract_records_from_text` that handles
     the PDF->text conversion via pdfplumber. The text-parsing is in a
     separate pure function so it can be unit-tested without a real PDF.
+
+    ``pdf_url`` (optional) is the dallascounty.org source URL for the PDF.
+    When provided it is stamped onto every record's ``source_pdf_url``
+    so downstream consumers can link back to the file.
     """
     import pdfplumber
 
@@ -291,12 +299,17 @@ def extract_pdf_records(pdf_path: Path) -> list[ForeclosureRecord]:
             if t.strip():
                 text_blocks.append(t)
     full_text = "\n".join(text_blocks)
-    return extract_records_from_text(full_text, source_pdf=str(pdf_path.name))
+    return extract_records_from_text(
+        full_text,
+        source_pdf=str(pdf_path.name),
+        pdf_url=pdf_url,
+    )
 
 
 def extract_records_from_text(
     text: str,
     source_pdf: str = "",
+    pdf_url: Optional[str] = None,
 ) -> list[ForeclosureRecord]:
     """Extract foreclosure-notice records from PDF text.
 
@@ -322,7 +335,7 @@ def extract_records_from_text(
         # Fallback path - no addresses found, use legacy opener splitter.
         # Records produced here will have no address; they'll fail DCAD
         # enrichment but at least won't be silently dropped.
-        return _legacy_opener_split(text, source_pdf)
+        return _legacy_opener_split(text, source_pdf, pdf_url=pdf_url)
 
     # NOTICE-opener positions are used as PREFERRED boundaries between
     # adjacent records in multi-notice PDFs. Without them, we'd risk
@@ -368,6 +381,7 @@ def extract_records_from_text(
 
         rec = ForeclosureRecord(
             source_pdf=source_pdf,
+            source_pdf_url=pdf_url,
             property_address=addr,
             raw_excerpt=context[:500].strip(),
         )
@@ -377,7 +391,11 @@ def extract_records_from_text(
     return records
 
 
-def _legacy_opener_split(text: str, source_pdf: str) -> list[ForeclosureRecord]:
+def _legacy_opener_split(
+    text: str,
+    source_pdf: str,
+    pdf_url: Optional[str] = None,
+) -> list[ForeclosureRecord]:
     """Fallback: opener-anchored split for PDFs with no detectable address.
 
     Less reliable than the address-anchored path because foreclosure
@@ -402,6 +420,7 @@ def _legacy_opener_split(text: str, source_pdf: str) -> list[ForeclosureRecord]:
     for block in blocks:
         rec = ForeclosureRecord(
             source_pdf=source_pdf,
+            source_pdf_url=pdf_url,
             raw_excerpt=block[:500].strip(),
         )
         _parse_fields_into_record(rec, block)

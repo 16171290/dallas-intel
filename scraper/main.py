@@ -117,7 +117,10 @@ def _run_pipeline() -> int:
         for ref in index:
             local_path, downloaded = foreclosure_pdfs.download_pdf(ref, pdf_dest)
             try:
-                records = foreclosure_pdfs.extract_pdf_records(local_path)
+                records = foreclosure_pdfs.extract_pdf_records(
+                    local_path,
+                    pdf_url=ref.pdf_url,
+                )
                 pdf_records_canonical.extend(
                     enrichment.canonicalize_foreclosure(r) for r in records
                 )

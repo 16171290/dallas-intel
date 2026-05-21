@@ -68,6 +68,10 @@ def canonicalize_publicsearch(rec: PublicSearchRecord) -> CanonicalRecord:
         "dcad_over65":        None,
         "dcad_disabled":      None,
         "dcad_tax_deferred":  None,
+        "dcad_mailing_address": None,
+        "dcad_mailing_city":    None,
+        "dcad_mailing_state":   None,
+        "dcad_mailing_zip":     None,
         "amount":             rec.amount,
         "trustee":            None,
         "sale_date":          None,
@@ -78,6 +82,7 @@ def canonicalize_publicsearch(rec: PublicSearchRecord) -> CanonicalRecord:
         "address_city":       None,
         "address_state":      None,
         "address_zip":        None,
+        "source_url":         None,  # set in a follow-up once doc-detail URL template is verified via probe
         "score":              0,
         "score_breakdown":    {},
         "parse_warnings":     list(rec.parse_warnings),
@@ -121,6 +126,10 @@ def canonicalize_foreclosure(rec: ForeclosureRecord) -> CanonicalRecord:
         "dcad_over65":        None,
         "dcad_disabled":      None,
         "dcad_tax_deferred":  None,
+        "dcad_mailing_address": None,
+        "dcad_mailing_city":    None,
+        "dcad_mailing_state":   None,
+        "dcad_mailing_zip":     None,
         "amount":             rec.original_loan_amount,
         "trustee":            rec.trustee,
         "sale_date":          rec.sale_date_iso,
@@ -131,6 +140,7 @@ def canonicalize_foreclosure(rec: ForeclosureRecord) -> CanonicalRecord:
         "address_city":       None,
         "address_state":      None,
         "address_zip":        None,
+        "source_url":         rec.source_pdf_url,
         "score":              0,
         "score_breakdown":    {},
         "parse_warnings":     list(rec.parse_warnings),
@@ -214,12 +224,27 @@ def enrich_record(
         if "ACCOUNT_NUM" in df.columns and "OWNER_NAME1" in df.columns:
             rows = df[df["ACCOUNT_NUM"] == account_num]
             if not rows.empty:
-                name1 = _clean_owner(str(rows.iloc[0].get("OWNER_NAME1", "")))
-                name2 = _clean_owner(str(rows.iloc[0].get("OWNER_NAME2", "")))
+                acct_row = rows.iloc[0]
+                name1 = _clean_owner(str(acct_row.get("OWNER_NAME1", "")))
+                name2 = _clean_owner(str(acct_row.get("OWNER_NAME2", "")))
                 if name1 and name2:
                     record["dcad_owner"] = f"{name1} & {name2}"
                 elif name1:
                     record["dcad_owner"] = name1
+
+                # Mailing address — OWNER_ADDRESS_LINE1..4 + OWNER_CITY/STATE/ZIPCODE
+                # per docs/DCAD_SCHEMA.md. Stronger motivated-seller signal when it
+                # differs from the property address (out-of-area landlord).
+                mailing_lines = [
+                    str(acct_row.get(c, "") or "").strip()
+                    for c in ("OWNER_ADDRESS_LINE1", "OWNER_ADDRESS_LINE2",
+                              "OWNER_ADDRESS_LINE3", "OWNER_ADDRESS_LINE4")
+                ]
+                mailing_street = "\n".join(l for l in mailing_lines if l) or None
+                record["dcad_mailing_address"] = mailing_street
+                record["dcad_mailing_city"]  = str(acct_row.get("OWNER_CITY",   "") or "").strip() or None
+                record["dcad_mailing_state"] = str(acct_row.get("OWNER_STATE",  "") or "").strip() or None
+                record["dcad_mailing_zip"]   = str(acct_row.get("OWNER_ZIPCODE","") or "").strip() or None
 
     # Fall back to MULTI_OWNER only if ACCOUNT_INFO didn't yield a name.
     if not record.get("dcad_owner") and "MULTI_OWNER" in dcad_tables:
@@ -336,6 +361,10 @@ def canonicalize_probate(rec: "ProbateRecord") -> CanonicalRecord:
         "dcad_over65":        None,
         "dcad_disabled":      None,
         "dcad_tax_deferred":  None,
+        "dcad_mailing_address": None,
+        "dcad_mailing_city":    None,
+        "dcad_mailing_state":   None,
+        "dcad_mailing_zip":     None,
         "amount":             None,
         "trustee":            None,
         "sale_date":          None,
@@ -353,6 +382,7 @@ def canonicalize_probate(rec: "ProbateRecord") -> CanonicalRecord:
         "address_city":       None,
         "address_state":      None,
         "address_zip":        None,
+        "source_url":         None,
         "score":              0,
         "score_breakdown":    {},
         "parse_warnings":     list(rec.parse_warnings),
