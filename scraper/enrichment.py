@@ -50,6 +50,12 @@ def _clean_owner(raw: str) -> str:
 def canonicalize_publicsearch(rec: PublicSearchRecord) -> CanonicalRecord:
     """Convert a PublicSearchRecord into the canonical dict shape (Sec E.2)."""
     norm_addr = normalize.normalize_address(rec.address) if rec.address else None
+    # Doc-detail URL template verified 2026-05-21: clicking a row in the
+    # publicsearch.us SPA navigates to /doc/{record_id}.
+    source_url = (
+        f"{config.PUBLICSEARCH_BASE}/doc/{rec.record_id}"
+        if rec.record_id else None
+    )
     return {
         "record_id":          rec.record_id,
         "source":             "publicsearch.us",
@@ -82,7 +88,7 @@ def canonicalize_publicsearch(rec: PublicSearchRecord) -> CanonicalRecord:
         "address_city":       None,
         "address_state":      None,
         "address_zip":        None,
-        "source_url":         None,  # set in a follow-up once doc-detail URL template is verified via probe
+        "source_url":         source_url,
         "score":              0,
         "score_breakdown":    {},
         "parse_warnings":     list(rec.parse_warnings),
