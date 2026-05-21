@@ -319,10 +319,29 @@ def _fill_doc_type(page, dallas_code: str) -> None:
             f"matches a real Dallas RP doc-type name exactly."
         )
 
-    # The input is visually hidden (custom checkbox styling); force=True
-    # bypasses visibility/actionability checks and dispatches a click event
-    # that the React component listens for.
-    target.first.check(force=True)
+    # The input is visually hidden (custom checkbox styling). Playwright's
+    # check(force=True) still runs a viewport check that fails on the
+    # zero-area hidden input - even with force=True, the API rejects clicks
+    # on elements with no rendered bounding box (verified 2026-05-19).
+    #
+    # The correct strategy is to click the associated <label>, which IS
+    # rendered with a real bounding box. The browser proxies the label
+    # click to the input via the `for` attribute, which dispatches the
+    # change event the React component listens for - the same semantics
+    # as a human clicking the visible checkbox area.
+    input_id = target.first.get_attribute("id")
+    if not input_id:
+        raise ValueError(
+            f"Found checkbox input for {display_name!r} but it has no id "
+            f"attribute - cannot locate its associated <label>."
+        )
+    label = page.locator(f'label[for="{input_id}"]')
+    if label.count() == 0:
+        raise ValueError(
+            f"Found checkbox input id={input_id!r} for {display_name!r} "
+            f"but no <label for={input_id!r}> exists to proxy the click."
+        )
+    label.first.click()
 
     # Clear the filter so the next code's search starts with an empty filter.
     combo.fill("")

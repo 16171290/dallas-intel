@@ -119,6 +119,8 @@ jobs:
           PROBATE_ENABLED:      "true"
           RESEARCH_TX_EMAIL:    ${{ secrets.RESEARCH_TX_EMAIL }}
           RESEARCH_TX_PASSWORD: ${{ secrets.RESEARCH_TX_PASSWORD }}
+          # publicsearch.us SPA - re-enabled 2026-05-19 (Stage 3 now non-fatal)
+          PUBLICSEARCH_ENABLED: "true"
         run: python -m scraper.main
 
       # ─── Commit results ──────────────────────────────────────────────────

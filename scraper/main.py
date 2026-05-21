@@ -59,6 +59,7 @@ from . import (
     enrichment,
     foreclosure_pdfs,
     governmental_grantor,
+    legal_resolver,
     monitor,
     output,
     probate,
@@ -139,14 +140,33 @@ def _run_pipeline() -> int:
             "Set PUBLICSEARCH_ENABLED=true to re-enable."
         )
     else:
+        # Non-fatal: publicsearch.us is a third-party SPA aggregator with
+        # known selector-drift risk. A failure here MUST NOT kill the whole
+        # run - the foreclosure-PDF pipeline (and probate, if enabled) must
+        # continue. Matches the Stage 2 (foreclosure-PDF) failure pattern.
         try:
             date_from, date_to = publicsearch.daily_window()
             ps_records = publicsearch.scrape_all(date_from, date_to)
             ps_records_canonical = [enrichment.canonicalize_publicsearch(r) for r in ps_records]
+            logger.info("publicsearch.us: %d records fetched", len(ps_records_canonical))
         except publicsearch.CircuitBreakerTripped as exc:
-            return _fail("publicsearch.us circuit breaker tripped", exc, "publicsearch")
+            logger.warning(
+                "publicsearch.us circuit breaker tripped: %s - "
+                "continuing without publicsearch records", exc,
+            )
+            monitor.notify_failure(
+                error="publicsearch.us circuit breaker tripped (non-fatal)",
+                context={"stage": "publicsearch", "exception": str(exc)},
+            )
         except Exception as exc:
-            return _fail("publicsearch.us scrape failed", exc, "publicsearch")
+            logger.warning(
+                "publicsearch.us scrape failed: %s - "
+                "continuing without publicsearch records", exc,
+            )
+            monitor.notify_failure(
+                error="publicsearch.us scrape failed (non-fatal)",
+                context={"stage": "publicsearch", "exception_type": type(exc).__name__, "exception": str(exc)},
+            )
 
     # 4. Probate (re:SearchTX) ----------------------------------------------
     # Gated on config.PROBATE_ENABLED (default False). Non-fatal: probate is
@@ -194,6 +214,23 @@ def _run_pipeline() -> int:
     logger.info("[6/12] Merging with prior records.json")
     prior_records = output.read_records_json(config.RECORDS_JSON)
     all_records = _merge_seen_dates(all_records, prior_records)
+
+    # 6.5 Legal-description -> DCAD address resolution -----------------------
+    # Publicsearch records lack a street address at canonicalization time;
+    # they carry the property's legal description in raw_excerpt. This stage
+    # parses that description, looks it up in DCAD's ACCOUNT_INFO via
+    # subdivision/lot/block, and stamps address_normalized on matched records.
+    # Stage 7's address-based DCAD enrichment then picks them up. Skips
+    # records that already have an address (foreclosure-PDF source).
+    logger.info("[6.5/12] Legal-description -> DCAD address resolution")
+    legal_stats = legal_resolver.resolve_legal_descriptions(all_records, dcad_tables)
+    logger.info(
+        "Legal-description resolver: %d/%d resolved (%.1f%%); "
+        "no_parse=%d no_match=%d multi=%d no_snippet=%d",
+        legal_stats.resolved, legal_stats.total, legal_stats.resolution_rate * 100,
+        legal_stats.no_parse, legal_stats.no_match, legal_stats.multi_match,
+        legal_stats.no_snippet,
+    )
 
     # 7. Enrich --------------------------------------------------------------
     logger.info("[7/12] Enriching with DCAD")

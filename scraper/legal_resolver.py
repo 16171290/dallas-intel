@@ -1,0 +1,407 @@
+﻿"""Legal-description -> DCAD address resolver.
+
+Publicsearch.us list-view records lack a street address. They carry a
+``raw_html_snippet`` like::
+
+    "DALLAS | Subdivision - Name: SOUTH SIDE Lot: 20 Block: A Township: DALLAS"
+
+DCAD's ACCOUNT_INFO table carries the same legal description in LEGAL1
+(subdivision) + LEGAL2 (block/lot in formats like ``"BLK A/1694 PT LOT 20"``).
+This module joins the two so publicsearch records can flow into the
+existing address-based enrichment pipeline.
+
+Design choices (per audit 2026-05-21):
+  - Conservative matching: only stamp ``address_normalized`` on exact
+    (subdivision, lot, block) matches. MULTI and NO_MATCH leave the
+    field blank so enrichment continues to bail (safe failure).
+  - Stamp only ``address_normalized``. The existing ``enrich_record``
+    will look up that address in the address_index and populate
+    ``dcad_account`` + all DCAD fields. Single source of truth for DCAD
+    field assignment stays in enrichment.
+  - Conservative normalization (same rules as the probe that yielded
+    56% match rate empirically on 116 property-attached records):
+      * Ordinal word -> number (FIRST -> 1ST, etc.)
+      * Standard suffix abbreviations (ADDITION -> ADDN, etc.)
+      * Two-variant lookup (handles "X OF Y" reorderings)
+      * Block partial match (DCAD's "BLK A/1694" matches publicsearch "A")
+
+Public API:
+  build_legal_index(dcad_tables) -> dict
+  parse_legal_from_snippet(snippet) -> dict | None
+  resolve_legal_descriptions(records, dcad_tables, address_index) -> stats
+
+Hit-rate target (empirical baseline): ~50-58% of property-attached
+publicsearch records. Records without subdivision in snippet are
+unresolvable; records with subdivisions DCAD doesn't recognize are
+also unresolvable. No fuzzy matching - false positives in this layer
+would silently corrupt enrichment.
+"""
+
+from __future__ import annotations
+
+import logging
+import re
+from collections import defaultdict
+from dataclasses import dataclass
+from typing import Any
+
+import pandas as pd
+
+from . import normalize
+
+logger = logging.getLogger(__name__)
+
+CanonicalRecord = dict[str, Any]
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Normalization rules
+# ═══════════════════════════════════════════════════════════════════════════
+
+# Replacements applied to both publicsearch + DCAD subdivision names
+# so they normalize to the same form.
+_SUBDIV_REPLACEMENTS: list[tuple[str, str]] = [
+    # Word -> abbreviation
+    (r"\bADDITION\b",   "ADDN"),
+    (r"\bINSTALLMENT\b","INST"),
+    (r"\bPHASE\b",      "PH"),
+    (r"\bSECTION\b",    "SEC"),
+    (r"\bNUMBER\b",     "NO"),
+    # Ordinal words -> numbers
+    (r"\bFIRST\b",   "1ST"),
+    (r"\bSECOND\b",  "2ND"),
+    (r"\bTHIRD\b",   "3RD"),
+    (r"\bFOURTH\b",  "4TH"),
+    (r"\bFIFTH\b",   "5TH"),
+    (r"\bSIXTH\b",   "6TH"),
+    (r"\bSEVENTH\b", "7TH"),
+    (r"\bEIGHTH\b",  "8TH"),
+    (r"\bNINTH\b",   "9TH"),
+    (r"\bTENTH\b",   "10TH"),
+    # Strip punctuation, normalize whitespace
+    (r"[.,]",  ""),
+    (r"\s+",   " "),
+]
+
+
+def normalize_subdivision(s: str | None) -> str:
+    """Apply all subdivision-name normalization rules. Returns "" on None/empty."""
+    if not s:
+        return ""
+    s = s.upper().strip()
+    for pat, repl in _SUBDIV_REPLACEMENTS:
+        s = re.sub(pat, repl, s)
+    return s.strip()
+
+
+def _generate_subdivision_variants(s: str) -> set[str]:
+    """Generate name variants to handle "X OF Y" reorderings.
+
+    Publicsearch sometimes uses "FIRST INSTALLMENT OF EAST KESSLER PARK"
+    where DCAD uses "EAST KESSLER PARK 1ST INST". We try both orderings.
+    """
+    base = normalize_subdivision(s)
+    variants = {base}
+
+    # Reorder "1ST INST OF X" -> "X 1ST INST"
+    m = re.match(r"^(\d+(?:ST|ND|RD|TH)\s+(?:INST|PH|SEC))\s+OF\s+(.+)$", base)
+    if m:
+        variants.add(f"{m.group(2)} {m.group(1)}")
+
+    # Generic "X OF Y" -> "Y X" reordering
+    m = re.match(r"^(.+?)\s+OF\s+(.+)$", base)
+    if m:
+        variants.add(f"{m.group(2)} {m.group(1)}")
+
+    return variants
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# DCAD LEGAL2 parsing
+# ═══════════════════════════════════════════════════════════════════════════
+
+def _parse_dcad_legal2(legal2: str | None) -> dict[str, str]:
+    """Extract lot and block from DCAD LEGAL2 field.
+
+    DCAD LEGAL2 examples (verified against ACCOUNT_INFO 2025):
+      'LT 0033'              -> lot=33,  block=""
+      'BLK H LT 38'          -> lot=38,  block="H"
+      'BLK 1 LOT 1'          -> lot=1,   block="1"
+      'BLK A/1694 PT LOT 20' -> lot=20,  block="A"  (first segment of A/1694)
+      'TR 24'                -> lot=24,  block=""   (tract treated as lot)
+
+    Conservative parse - if format doesn't match, returns empty values
+    rather than guessing.
+    """
+    if not legal2:
+        return {"lot": "", "block": ""}
+    s = legal2.upper().strip()
+    out = {"lot": "", "block": ""}
+
+    # Block: capture token after BLK/BLOCK; keep only segment before any slash
+    m = re.search(r"\bBL(?:K|OCK)\s+([A-Z0-9]+)", s)
+    if m:
+        out["block"] = m.group(1).split("/")[0]
+
+    # Lot or tract: capture token after LT/LOT/TRACT; strip leading zeros
+    m = re.search(r"\b(?:LT|LOT|TR(?:ACT)?)\s+([A-Z0-9]+)", s)
+    if m:
+        out["lot"] = m.group(1).lstrip("0") or "0"
+
+    return out
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Publicsearch snippet parsing
+# ═══════════════════════════════════════════════════════════════════════════
+
+@dataclass
+class ParsedLegal:
+    """Structured form of a publicsearch raw_html_snippet's legal description."""
+    subdivision: str = ""
+    lot: str = ""
+    block: str = ""
+    township: str = ""
+
+
+def parse_legal_from_snippet(snippet: str | None) -> ParsedLegal | None:
+    """Parse a publicsearch raw_html_snippet for legal-description fields.
+
+    Expected format (with variants):
+      "<TOWNSHIP> | Subdivision - Name: <NAME> Lot: <N> Block: <B> Township: <T>"
+      "<TOWNSHIP> | Subdivision - Name: <NAME> Lot: <N> Township: <T>"
+      "<TOWNSHIP> | Township: <T>"
+      "N/A | N/A"
+
+    Returns ParsedLegal with empty fields if no subdivision was found.
+    Returns None if the snippet is completely empty.
+    """
+    if not snippet or not snippet.strip():
+        return None
+    if snippet.strip() == "N/A | N/A":
+        return ParsedLegal()  # parseable but empty
+
+    out = ParsedLegal()
+    m = re.search(
+        r"Subdivision\s*-\s*Name:\s*(.+?)(?=\s*(?:Lot:|Block:|Township:|Reference|$))",
+        snippet, re.IGNORECASE,
+    )
+    if m:
+        out.subdivision = m.group(1).strip()
+
+    m = re.search(r"Lot:\s*([A-Z0-9\-]+)", snippet, re.IGNORECASE)
+    if m:
+        out.lot = m.group(1).strip()
+
+    m = re.search(r"Block:\s*([A-Z0-9\-]+)", snippet, re.IGNORECASE)
+    if m:
+        out.block = m.group(1).strip()
+
+    m = re.search(r"Township:\s*([A-Z\s]+?)(?=\s*(?:Reference|$))", snippet, re.IGNORECASE)
+    if m:
+        out.township = m.group(1).strip()
+
+    return out
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# DCAD legal index
+# ═══════════════════════════════════════════════════════════════════════════
+
+def build_legal_index(
+    dcad_tables: dict[str, pd.DataFrame],
+) -> dict[tuple[str, str, str], list[str]]:
+    """Build a normalized-legal-description -> ACCOUNT_NUM index.
+
+    Key:   (normalized_subdivision, normalized_lot, normalized_block)
+    Value: list of ACCOUNT_NUM strings matching that key
+
+    Multiple accounts can share a key (e.g., condos where lot=unit_id but
+    block isn't differentiating). Callers should treat keys with >1 account
+    as MULTI matches and skip them - the conservative match policy.
+
+    Source: ACCOUNT_INFO table, LEGAL1 (subdivision) + LEGAL2 (lot/block).
+    """
+    if "ACCOUNT_INFO" not in dcad_tables:
+        logger.warning("ACCOUNT_INFO not in DCAD tables; legal index empty")
+        return {}
+
+    df = dcad_tables["ACCOUNT_INFO"]
+    needed = {"ACCOUNT_NUM", "LEGAL1", "LEGAL2"}
+    missing = needed - set(df.columns)
+    if missing:
+        logger.warning(
+            "ACCOUNT_INFO missing columns %s; legal index empty",
+            sorted(missing),
+        )
+        return {}
+
+    index: dict[tuple[str, str, str], list[str]] = defaultdict(list)
+    skipped_no_subdivision = 0
+
+    for row in df.itertuples(index=False):
+        account = str(getattr(row, "ACCOUNT_NUM", "") or "").strip()
+        legal1 = str(getattr(row, "LEGAL1", "") or "").strip()
+        legal2 = str(getattr(row, "LEGAL2", "") or "").strip()
+
+        if not account:
+            continue
+
+        norm_sub = normalize_subdivision(legal1)
+        if not norm_sub:
+            skipped_no_subdivision += 1
+            continue
+
+        lotblock = _parse_dcad_legal2(legal2)
+        key = (norm_sub, lotblock["lot"], lotblock["block"])
+        index[key].append(account)
+
+    logger.info(
+        "Built DCAD legal index: %d unique (sub,lot,block) keys from %d rows "
+        "(%d skipped - no subdivision)",
+        len(index), len(df), skipped_no_subdivision,
+    )
+    return dict(index)
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Account -> address-normalized lookup (uses ACCOUNT_INFO directly)
+# ═══════════════════════════════════════════════════════════════════════════
+
+def _build_account_to_address(
+    dcad_tables: dict[str, pd.DataFrame],
+) -> dict[str, str]:
+    """Reverse map: ACCOUNT_NUM -> normalized street address.
+
+    Used to get the address_normalized that we'll stamp on matched
+    publicsearch records. Same normalization as build_address_index
+    in dcad_bulk.py so the values are identical.
+    """
+    if "ACCOUNT_INFO" not in dcad_tables:
+        return {}
+
+    df = dcad_tables["ACCOUNT_INFO"]
+    needed = {"ACCOUNT_NUM", "STREET_NUM", "FULL_STREET_NAME"}
+    if not needed.issubset(df.columns):
+        return {}
+
+    has_half = "STREET_HALF_NUM" in df.columns
+    out: dict[str, str] = {}
+
+    for row in df.itertuples(index=False):
+        account = str(getattr(row, "ACCOUNT_NUM", "") or "").strip()
+        if not account:
+            continue
+
+        num  = str(getattr(row, "STREET_NUM", "") or "").strip()
+        half = str(getattr(row, "STREET_HALF_NUM", "") or "").strip() if has_half else ""
+        name = str(getattr(row, "FULL_STREET_NAME", "") or "").strip()
+        raw  = " ".join(p for p in (num, half, name) if p).strip()
+        norm = normalize.normalize_address(raw)
+        if norm:
+            out[account] = norm
+
+    return out
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Resolver - public entry point
+# ═══════════════════════════════════════════════════════════════════════════
+
+@dataclass
+class LegalResolverStats:
+    """Counts for per-pipeline-run observability."""
+    total: int = 0
+    no_snippet: int = 0       # record had no raw_html_snippet
+    no_parse: int = 0          # snippet had no subdivision (e.g. AJ records)
+    no_match: int = 0          # parsed but no DCAD match
+    multi_match: int = 0       # parsed and matched multiple accounts (skipped)
+    resolved: int = 0          # parsed, single match, address stamped
+
+    @property
+    def resolution_rate(self) -> float:
+        if self.total == 0:
+            return 0.0
+        return self.resolved / self.total
+
+
+def resolve_legal_descriptions(
+    records: list[CanonicalRecord],
+    dcad_tables: dict[str, pd.DataFrame],
+) -> LegalResolverStats:
+    """Stamp address_normalized on records via legal-description match.
+
+    Iterates records, parses each publicsearch snippet, looks up the legal
+    description in the DCAD legal index. On a single exact match, sets
+    ``record["address_normalized"]`` to the DCAD parcel's normalized
+    address. Subsequent enrichment will pick up that address and resolve
+    dcad_account + DCAD fields via the existing address_index path.
+
+    Records modified in place. Returns stats for logging/monitoring.
+
+    Records that already have address_normalized set (e.g., from
+    foreclosure-PDF source) are skipped - this resolver only fills in
+    missing addresses, never overwrites.
+    """
+    stats = LegalResolverStats(total=len(records))
+
+    legal_index   = build_legal_index(dcad_tables)
+    acct_to_addr  = _build_account_to_address(dcad_tables)
+
+    for rec in records:
+        # Skip records that already have an address (foreclosure-PDF)
+        if rec.get("address_normalized"):
+            continue
+
+        # Only attempt resolution on records with a snippet to parse
+        snippet = rec.get("raw_excerpt") or ""
+        if not snippet:
+            stats.no_snippet += 1
+            continue
+
+        parsed = parse_legal_from_snippet(snippet)
+        if not parsed or not parsed.subdivision:
+            stats.no_parse += 1
+            continue
+
+        # Normalize parsed values
+        norm_lot = parsed.lot.lstrip("0") if parsed.lot else parsed.lot
+        norm_block = parsed.block
+
+        # Try each subdivision variant (handles "X OF Y" reorderings)
+        variants = _generate_subdivision_variants(parsed.subdivision)
+        matched_accounts: list[str] = []
+        for v in variants:
+            matched = legal_index.get((v, norm_lot, norm_block), [])
+            if matched:
+                matched_accounts = matched
+                break
+
+        if not matched_accounts:
+            stats.no_match += 1
+            continue
+
+        if len(matched_accounts) > 1:
+            # Conservative: skip MULTI cases
+            stats.multi_match += 1
+            continue
+
+        # Single match - stamp address_normalized
+        account = matched_accounts[0]
+        addr = acct_to_addr.get(account)
+        if not addr:
+            # Account exists in legal index but has no normalized address;
+            # treat as a match miss
+            stats.no_match += 1
+            continue
+
+        rec["address_normalized"] = addr
+        stats.resolved += 1
+
+    logger.info(
+        "Legal-description resolution: %d/%d resolved (%.1f%%); "
+        "no_parse=%d no_match=%d multi=%d no_snippet=%d",
+        stats.resolved, stats.total, stats.resolution_rate * 100,
+        stats.no_parse, stats.no_match, stats.multi_match, stats.no_snippet,
+    )
+    return stats
