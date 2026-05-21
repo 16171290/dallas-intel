@@ -57,6 +57,7 @@ from . import (
     config,
     dcad_bulk,
     enrichment,
+    entity_filter,
     foreclosure_pdfs,
     governmental_grantor,
     legal_resolver,
@@ -256,6 +257,27 @@ def _run_pipeline() -> int:
         logger.info(
             "Sample governmental grantors removed: %s",
             [r.get("grantor", "?") for r in gov_removed[:3]],
+        )
+
+    # 8.5 Corporate-entity grantee suppression -------------------------------
+    # Removes records where the grantee is a corporate or institutional
+    # entity (LLCs, banks, churches, hospitals, etc.) - not a motivated-
+    # seller candidate. Family trusts are preserved (estate scenarios are
+    # real lead targets). LC city-lien records swap to grantor when grantee
+    # is governmental, since the property owner is on the grantor side for
+    # those records.
+    logger.info("[8.5/12] Corporate-entity grantee suppression")
+    before = len(all_records)
+    all_records, entity_removed = entity_filter.filter_entity_records(all_records)
+    entity_filtered_count = len(entity_removed)
+    logger.info(
+        "Entity filter: removed %d records (%d -> %d)",
+        entity_filtered_count, before, len(all_records),
+    )
+    if entity_removed[:3]:
+        logger.info(
+            "Sample entity grantees removed: %s",
+            [r.get("grantee", "?") for r in entity_removed[:3]],
         )
 
     # 9. Score + stack + suppress + HOA filter -------------------------------
