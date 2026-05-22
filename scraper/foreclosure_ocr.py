@@ -490,26 +490,28 @@ def capture_with_retry(page, record_id: str, base_url: str,
 # OCR (Tesseract)
 # ═══════════════════════════════════════════════════════════════════════════
 
-def _ocr_one_image_worker(args: tuple[bytes, str]) -> tuple[str, float, int]:
-    """OCR a single PNG in a worker. Returns (text, elapsed_s, image_size_bytes).
+def _ocr_one_image_worker(args: tuple[bytes, str]) -> tuple[str, float, int, int, int]:
+    """OCR a single PNG in a worker. Returns
+        (text, elapsed_s, image_size_bytes, width, height).
 
-    Returning timing data lets the parent prove whether the Pool is
-    actually parallelizing (sum of worker times > wall time means yes;
-    sum ≈ wall time means workers are serializing somewhere — GIL,
-    shared lock, single-threaded pool, etc.).
+    Width/height come from PIL.Image after decoding the PNG. Lets us
+    log per_page_pixels so we can tell whether a 200 KB PNG is a
+    reasonable 1000x1500 or an oversized 4000x6000 scan.
     """
     img_bytes, tess_cmd = args
     _t0 = time.perf_counter()
+    width = height = 0
     try:
         import pytesseract
         from PIL import Image
         from io import BytesIO
         pytesseract.pytesseract.tesseract_cmd = tess_cmd
         img = Image.open(BytesIO(img_bytes))
+        width, height = img.size
         text = pytesseract.image_to_string(img)
-        return (text, time.perf_counter() - _t0, len(img_bytes))
+        return (text, time.perf_counter() - _t0, len(img_bytes), width, height)
     except Exception as e:
-        return (f"<OCR_ERROR: {e}>", time.perf_counter() - _t0, len(img_bytes))
+        return (f"<OCR_ERROR: {e}>", time.perf_counter() - _t0, len(img_bytes), width, height)
 
 
 def _ocr_pages(pages: dict[int, bytes], tess_cmd: str,
@@ -540,12 +542,14 @@ def _ocr_pages(pages: dict[int, bytes], tess_cmd: str,
             texts    = [r[0] for r in results]
             timings  = [r[1] for r in results]
             sizes_kb = [r[2] / 1024 for r in results]
+            pixels   = [(r[3], r[4]) for r in results]
             logger.info(
                 "_ocr_pages: pages=%d path=pool wall=%.1fs sum_worker=%.1fs "
-                "per_page_seconds=%s per_page_kb=%s",
+                "per_page_seconds=%s per_page_kb=%s per_page_pixels=%s",
                 len(sorted_keys), wall, sum(timings),
                 [f"{t:.1f}" for t in timings],
                 [f"{s:.0f}" for s in sizes_kb],
+                [f"{w}x{h}" for w, h in pixels],
             )
             return "\n\n".join(texts)
         except Exception as e:
@@ -562,23 +566,28 @@ def _ocr_pages(pages: dict[int, bytes], tess_cmd: str,
     out_parts: list[str] = []
     timings: list[float] = []
     sizes_kb: list[float] = []
+    pixels: list[tuple[int, int]] = []
     _wall_t = time.perf_counter()
     for pn in sorted_keys:
         _pt = time.perf_counter()
+        wh = (0, 0)
         try:
             img = Image.open(BytesIO(pages[pn]))
+            wh = img.size
             out_parts.append(pytesseract.image_to_string(img))
         except Exception as e:
             logger.warning("OCR failed on page %d: %s", pn, e)
         timings.append(time.perf_counter() - _pt)
         sizes_kb.append(len(pages[pn]) / 1024)
+        pixels.append(wh)
     wall = time.perf_counter() - _wall_t
     logger.info(
         "_ocr_pages: pages=%d path=serial wall=%.1fs sum_worker=%.1fs "
-        "per_page_seconds=%s per_page_kb=%s",
+        "per_page_seconds=%s per_page_kb=%s per_page_pixels=%s",
         len(sorted_keys), wall, sum(timings),
         [f"{t:.1f}" for t in timings],
         [f"{s:.0f}" for s in sizes_kb],
+        [f"{w}x{h}" for w, h in pixels],
     )
     return "\n\n".join(out_parts)
 
@@ -805,6 +814,24 @@ def enrich_foreclosure_records(
                 continue
 
             stats.captured_ok += 1
+
+            # PR 12.18 forensic: save the very first successfully-captured PNG
+            # to data/probes/ so we can inspect what Tesseract is actually
+            # being asked to read. data/probes/ is committed by the daily
+            # cron, so the artifact surfaces on main automatically.
+            if stats.captured_ok == 1 and 1 in cap.pages:
+                try:
+                    probe_dir = config.DATA_DIR / "probes"
+                    probe_dir.mkdir(parents=True, exist_ok=True)
+                    png_path = probe_dir / f"ocr_sample_{rid}_p1.png"
+                    png_path.write_bytes(cap.pages[1])
+                    logger.info(
+                        "OCR forensic: saved sample %s (%d bytes)",
+                        png_path, len(cap.pages[1]),
+                    )
+                except Exception as e:
+                    logger.info("OCR forensic: sample save failed: %s", e)
+
             _ocr_t = time.perf_counter()
             text = _ocr_pages(cap.pages, tess_cmd, pool=pool)
             _t_ocr = time.perf_counter() - _ocr_t

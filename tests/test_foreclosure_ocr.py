@@ -299,8 +299,11 @@ def test_ocr_pages_multi_page_uses_pool():
         def __init__(self): self.received_args = None
         def map(self, fn, args):
             self.received_args = list(args)
-            # Worker now returns (text, elapsed_s, image_size_bytes) — PR 12.16.
-            return [("TEXT-P1", 0.1, 11), ("TEXT-P2", 0.1, 11)]
+            # Worker returns (text, elapsed_s, image_size_bytes, width, height) — PR 12.18.
+            return [
+                ("TEXT-P1", 0.1, 11, 1200, 1600),
+                ("TEXT-P2", 0.1, 11, 1200, 1600),
+            ]
     fake = FakePool()
     pages = {1: b"png-bytes-1", 2: b"png-bytes-2"}
     result = _ocr_pages(pages, "/fake/tesseract", pool=fake)
