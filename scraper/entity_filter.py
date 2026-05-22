@@ -248,17 +248,28 @@ def _resolve_target(rec: dict) -> tuple[str, str]:
     """Resolve effective target field for a record.
 
     Returns (target_value, target_source) where target_source is
-    "grantee" for the normal case or "grantor" for the LC city-lien
-    swap case.
+    "grantee" for the normal case or "grantor" for the swap cases.
 
-    LC city-lien swap: when an LC record has a governmental grantee
-    (City of Dallas, DISD, etc.), the property owner is on the grantor
-    side. We swap so the filter checks the actual owner candidate.
+    Swap cases (return grantor, not grantee):
+
+      1. LC city-lien swap: when an LC record has a governmental grantee
+         (City of Dallas, DISD, etc.), the property owner is on the
+         grantor side. We swap so the filter checks the actual owner
+         candidate.
+
+      2. NOF (Notice of Foreclosure) records: the grantee is always
+         absent at notice-filing time (the auction hasn't happened, so
+         there's no buyer). The motivated-seller lead IS the grantor
+         (the homeowner being foreclosed on). Without this swap every
+         NOF record falls through the empty-target check below and gets
+         wrongly suppressed.
     """
     code = rec.get("dallas_code", "")
     grantor = (rec.get("grantor") or "").strip()
     grantee = (rec.get("grantee") or "").strip()
 
+    if code == "NOF":
+        return (grantor, "grantor")
     if code == "LC" and governmental_grantor.is_governmental_grantor(grantee):
         return (grantor, "grantor")
     return (grantee, "grantee")
@@ -287,6 +298,18 @@ def filter_entity_records(
 
     for rec in records:
         target, _source = _resolve_target(rec)
+        code = rec.get("dallas_code", "")
+
+        # NOF exception: empty grantor means OCR didn't extract the
+        # owner name from the notice scan. The record is still a valid
+        # motivated-seller lead -- it has a sale_date, source_url, and
+        # often a city-level address. The operator can click into the
+        # source URL to read the name. Don't drop these for missing
+        # grantor. We still apply the corporate-entity check below when
+        # grantor IS populated, so commercial foreclosures are filtered.
+        if not target and code == "NOF":
+            kept.append(rec)
+            continue
 
         if not target:
             removed.append(rec)

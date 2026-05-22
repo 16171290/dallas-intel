@@ -388,6 +388,29 @@ def _capture_one(page, record_id: str, base_url: str,
     except Exception:
         pass
 
+    # Mirror the manual-refresh workaround the operator confirmed works on
+    # publicsearch.us: when the first /doc/{id} load hangs (you see a
+    # spinning circle, no images), pressing Ctrl+R fixes it. The SPA's
+    # signed-URL-minting backend is flaky on first request. If our passive
+    # wait completed with no images captured AND the viewer's "of N"
+    # pagination text never appeared, do a page.reload() and wait again
+    # before declaring failure.
+    if not result.pages and total_pages is None:
+        result.warnings.append("initial_load_hung_reloading")
+        try:
+            page.reload(wait_until="networkidle", timeout=30_000)
+            time.sleep(passive_wait_s)
+            # Re-detect total_pages after the reload.
+            try:
+                body_text = page.locator("body").inner_text()
+                m = re.search(r"\bof\s+(\d+)\b", body_text)
+                if m:
+                    total_pages = int(m.group(1))
+            except Exception:
+                pass
+        except Exception as e:
+            result.warnings.append(f"reload_failed: {e}")
+
     if total_pages and len(result.pages) < total_pages:
         for target_page in range(2, total_pages + 1):
             if target_page in result.pages:
@@ -559,16 +582,44 @@ def enrich_foreclosure_records(
     # workers when there's actually a record to OCR (so we don't pay
     # spawn cost if all records are past-sale-date and skipped).
     # Capped at 8 workers; Windows pool overhead dominates beyond that.
+    #
+    # Kill switch: set FORECLOSURE_OCR_PARALLEL=false to disable parallel
+    # OCR entirely. Use this if multiprocessing.Pool() hangs on your
+    # machine (some Windows + Playwright interactions are flaky).
     pool_size = min(multiprocessing.cpu_count(), 8)
     pool: Optional[multiprocessing.pool.Pool] = None
+    parallel_enabled = os.environ.get("FORECLOSURE_OCR_PARALLEL", "true").strip().lower() in (
+        "true", "1", "yes", "on",
+    )
 
     today = date.today()
 
-    logger.info("OCR enrichment starting on %d foreclosure records "
-                "(Tesseract: %s, parallel-pool max=%d workers)",
-                len(records), tess_cmd, pool_size)
+    logger.info(
+        "OCR enrichment starting on %d foreclosure records "
+        "(Tesseract: %s, parallel=%s, max-workers=%d)",
+        len(records), tess_cmd,
+        "on" if parallel_enabled else "off (FORECLOSURE_OCR_PARALLEL=false)",
+        pool_size,
+    )
 
+    # Spawn the Pool BEFORE entering browser_context, so worker subprocess
+    # spawn doesn't compete with Playwright's running browser for system
+    # resources (anecdotally a source of Windows hangs).
+    if parallel_enabled and any(r.get("record_id") for r in records):
+        try:
+            logger.info("OCR enrichment: spawning multiprocessing.Pool(processes=%d)...", pool_size)
+            pool = multiprocessing.Pool(processes=pool_size)
+            logger.info("OCR enrichment: pool ready (%d workers)", pool_size)
+        except Exception as e:
+            logger.warning(
+                "Could not start OCR multiprocessing pool: %s; "
+                "falling back to serial OCR", e,
+            )
+            pool = None
+
+    logger.info("OCR enrichment: launching Playwright browser context...")
     with browser_context() as (_browser, context, _page):
+        logger.info("OCR enrichment: browser context ready, starting per-record loop")
         # Discard the initial page from browser_context; we use a fresh
         # page per record to avoid React/SPA state accumulation that
         # caused intermittent ~10% capture failures when one page was
@@ -599,18 +650,8 @@ def enrich_foreclosure_records(
                 except (ValueError, TypeError):
                     pass
 
-            # Lazy-init the OCR pool only once we know we'll actually need it.
-            if pool is None:
-                try:
-                    pool = multiprocessing.Pool(processes=pool_size)
-                except Exception as e:
-                    logger.warning(
-                        "Could not start OCR multiprocessing pool: %s; "
-                        "falling back to serial OCR", e,
-                    )
-                    pool = None  # explicit; _ocr_pages handles None
-
             t0 = time.time()
+            logger.info("OCR [%d/%d] capturing %s ...", i, len(records), rid)
             # Fresh page per record — disposed after each capture so SPA
             # state, JS context, and memory don't accumulate.
             page = context.new_page()
