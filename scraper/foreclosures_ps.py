@@ -140,6 +140,34 @@ def scrape_foreclosures(
                 except Exception:
                     logger.debug("foreclosures: results table not visible within 10s")
                 page_records = _harvest_current_page(page, offset)
+
+                # SPA spinning-circle workaround: publicsearch.us occasionally
+                # serves a hydrated-but-empty results table on the first
+                # navigation. A page.reload() reliably fixes it (same pattern
+                # the OCR capture path uses). Only retry on offset=0 — empty
+                # at later offsets means we've paginated past the end, which
+                # is the legitimate stop condition.
+                if not page_records and offset == 0:
+                    logger.info(
+                        "publicsearch foreclosures: empty first page; "
+                        "reloading once in case the SPA didn't hydrate"
+                    )
+                    page.reload(wait_until="networkidle", timeout=30_000)
+                    try:
+                        page.locator(
+                            "section.search-results__results-wrap table"
+                        ).first.wait_for(state="visible", timeout=10_000)
+                    except Exception:
+                        logger.debug(
+                            "foreclosures: results table still not visible after reload"
+                        )
+                    page_records = _harvest_current_page(page, offset)
+                    if page_records:
+                        logger.info(
+                            "publicsearch foreclosures: reload recovered %d records",
+                            len(page_records),
+                        )
+
                 breaker.record_success()
             except CircuitBreakerTripped:
                 raise
