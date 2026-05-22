@@ -161,10 +161,8 @@ INSTRUMENT_CODES: dict[str, list[str]] = {
 #          via the publicsearch.us Foreclosures *department*, not the
 #          Real-Property doctype filter).
 #
-# Routine-transaction codes intentionally OMITTED so we skip scraping
-# them (decision PR 12.8 — those records are just normal property
-# transfers, not motivated-seller signals, and they dominated weekly
-# volume with no actionable leads):
+# Routine-transaction codes intentionally OMITTED (decision PR 12.8 —
+# normal property transfers, not motivated-seller signals):
 #   - WD  (WARRANTY DEED)              ─┐ Normal residential sales — the
 #   - QCD (QUIT CLAIM DEED)             │ buyer just bought, NOT a
 #   - DE  (DEED, generic)               │ motivated seller. WD alone was
@@ -174,22 +172,28 @@ INSTRUMENT_CODES: dict[str, list[str]] = {
 #   - TD  (TRUSTEE'S/SUBSTITUTE         │ sale already happened. Buyer
 #          TRUSTEE'S DEED)             ─┘ is usually an investor competitor.
 #
+# Medium-signal codes intentionally OMITTED (decision PR 12.9 — operator
+# narrowed scope to HIGH-signal motivated-seller distress only):
+#   - JUD (JUDGMENT)                    ─┐ Money judgments not necessarily
+#   - LN  (LIEN, generic)               │ tied to property distress; often
+#   - ML  (MECHANIC'S LIEN ...)         │ resolved via REL; LC dominated by
+#   - LC  (LIEN AFFIDAVIT/CLAIM/NOTICE)─┘ city/utility/HOA liens (low ROI).
+#
 # To re-enable any of the above, add the literal display name back here
 # (must match publicsearch.us's doctype-typeahead string character for
 # character — see the source-of-truth comment above).
 DALLAS_CODE_DISPLAY_NAMES: dict[str, str] = {
-    "LP":  "LIS PENDENS (NOTICE OF)",
-    "RLP": "RELEASE OF LIS PENDENS",
-    "LN":  "LIEN",
-    "LC":  "LIEN AFFIDAVIT/CLAIM/NOTICE",
-    "ML":  "MECHANIC'S LIEN CONTRACT/AFFIDAVIT",
-    "TXL": "TAX LIEN",
-    "JUD": "JUDGMENT",
-    "AJ":  "ABSTRACT OF JUDGMENT",
-    "PB":  "PROBATE PROCEEDINGS",
-    "BR":  "BANKRUPTCY PROCEEDINGS",
-    "SZS": "SEIZURE & SALE",
-    "REL": "RELEASE",
+    # ── HIGH-signal motivated-seller distress ──
+    "LP":  "LIS PENDENS (NOTICE OF)",        # lawsuit affecting title
+    "TXL": "TAX LIEN",                       # owner can't pay property tax
+    "AJ":  "ABSTRACT OF JUDGMENT",           # creditor judgment attached to property
+    "PB":  "PROBATE PROCEEDINGS",            # death of owner → heirs liquidating
+    "BR":  "BANKRUPTCY PROCEEDINGS",         # owner in bankruptcy
+    "SZS": "SEIZURE & SALE",                 # IRS / govt forced sale
+
+    # ── Suppression signals (mark earlier records inactive) ──
+    "REL": "RELEASE",                        # lien released — resolves an earlier LN/etc
+    "RLP": "RELEASE OF LIS PENDENS",         # suit dropped — resolves an earlier LP
 }
 
 # Codes that mark a previously-seen record as inactive.
