@@ -490,17 +490,20 @@ def capture_with_retry(page, record_id: str, base_url: str,
 # OCR (Tesseract)
 # ═══════════════════════════════════════════════════════════════════════════
 
-def _ocr_one_image_worker(args: tuple[bytes, str]) -> tuple[str, float, int, int, int]:
+def _ocr_one_image_worker(args: tuple[bytes, str]) -> tuple:
     """OCR a single PNG in a worker. Returns
-        (text, elapsed_s, image_size_bytes, width, height).
+        (text, elapsed_s, image_size_bytes, width, height, mode, dpi).
 
-    Width/height come from PIL.Image after decoding the PNG. Lets us
-    log per_page_pixels so we can tell whether a 200 KB PNG is a
-    reasonable 1000x1500 or an oversized 4000x6000 scan.
+    width/height from PIL.Image.size; mode is "RGB"/"RGBA"/"L"/etc;
+    dpi is a "XxY" string or "?" if not in image metadata. All come
+    back so the parent can log per_page_pixels / per_page_mode /
+    per_page_dpi without per-image guessing.
     """
     img_bytes, tess_cmd = args
     _t0 = time.perf_counter()
     width = height = 0
+    mode = "?"
+    dpi  = "?"
     try:
         import pytesseract
         from PIL import Image
@@ -508,10 +511,15 @@ def _ocr_one_image_worker(args: tuple[bytes, str]) -> tuple[str, float, int, int
         pytesseract.pytesseract.tesseract_cmd = tess_cmd
         img = Image.open(BytesIO(img_bytes))
         width, height = img.size
+        mode = img.mode
+        d = img.info.get("dpi")
+        if d:
+            dpi = f"{int(d[0])}x{int(d[1])}"
         text = pytesseract.image_to_string(img)
-        return (text, time.perf_counter() - _t0, len(img_bytes), width, height)
+        return (text, time.perf_counter() - _t0, len(img_bytes), width, height, mode, dpi)
     except Exception as e:
-        return (f"<OCR_ERROR: {e}>", time.perf_counter() - _t0, len(img_bytes), width, height)
+        return (f"<OCR_ERROR: {e}>", time.perf_counter() - _t0, len(img_bytes),
+                width, height, mode, dpi)
 
 
 def _ocr_pages(pages: dict[int, bytes], tess_cmd: str,
@@ -543,13 +551,17 @@ def _ocr_pages(pages: dict[int, bytes], tess_cmd: str,
             timings  = [r[1] for r in results]
             sizes_kb = [r[2] / 1024 for r in results]
             pixels   = [(r[3], r[4]) for r in results]
+            modes    = [r[5] if len(r) > 5 else "?" for r in results]
+            dpis     = [r[6] if len(r) > 6 else "?" for r in results]
             logger.info(
                 "_ocr_pages: pages=%d path=pool wall=%.1fs sum_worker=%.1fs "
-                "per_page_seconds=%s per_page_kb=%s per_page_pixels=%s",
+                "per_page_seconds=%s per_page_kb=%s per_page_pixels=%s "
+                "per_page_mode=%s per_page_dpi=%s",
                 len(sorted_keys), wall, sum(timings),
                 [f"{t:.1f}" for t in timings],
                 [f"{s:.0f}" for s in sizes_kb],
                 [f"{w}x{h}" for w, h in pixels],
+                modes, dpis,
             )
             return "\n\n".join(texts)
         except Exception as e:
@@ -708,6 +720,74 @@ def enrich_foreclosure_records(
         os.environ.get("MKL_NUM_THREADS", "<unset>"),
     )
 
+    # PR 12.19 forensic: CPU model + RAM totals.
+    # Helps distinguish "slow CPU" from "swap thrash" from "fast CPU but
+    # something else is the bottleneck".
+    try:
+        with open("/proc/cpuinfo") as f:
+            cpu_model = next(
+                (line.split(":", 1)[1].strip()
+                 for line in f if line.startswith("model name")),
+                "<unknown>",
+            )
+    except Exception:
+        cpu_model = "<not-linux>"
+    try:
+        meminfo = {}
+        with open("/proc/meminfo") as f:
+            for line in f:
+                k, _, rest = line.partition(":")
+                meminfo[k.strip()] = rest.strip()
+        mem_total = meminfo.get("MemTotal", "?")
+        mem_avail = meminfo.get("MemAvailable", "?")
+    except Exception:
+        mem_total = mem_avail = "<not-linux>"
+    logger.info(
+        "OCR sysinfo: cpu_model=%r mem_total=%s mem_available=%s",
+        cpu_model, mem_total, mem_avail,
+    )
+
+    # PR 12.19 forensic: synthetic Tesseract baseline. OCR a known-good
+    # 1000x1500 image with embedded text once at startup. If this takes
+    # ~1-3s -> Tesseract itself is healthy and the captured PNGs are
+    # anomalous. If it takes 60s+ -> CPU or Tesseract is the bottleneck
+    # regardless of image content. Pure measurement, ~2-5s once.
+    try:
+        from PIL import Image, ImageDraw, ImageFont
+        from io import BytesIO
+        import pytesseract as _pyt
+        _pyt.pytesseract.tesseract_cmd = tess_cmd
+        synth = Image.new("RGB", (1000, 1500), "white")
+        draw = ImageDraw.Draw(synth)
+        # Render multiple lines so the OCR has something resembling
+        # a document, not just a single line.
+        lines = [
+            "NOTICE OF FORECLOSURE SALE",
+            "Property: 123 Main Street, Dallas, Texas 75201",
+            "Grantor: John A. Smith and Jane B. Smith",
+            "Sale Date: June 4, 2026   Trustee: Acme Trustee LLC",
+            "Loan Amount: $185,000.00",
+            "Legal Description: Lot 5, Block 12, Acme Addition",
+        ]
+        try:
+            font = ImageFont.truetype("DejaVuSans.ttf", 28)
+        except Exception:
+            font = ImageFont.load_default()
+        y = 100
+        for line in lines:
+            draw.text((50, y), line, fill="black", font=font)
+            y += 80
+        _bench_t = time.perf_counter()
+        text = _pyt.image_to_string(synth)
+        bench_s = time.perf_counter() - _bench_t
+        logger.info(
+            "OCR baseline (synthetic 1000x1500, 6 text lines): "
+            "image_to_string took %.2fs, text_len=%d, sample_text=%r",
+            bench_s, len(text), text[:80].replace("\n", " "),
+        )
+    except Exception as e:
+        logger.info("OCR baseline: synthetic benchmark failed: %s", e)
+
     # Spawn the Pool BEFORE entering browser_context, so worker subprocess
     # spawn doesn't compete with Playwright's running browser for system
     # resources (anecdotally a source of Windows hangs).
@@ -835,6 +915,35 @@ def enrich_foreclosure_records(
             _ocr_t = time.perf_counter()
             text = _ocr_pages(cap.pages, tess_cmd, pool=pool)
             _t_ocr = time.perf_counter() - _ocr_t
+
+            # PR 12.19 forensic: PSM comparison on the first record's page 1.
+            # The pipeline uses PSM=3 (auto layout detection) by default;
+            # PSM=6 treats the image as a single uniform text block and skips
+            # the layout-detection pass. If PSM=6 is dramatically faster on
+            # the same image, PSM=3 layout detection is the killer; if not,
+            # raw Tesseract speed is the bottleneck regardless of layout.
+            # Runs once per pipeline invocation.
+            if stats.captured_ok == 1 and 1 in cap.pages:
+                try:
+                    import pytesseract as _pyt
+                    from PIL import Image as _PILImage
+                    from io import BytesIO as _BIO
+                    _pyt.pytesseract.tesseract_cmd = tess_cmd
+                    img = _PILImage.open(_BIO(cap.pages[1]))
+                    _psm6_t = time.perf_counter()
+                    psm6_text = _pyt.image_to_string(img, config="--psm 6 --oem 1")
+                    psm6_s = time.perf_counter() - _psm6_t
+                    # We can recover the PSM=3 cost for page 1 from the
+                    # per_page_seconds list logged by _ocr_pages; here we
+                    # just record PSM=6 cost on the same image.
+                    logger.info(
+                        "OCR PSM compare (first record, page 1): "
+                        "psm6_oem1_s=%.1fs psm6_text_len=%d",
+                        psm6_s, len(psm6_text),
+                    )
+                except Exception as e:
+                    logger.info("OCR PSM compare failed: %s", e)
+
             _extract_t = time.perf_counter()
             fields = extract_fields_from_text(text)
             _t_extract = time.perf_counter() - _extract_t
