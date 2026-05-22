@@ -422,6 +422,55 @@ class TestLCCityLienSwap:
         kept, removed = filter_entity_records(records)
         assert len(kept) == 1, "NOF with empty grantor must be kept (OCR-miss not record-invalid)"
 
+    def test_nof_empty_grantor_with_corporate_dcad_owner_dropped(self):
+        # PR 12.10: when NOF OCR didn't extract the grantor but DCAD
+        # enrichment identified a corporate owner (e.g. GULF COAST
+        # WESTERN LLC mineral-rights foreclosure), drop the record. The
+        # underlying account belongs to a company, not an individual
+        # motivated seller.
+        records = [{
+            "dallas_code": "NOF",
+            "grantor": None,
+            "grantee": None,
+            "dcad_owner": "GULF COAST WESTERN LLC",
+            "record_id": "315566857",
+        }]
+        kept, removed = filter_entity_records(records)
+        assert len(kept) == 0
+        assert len(removed) == 1
+
+    def test_nof_empty_grantor_with_individual_dcad_owner_kept(self):
+        # When DCAD identifies an individual owner, we keep the record
+        # — this is the expected motivated-seller path. The operator
+        # gets a real person name to reach out to.
+        records = [{
+            "dallas_code": "NOF",
+            "grantor": None,
+            "grantee": None,
+            "dcad_owner": "SMITH JOHN A",
+            "record_id": "315566857",
+        }]
+        kept, removed = filter_entity_records(records)
+        assert len(kept) == 1
+        assert len(removed) == 0
+
+    def test_nof_empty_grantor_with_missing_dcad_owner_kept(self):
+        # When DCAD enrichment didn't resolve an owner either (account
+        # not in DCAD bulk export, e.g. brand-new construction), keep
+        # the record so the operator can still investigate via the
+        # source_url. This preserves the existing behaviour for records
+        # that have no DCAD signal at all.
+        records = [{
+            "dallas_code": "NOF",
+            "grantor": None,
+            "grantee": None,
+            "dcad_owner": None,
+            "record_id": "315566857",
+        }]
+        kept, removed = filter_entity_records(records)
+        assert len(kept) == 1
+        assert len(removed) == 0
+
     def test_non_nof_empty_target_still_removed(self):
         # The empty-target removal is preserved for non-NOF codes. A WD
         # (warranty deed) with no grantee is junk.

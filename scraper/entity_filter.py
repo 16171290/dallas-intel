@@ -307,7 +307,17 @@ def filter_entity_records(
         # source URL to read the name. Don't drop these for missing
         # grantor. We still apply the corporate-entity check below when
         # grantor IS populated, so commercial foreclosures are filtered.
+        #
+        # dcad_owner fallback: when grantor is empty, fall back to the
+        # DCAD-resolved owner name for the corporate-entity check. This
+        # catches commercial foreclosures (e.g. GULF COAST WESTERN LLC
+        # mineral-rights notices) where OCR didn't extract the grantor
+        # but DCAD enrichment did identify the underlying account owner.
         if not target and code == "NOF":
+            dcad_owner = (rec.get("dcad_owner") or "").strip()
+            if dcad_owner and is_corporate_entity(dcad_owner):
+                removed.append(rec)
+                continue
             kept.append(rec)
             continue
 
