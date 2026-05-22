@@ -490,23 +490,26 @@ def capture_with_retry(page, record_id: str, base_url: str,
 # OCR (Tesseract)
 # ═══════════════════════════════════════════════════════════════════════════
 
-def _ocr_one_image_worker(args: tuple[bytes, str]) -> str:
-    """OCR a single PNG. Runs in a multiprocessing.Pool worker.
+def _ocr_one_image_worker(args: tuple[bytes, str]) -> tuple[str, float, int]:
+    """OCR a single PNG in a worker. Returns (text, elapsed_s, image_size_bytes).
 
-    Top-level so it's picklable across processes on Windows (which uses
-    spawn, not fork). Each worker initializes pytesseract config inside
-    itself because the subprocess doesn't inherit the parent's config.
+    Returning timing data lets the parent prove whether the Pool is
+    actually parallelizing (sum of worker times > wall time means yes;
+    sum ≈ wall time means workers are serializing somewhere — GIL,
+    shared lock, single-threaded pool, etc.).
     """
     img_bytes, tess_cmd = args
+    _t0 = time.perf_counter()
     try:
         import pytesseract
         from PIL import Image
         from io import BytesIO
         pytesseract.pytesseract.tesseract_cmd = tess_cmd
         img = Image.open(BytesIO(img_bytes))
-        return pytesseract.image_to_string(img)
+        text = pytesseract.image_to_string(img)
+        return (text, time.perf_counter() - _t0, len(img_bytes))
     except Exception as e:
-        return f"<OCR_ERROR: {e}>"
+        return (f"<OCR_ERROR: {e}>", time.perf_counter() - _t0, len(img_bytes))
 
 
 def _ocr_pages(pages: dict[int, bytes], tess_cmd: str,
@@ -517,6 +520,11 @@ def _ocr_pages(pages: dict[int, bytes], tess_cmd: str,
     If a multiprocessing.Pool is provided AND there are 2+ pages, OCR
     runs in parallel (~3-4x speedup on a 4-core machine for typical
     notices). Single-page records skip the pool overhead and run inline.
+
+    PR 12.16 instrumentation: emits a forensic line on every call:
+      _ocr_pages: pages=N path=pool|serial wall=Xs sum_worker=Ys
+                  per_page_seconds=[...] per_page_kb=[...]
+    If path=pool and sum_worker ≈ wall, the pool is not parallelizing.
     """
     if not pages:
         return ""
@@ -525,9 +533,21 @@ def _ocr_pages(pages: dict[int, bytes], tess_cmd: str,
     if pool is not None and len(sorted_keys) >= 2:
         # Parallel: dispatch all pages to the pool at once.
         args = [(pages[pn], tess_cmd) for pn in sorted_keys]
+        _wall_t = time.perf_counter()
         try:
             results = pool.map(_ocr_one_image_worker, args)
-            return "\n\n".join(results)
+            wall = time.perf_counter() - _wall_t
+            texts    = [r[0] for r in results]
+            timings  = [r[1] for r in results]
+            sizes_kb = [r[2] / 1024 for r in results]
+            logger.info(
+                "_ocr_pages: pages=%d path=pool wall=%.1fs sum_worker=%.1fs "
+                "per_page_seconds=%s per_page_kb=%s",
+                len(sorted_keys), wall, sum(timings),
+                [f"{t:.1f}" for t in timings],
+                [f"{s:.0f}" for s in sizes_kb],
+            )
+            return "\n\n".join(texts)
         except Exception as e:
             logger.warning("Parallel OCR failed, falling back to serial: %s", e)
             # fall through to the serial path below
@@ -540,12 +560,26 @@ def _ocr_pages(pages: dict[int, bytes], tess_cmd: str,
 
     pytesseract.pytesseract.tesseract_cmd = tess_cmd
     out_parts: list[str] = []
+    timings: list[float] = []
+    sizes_kb: list[float] = []
+    _wall_t = time.perf_counter()
     for pn in sorted_keys:
+        _pt = time.perf_counter()
         try:
             img = Image.open(BytesIO(pages[pn]))
             out_parts.append(pytesseract.image_to_string(img))
         except Exception as e:
             logger.warning("OCR failed on page %d: %s", pn, e)
+        timings.append(time.perf_counter() - _pt)
+        sizes_kb.append(len(pages[pn]) / 1024)
+    wall = time.perf_counter() - _wall_t
+    logger.info(
+        "_ocr_pages: pages=%d path=serial wall=%.1fs sum_worker=%.1fs "
+        "per_page_seconds=%s per_page_kb=%s",
+        len(sorted_keys), wall, sum(timings),
+        [f"{t:.1f}" for t in timings],
+        [f"{s:.0f}" for s in sizes_kb],
+    )
     return "\n\n".join(out_parts)
 
 
@@ -834,7 +868,7 @@ def enrich_foreclosure_records(
 
             logger.debug(
                 "[%d/%d] %s: ocr ok in %.1fs (%d pages, grantor=%s, sale=%s, addr=%s)",
-                i, len(records), rid, time.time() - t0,
+                i, len(records), rid, time.perf_counter() - _rec_t0,
                 len(cap.pages),
                 "Y" if fields.grantor else "n",
                 "Y" if fields.sale_date_iso else "n",
