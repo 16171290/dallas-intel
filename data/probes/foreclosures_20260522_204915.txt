@@ -1,0 +1,10 @@
+FORECLOSURES PROBE:
+  page_url: https://dallas.tx.publicsearch.us/results?department=FC&recordedDateRange=20260515%2C20260522&instrumentDateRange=20260522%2C20261118&searchType=advancedSearch&limit=50&offset=0&sort=desc&sortBy=recordedDate
+  page_title: Search Results - Dallas County, Texas County Clerk
+  rows_by_specific_selector: 50
+  total_tr_on_page: 51
+  total_tables_on_page: 1
+  offset: 0
+  timestamp: 20260522_204915
+  screenshot: /home/runner/work/dallas-intel/dallas-intel/data/probes/foreclosures_20260522_204915.png
+  html_dump: /home/runner/work/dallas-intel/dallas-intel/data/probes/foreclosures_20260522_204915.html (216008 chars)
