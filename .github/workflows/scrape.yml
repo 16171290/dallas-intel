@@ -136,6 +136,18 @@ jobs:
           # Past-sale-date records and HOA-lien sales are skipped/suppressed
           # so the work stays focused on motivated-seller leads.
           FORECLOSURE_OCR_ENABLED: "true"
+          # PR 12.17 experiment: pin Tesseract's internal OpenMP thread count to 1.
+          # Hypothesis under test: in CI we're paying ~250-300s per PNG on small
+          # (200-300 KB) images while local runs at ~10s/record. Multiprocessing
+          # Pool is verified parallel (sum_worker = 3.72 x wall), so the slowdown
+          # is inside each worker. Each Tesseract process by default spawns
+          # OMP_NUM_THREADS = cpu_count threads internally; with 4 worker
+          # processes that's 4 x 4 = 16 threads on a 4-vCPU runner = contention.
+          # Setting OMP_NUM_THREADS=1 pins each worker to one Tesseract thread,
+          # leaving multiprocessing.Pool as the only parallelism. Comparison
+          # data after this change either confirms OMP contention or eliminates
+          # it as the cause.
+          OMP_NUM_THREADS:      "1"
         run: python -m scraper.main
 
       # ─── Commit results ──────────────────────────────────────────────────

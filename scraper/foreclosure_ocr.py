@@ -680,6 +680,25 @@ def enrich_foreclosure_records(
         pool_size,
     )
 
+    # PR 12.17 forensic: log environment relevant to OCR performance so a
+    # 28x CI-vs-local slowdown can be diagnosed from a single run's logs.
+    try:
+        import subprocess
+        tess_ver = subprocess.run(
+            [tess_cmd, "--version"],
+            capture_output=True, text=True, timeout=5,
+        ).stdout.strip().split("\n")[0]
+    except Exception as e:
+        tess_ver = f"<unknown: {e}>"
+    logger.info(
+        "OCR env: tesseract_version=%r cpu_count=%d "
+        "OMP_NUM_THREADS=%r OPENBLAS_NUM_THREADS=%r MKL_NUM_THREADS=%r",
+        tess_ver, multiprocessing.cpu_count(),
+        os.environ.get("OMP_NUM_THREADS", "<unset>"),
+        os.environ.get("OPENBLAS_NUM_THREADS", "<unset>"),
+        os.environ.get("MKL_NUM_THREADS", "<unset>"),
+    )
+
     # Spawn the Pool BEFORE entering browser_context, so worker subprocess
     # spawn doesn't compete with Playwright's running browser for system
     # resources (anecdotally a source of Windows hangs).
