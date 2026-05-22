@@ -578,6 +578,24 @@ def enrich_foreclosure_records(
             r.setdefault("parse_warnings", []).append("ocr_skipped_no_tesseract")
         return records, stats
 
+    # Python-binding check: the tesseract-ocr APT package and the
+    # pytesseract/Pillow Python libs are independent installs. Without the
+    # libs, every worker's `import pytesseract` raises and the worker's
+    # bare-except returns "<OCR_ERROR: ...>" as the OCR text, leaving all
+    # field-extraction counts at 0 with no log line. Fail loud instead.
+    try:
+        import pytesseract  # noqa: F401
+        from PIL import Image  # noqa: F401
+    except ImportError as exc:
+        logger.warning(
+            "OCR enrichment SKIPPED: Python OCR bindings not installed (%s). "
+            "Run: pip install pytesseract Pillow",
+            exc,
+        )
+        for r in records:
+            r.setdefault("parse_warnings", []).append("ocr_skipped_no_python_bindings")
+        return records, stats
+
     # Multiprocessing pool for parallel page OCR. Lazy init — only spawn
     # workers when there's actually a record to OCR (so we don't pay
     # spawn cost if all records are past-sale-date and skipped).

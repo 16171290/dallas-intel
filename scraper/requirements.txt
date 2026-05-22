@@ -17,5 +17,13 @@ requests>=2.30,<3.0
 beautifulsoup4>=4.12,<5.0
 python-dotenv>=1.0,<2.0
 
+# OCR enrichment of publicsearch.us NOF PNG scans (scraper/foreclosure_ocr.py).
+# The tesseract-ocr binary is installed separately via apt in CI; these are
+# the Python bindings + image library. Without them the OCR worker silently
+# returns "<OCR_ERROR: No module named 'pytesseract'>" as the OCR text on
+# every record, and every field extraction reports 0 (PR 12.12).
+pytesseract>=0.3.10,<1.0
+Pillow>=10.0,<13.0
+
 # Test dependencies (kept here for single-source pinning).
 pytest>=8.0,<9.0
