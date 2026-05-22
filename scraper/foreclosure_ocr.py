@@ -340,6 +340,17 @@ class CaptureResult:
     attempts: int = 1
     reload_fired: bool = False
     per_page_timeouts: int = 0
+    # PR 12.20 forensic: every publicsearch.us response observed during
+    # _capture_one — (url, status, content_type). Lets us see if the SPA
+    # is being 429-rate-limited, redirected to an error page, etc.
+    responses: list[tuple[str, int, str]] = field(default_factory=list)
+    final_url: str = ""
+    # Screenshot + HTML captured INSIDE _capture_one while the page is
+    # still alive — main loop closes the page before checking status.
+    # Populated only when result.pages is empty (capture failed).
+    failure_screenshot: Optional[bytes] = None
+    failure_html: str = ""
+    failure_img_srcs: list[str] = field(default_factory=list)
 
 
 def _capture_one(page, record_id: str, base_url: str,
@@ -363,6 +374,16 @@ def _capture_one(page, record_id: str, base_url: str,
 
     def on_response(response):
         url = response.url
+        # PR 12.20: log every publicsearch.us response (URL host + status +
+        # content-type) so we can spot 429s, 5xxs, redirects, block pages.
+        # Cap at 200 entries per record so a runaway page can't blow logs.
+        if "publicsearch.us" in url and len(result.responses) < 200:
+            try:
+                ctype = response.headers.get("content-type", "") if hasattr(response, "headers") else ""
+            except Exception:
+                ctype = ""
+            result.responses.append((url, response.status, ctype))
+
         m = re.search(r"_(\d+)\.png", url)
         if not (m and "/files/documents/" in url and ".png" in url):
             return
@@ -459,8 +480,35 @@ def _capture_one(page, record_id: str, base_url: str,
 
     page.remove_listener("response", on_response)
 
+    # PR 12.20: capture final URL so we can detect redirects (block page,
+    # CAPTCHA challenge, login wall, etc).
+    try:
+        result.final_url = page.url
+    except Exception:
+        pass
+
     if not result.pages:
         result.status = "no_images"
+        # PR 12.20: while the page is still alive, snap a screenshot,
+        # dump the HTML, and enumerate every <img src=...> on the page.
+        # Stored on the result; the main loop writes to disk once per run.
+        try:
+            result.failure_screenshot = page.screenshot(full_page=True)
+        except Exception as e:
+            result.warnings.append(f"failure_screenshot_failed: {e}")
+        try:
+            result.failure_html = page.content() or ""
+        except Exception as e:
+            result.warnings.append(f"failure_html_failed: {e}")
+        try:
+            srcs = page.evaluate(
+                "() => Array.from(document.querySelectorAll('img'))"
+                "  .map(e => e.getAttribute('src') || e.src || '')"
+                "  .filter(Boolean)"
+            )
+            result.failure_img_srcs = list(srcs)[:50]
+        except Exception as e:
+            result.warnings.append(f"failure_img_srcs_failed: {e}")
 
     return result
 
@@ -875,13 +923,50 @@ def enrich_foreclosure_records(
                 logger.info(
                     "OCR [%d/%d] %s done (no_images): total=%.1fs "
                     "capture=%.1fs (goto=%.1fs passive=%.1fs pagecount=%.2fs reload=%.1fs) "
-                    "attempts=%d reload_fired=%s warnings=%s",
+                    "attempts=%d reload_fired=%s final_url=%s warnings=%s",
                     i, len(records), rid,
                     time.perf_counter() - _rec_t0,
                     _t_capture_total,
                     cap.t_goto, cap.t_passive_wait, cap.t_pagecount_detect, cap.t_reload,
-                    cap.attempts, cap.reload_fired, cap.warnings,
+                    cap.attempts, cap.reload_fired, cap.final_url, cap.warnings,
                 )
+                # PR 12.20: dump full diagnostic ONCE per run (first failure).
+                # All publicsearch.us responses, screenshot, HTML, img srcs.
+                if stats.no_images == 1:
+                    # Response summary: total count + first 4xx/5xx samples
+                    n_resp = len(cap.responses)
+                    errs = [(u, s, c) for u, s, c in cap.responses if s >= 400]
+                    logger.info(
+                        "OCR capture failure forensic [%s]: %d publicsearch.us responses, %d >=400",
+                        rid, n_resp, len(errs),
+                    )
+                    if errs:
+                        for u, s, c in errs[:10]:
+                            logger.info("  ERR response: status=%d ctype=%r url=%s", s, c, u)
+                    # Full response list (truncated to 50)
+                    for u, s, c in cap.responses[:50]:
+                        logger.info("  response: status=%d ctype=%r url=%s", s, c, u)
+                    if len(cap.responses) > 50:
+                        logger.info("  ... (%d more responses truncated)", len(cap.responses) - 50)
+                    # img src list — does the page even ask for /files/documents/*.png?
+                    logger.info(
+                        "  page <img> srcs (first 20): %s",
+                        cap.failure_img_srcs[:20],
+                    )
+                    # Save artifacts to data/probes/
+                    try:
+                        probe_dir = config.DATA_DIR / "probes"
+                        probe_dir.mkdir(parents=True, exist_ok=True)
+                        if cap.failure_screenshot:
+                            png_path = probe_dir / f"capture_failure_{rid}.png"
+                            png_path.write_bytes(cap.failure_screenshot)
+                            logger.info("  saved screenshot %s (%d bytes)", png_path, len(cap.failure_screenshot))
+                        if cap.failure_html:
+                            html_path = probe_dir / f"capture_failure_{rid}.html"
+                            html_path.write_text(cap.failure_html, encoding="utf-8")
+                            logger.info("  saved html %s (%d chars)", html_path, len(cap.failure_html))
+                    except Exception as e:
+                        logger.info("  artifact save failed: %s", e)
                 continue
             elif cap.status == "error":
                 rec.setdefault("parse_warnings", []).append("ocr_capture_error")
