@@ -58,7 +58,9 @@ from . import (
     dcad_bulk,
     enrichment,
     entity_filter,
+    foreclosure_ocr,
     foreclosure_pdfs,
+    foreclosures_ps,
     governmental_grantor,
     legal_resolver,
     monitor,
@@ -98,6 +100,37 @@ def _publicsearch_enabled() -> bool:
     )
 
 
+def _foreclosure_pdf_enabled() -> bool:
+    """Read the FORECLOSURE_PDF_ENABLED env var. Defaults to False.
+
+    The dallascounty.org PDF feed was deprecated for fresh foreclosure
+    notices on 2026-02-24 (per the county's own banner pointing operators
+    to publicsearch.us). The walker is kept available for archival
+    research but is off by default to avoid producing dead leads.
+    """
+    return os.getenv("FORECLOSURE_PDF_ENABLED", "false").strip().lower() in (
+        "true", "1", "yes", "on",
+    )
+
+
+def _foreclosure_ocr_enabled() -> bool:
+    """Read the FORECLOSURE_OCR_ENABLED env var. Defaults to False.
+
+    The OCR stage downloads each foreclosure notice's PNG pages from
+    publicsearch.us and runs Tesseract over them to extract owner name,
+    full property address, loan amount, and legal description. Adds
+    ~6-10 seconds per record (~10-15 min for a typical 60-80 record
+    weekly run). Gated so operators can keep fast iteration on other
+    pipeline stages when not actively working foreclosure leads.
+
+    Set FORECLOSURE_OCR_ENABLED=true to enable. Requires Tesseract
+    binary installed locally (see scraper/foreclosure_ocr.py docstring).
+    """
+    return os.getenv("FORECLOSURE_OCR_ENABLED", "false").strip().lower() in (
+        "true", "1", "yes", "on",
+    )
+
+
 def _run_pipeline() -> int:
     # 1. DCAD bulk data ------------------------------------------------------
     logger.info("[1/12] Fetching DCAD bulk data")
@@ -109,27 +142,41 @@ def _run_pipeline() -> int:
         return _fail("DCAD fetch failed", exc, "dcad_bulk")
 
     # 2. Foreclosure-PDF walk ------------------------------------------------
+    # dallascounty.org's foreclosure-PDF feed was deprecated as a source of
+    # fresh notices on 2026-02-24 (the county redirected operators to
+    # publicsearch.us). Default-off; set FORECLOSURE_PDF_ENABLED=true to
+    # re-enable for archival research.
     logger.info("[2/12] Walking foreclosure-PDF index")
     pdf_records_canonical: list[dict] = []
-    try:
-        index = foreclosure_pdfs.walk_foreclosure_index()
-        pdf_dest = config.DATA_DIR / "foreclosure_pdfs"
-        for ref in index:
-            local_path, downloaded = foreclosure_pdfs.download_pdf(ref, pdf_dest)
-            try:
-                records = foreclosure_pdfs.extract_pdf_records(local_path)
-                pdf_records_canonical.extend(
-                    enrichment.canonicalize_foreclosure(r) for r in records
-                )
-            except Exception as exc:
-                logger.warning("PDF extract failed for %s: %s", local_path.name, exc)
-    except Exception as exc:
-        # PDF-side failure shouldn't kill the whole run; log + continue
-        logger.warning("Foreclosure-PDF stage failed: %s - continuing without PDFs", exc)
-        monitor.notify_failure(
-            error="Foreclosure-PDF stage failed (non-fatal)",
-            context={"exception": str(exc)},
+    if not _foreclosure_pdf_enabled():
+        logger.info(
+            "Foreclosure-PDF source SKIPPED - dallascounty.org PDF feed "
+            "deprecated 2026-02-24. Fresh foreclosure notices now live on "
+            "publicsearch.us. Set FORECLOSURE_PDF_ENABLED=true to re-enable."
         )
+    else:
+        try:
+            index = foreclosure_pdfs.walk_foreclosure_index()
+            pdf_dest = config.DATA_DIR / "foreclosure_pdfs"
+            for ref in index:
+                local_path, downloaded = foreclosure_pdfs.download_pdf(ref, pdf_dest)
+                try:
+                    records = foreclosure_pdfs.extract_pdf_records(
+                        local_path,
+                        pdf_url=ref.pdf_url,
+                    )
+                    pdf_records_canonical.extend(
+                        enrichment.canonicalize_foreclosure(r) for r in records
+                    )
+                except Exception as exc:
+                    logger.warning("PDF extract failed for %s: %s", local_path.name, exc)
+        except Exception as exc:
+            # PDF-side failure shouldn't kill the whole run; log + continue
+            logger.warning("Foreclosure-PDF stage failed: %s - continuing without PDFs", exc)
+            monitor.notify_failure(
+                error="Foreclosure-PDF stage failed (non-fatal)",
+                context={"exception": str(exc)},
+            )
 
     # 3. publicsearch.us scrape (gated) --------------------------------------
     logger.info("[3/12] publicsearch.us scrape")
@@ -169,6 +216,94 @@ def _run_pipeline() -> int:
                 context={"stage": "publicsearch", "exception_type": type(exc).__name__, "exception": str(exc)},
             )
 
+    # 3.5. publicsearch.us Foreclosures department (replaces deprecated PDF feed)
+    # Replaces the dallascounty.org foreclosure-PDF source (Stage 2, default-off
+    # since 2026-02-24). Notice-of-Foreclosure filings now live on publicsearch.us
+    # under the Foreclosures department. Each record is an upcoming trustee's
+    # sale -- the highest-motivation seller in the market.
+    logger.info("[3.5/12] publicsearch.us foreclosures scrape")
+    foreclosure_ps_canonical: list[dict] = []
+    if not _publicsearch_enabled():
+        logger.info("foreclosures scrape SKIPPED - PUBLICSEARCH_ENABLED not set.")
+    else:
+        try:
+            recorded_lookback = int(os.getenv("FORECLOSURE_RECORDED_LOOKBACK_DAYS", "7"))
+            sale_lookahead    = int(os.getenv("FORECLOSURE_SALE_LOOKAHEAD_DAYS",    "180"))
+            fps_records = foreclosures_ps.scrape_foreclosures(
+                recorded_lookback_days=recorded_lookback,
+                sale_lookahead_days=sale_lookahead,
+            )
+            foreclosure_ps_canonical = [
+                enrichment.canonicalize_foreclosure_notice_ps(r) for r in fps_records
+            ]
+            logger.info(
+                "publicsearch foreclosures: %d records fetched",
+                len(foreclosure_ps_canonical),
+            )
+        except publicsearch.CircuitBreakerTripped as exc:
+            logger.warning(
+                "publicsearch foreclosures circuit breaker tripped: %s - continuing",
+                exc,
+            )
+            monitor.notify_failure(
+                error="publicsearch foreclosures circuit breaker tripped (non-fatal)",
+                context={"stage": "foreclosures_ps", "exception": str(exc)},
+            )
+        except Exception as exc:
+            logger.warning(
+                "publicsearch foreclosures scrape failed: %s - continuing",
+                exc,
+            )
+            monitor.notify_failure(
+                error="publicsearch foreclosures scrape failed (non-fatal)",
+                context={
+                    "stage": "foreclosures_ps",
+                    "exception_type": type(exc).__name__,
+                    "exception": str(exc),
+                },
+            )
+
+    # 3.6. OCR enrichment of foreclosure notices ----------------------------
+    # Pulls owner name, full property address, loan amount, legal description
+    # from the PNG document scans on publicsearch.us. ~6-10s per record.
+    # Gated by FORECLOSURE_OCR_ENABLED (default False); requires Tesseract.
+    # HOA-assessment-lien records get active=False so they appear in
+    # records.json for audit but vanish from the CSV.
+    if foreclosure_ps_canonical and _foreclosure_ocr_enabled():
+        logger.info("[3.6/12] OCR enrichment of %d foreclosure records",
+                    len(foreclosure_ps_canonical))
+        try:
+            foreclosure_ps_canonical, ocr_stats = foreclosure_ocr.enrich_foreclosure_records(
+                foreclosure_ps_canonical
+            )
+            logger.info(
+                "OCR: %d/%d captured, grantor=%d sale=%d addr=%d amount=%d legal=%d "
+                "(hoa_suppressed=%d, past_sale_skipped=%d, no_images=%d, errors=%d)",
+                ocr_stats.captured_ok, ocr_stats.total,
+                ocr_stats.grantor_extracted, ocr_stats.sale_date_extracted,
+                ocr_stats.address_extracted, ocr_stats.loan_amount_extracted,
+                ocr_stats.legal_desc_extracted,
+                ocr_stats.hoa_lien_suppressed, ocr_stats.skipped_past_sale_date,
+                ocr_stats.no_images, ocr_stats.capture_errors,
+            )
+        except Exception as exc:
+            logger.warning(
+                "OCR enrichment failed: %s - continuing with un-enriched records", exc,
+            )
+            monitor.notify_failure(
+                error="OCR enrichment failed (non-fatal)",
+                context={
+                    "stage": "foreclosure_ocr",
+                    "exception_type": type(exc).__name__,
+                    "exception": str(exc),
+                },
+            )
+    elif foreclosure_ps_canonical:
+        logger.info(
+            "[3.6/12] OCR enrichment SKIPPED - set FORECLOSURE_OCR_ENABLED=true to enable. "
+            "Records will have list-view fields only (no owner name, no full address)."
+        )
+
     # 4. Probate (re:SearchTX) ----------------------------------------------
     # Gated on config.PROBATE_ENABLED (default False). Non-fatal: probate is
     # additive, so failures here must not kill the whole run. The fetch
@@ -198,11 +333,19 @@ def _run_pipeline() -> int:
             )
 
     # 5. Merge sources -------------------------------------------------------
-    logger.info("[5/12] Merging %d publicsearch + %d PDF + %d probate records",
-                len(ps_records_canonical),
-                len(pdf_records_canonical),
-                len(probate_records_canonical))
-    all_records = ps_records_canonical + pdf_records_canonical + probate_records_canonical
+    logger.info(
+        "[5/12] Merging %d publicsearch + %d foreclosure-PS + %d PDF + %d probate records",
+        len(ps_records_canonical),
+        len(foreclosure_ps_canonical),
+        len(pdf_records_canonical),
+        len(probate_records_canonical),
+    )
+    all_records = (
+        ps_records_canonical
+        + foreclosure_ps_canonical
+        + pdf_records_canonical
+        + probate_records_canonical
+    )
 
     if not all_records:
         logger.warning(
@@ -320,7 +463,9 @@ def _run_pipeline() -> int:
             "hoa_filtered_count":  scoring_summary.get("hoa_filtered_count", 0),
             "gov_filtered_count":  gov_filtered_count,
             "buy_box":             buy_box_summary,
-            "publicsearch_enabled": _publicsearch_enabled(),
+            "publicsearch_enabled":   _publicsearch_enabled(),
+            "foreclosure_pdf_enabled": _foreclosure_pdf_enabled(),
+            "foreclosure_ocr_enabled": _foreclosure_ocr_enabled(),
         },
     )
     monitor.notify_run_complete(summary)

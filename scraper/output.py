@@ -95,9 +95,14 @@ GHL_CSV_COLUMNS = [
     "City",
     "State",
     "Zip",
+    "Mailing Address",
+    "Mailing City",
+    "Mailing State",
+    "Mailing Zip",
     "Tags",
     "Notes",
     "Source",
+    "Source URL",
     "Score",
     "DCAD Account",
     "Filing Date",
@@ -175,6 +180,11 @@ def _record_to_csv_row(rec: CanonicalRecord) -> dict[str, str]:
     if amount := rec.get("amount"):
         notes_bits.append(f"Amount: ${amount}")
 
+    # Mailing address (DCAD-stamped) — newlines in LINE1..4 are flattened
+    # to spaces so the CSV row stays single-line for downstream CRM import.
+    mailing_street = rec.get("dcad_mailing_address") or ""
+    mailing_street = " ".join(mailing_street.split())
+
     return {
         "First Name":        first,
         "Last Name":         last,
@@ -184,9 +194,14 @@ def _record_to_csv_row(rec: CanonicalRecord) -> dict[str, str]:
         "City":              addr_parts["city"],
         "State":             addr_parts["state"],
         "Zip":               addr_parts["zip"],
+        "Mailing Address":   mailing_street,
+        "Mailing City":      rec.get("dcad_mailing_city")  or "",
+        "Mailing State":     rec.get("dcad_mailing_state") or "",
+        "Mailing Zip":       rec.get("dcad_mailing_zip")   or "",
         "Tags":              tags,
         "Notes":             " | ".join(notes_bits),
         "Source":            rec.get("source", ""),
+        "Source URL":        rec.get("source_url") or "",
         "Score":             str(rec.get("score", 0)),
         "DCAD Account":      rec.get("dcad_account") or "",
         "Filing Date":       rec.get("filing_date") or "",
