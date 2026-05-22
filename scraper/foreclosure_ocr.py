@@ -563,7 +563,7 @@ def _ocr_one_image_worker(args: tuple[bytes, str]) -> tuple:
         d = img.info.get("dpi")
         if d:
             dpi = f"{int(d[0])}x{int(d[1])}"
-        text = pytesseract.image_to_string(img)
+        text = pytesseract.image_to_string(img, config="--psm 6 --oem 1")
         return (text, time.perf_counter() - _t0, len(img_bytes), width, height, mode, dpi)
     except Exception as e:
         return (f"<OCR_ERROR: {e}>", time.perf_counter() - _t0, len(img_bytes),
@@ -634,7 +634,7 @@ def _ocr_pages(pages: dict[int, bytes], tess_cmd: str,
         try:
             img = Image.open(BytesIO(pages[pn]))
             wh = img.size
-            out_parts.append(pytesseract.image_to_string(img))
+            out_parts.append(pytesseract.image_to_string(img, config="--psm 6 --oem 1"))
         except Exception as e:
             logger.warning("OCR failed on page %d: %s", pn, e)
         timings.append(time.perf_counter() - _pt)
