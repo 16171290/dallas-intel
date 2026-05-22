@@ -329,6 +329,17 @@ class CaptureResult:
     pages: dict[int, bytes] = field(default_factory=dict)
     status: str = "ok"            # ok | no_images | error
     warnings: list[str] = field(default_factory=list)
+    # PR 12.15 instrumentation — all in seconds, never None so callers can
+    # log unconditionally. Per-page costs use a list aligned with the order
+    # in which pages were attempted (page 1 first, then 2..N).
+    t_goto: float = 0.0
+    t_passive_wait: float = 0.0
+    t_pagecount_detect: float = 0.0
+    t_reload: float = 0.0
+    t_per_page: list[float] = field(default_factory=list)
+    attempts: int = 1
+    reload_fired: bool = False
+    per_page_timeouts: int = 0
 
 
 def _capture_one(page, record_id: str, base_url: str,
@@ -367,18 +378,24 @@ def _capture_one(page, record_id: str, base_url: str,
 
     page.on("response", on_response)
 
+    _t0 = time.perf_counter()
     try:
         page.goto(f"{base_url}/doc/{record_id}",
                   wait_until="networkidle", timeout=30_000)
+        result.t_goto = time.perf_counter() - _t0
     except Exception as e:
+        result.t_goto = time.perf_counter() - _t0
         page.remove_listener("response", on_response)
         result.status = "error"
         result.warnings.append(f"goto_failed: {e}")
         return result
 
+    _t1 = time.perf_counter()
     time.sleep(passive_wait_s)
+    result.t_passive_wait = time.perf_counter() - _t1
 
     # Detect total page count from the viewer's "X of N" text.
+    _t2 = time.perf_counter()
     total_pages: Optional[int] = None
     try:
         body_text = page.locator("body").inner_text()
@@ -387,6 +404,7 @@ def _capture_one(page, record_id: str, base_url: str,
             total_pages = int(m.group(1))
     except Exception:
         pass
+    result.t_pagecount_detect = time.perf_counter() - _t2
 
     # Mirror the manual-refresh workaround the operator confirmed works on
     # publicsearch.us: when the first /doc/{id} load hangs (you see a
@@ -397,6 +415,8 @@ def _capture_one(page, record_id: str, base_url: str,
     # before declaring failure.
     if not result.pages and total_pages is None:
         result.warnings.append("initial_load_hung_reloading")
+        result.reload_fired = True
+        _t3 = time.perf_counter()
         try:
             page.reload(wait_until="networkidle", timeout=30_000)
             time.sleep(passive_wait_s)
@@ -410,12 +430,15 @@ def _capture_one(page, record_id: str, base_url: str,
                 pass
         except Exception as e:
             result.warnings.append(f"reload_failed: {e}")
+        result.t_reload = time.perf_counter() - _t3
 
     if total_pages and len(result.pages) < total_pages:
         for target_page in range(2, total_pages + 1):
             if target_page in result.pages:
+                result.t_per_page.append(0.0)  # already had it; no fetch
                 continue
             url_pat = re.compile(rf"/files/documents/\d+/images/\d+_{target_page}\.png")
+            _tp = time.perf_counter()
             try:
                 with page.expect_response(
                     lambda r, pat=url_pat: bool(pat.search(r.url)),
@@ -429,8 +452,10 @@ def _capture_one(page, record_id: str, base_url: str,
                 time.sleep(per_page_wait_s)
             except PlaywrightTimeoutError:
                 result.warnings.append(f"page_{target_page}_timeout")
+                result.per_page_timeouts += 1
             except Exception as e:
                 result.warnings.append(f"page_{target_page}_error: {e}")
+            result.t_per_page.append(time.perf_counter() - _tp)
 
     page.remove_listener("response", on_response)
 
@@ -448,6 +473,7 @@ def capture_with_retry(page, record_id: str, base_url: str,
     for attempt in range(1, max_attempts + 1):
         wait_s = 4.0 if attempt == 1 else 8.0
         result = _capture_one(page, record_id, base_url, passive_wait_s=wait_s)
+        result.attempts = attempt
         if result.status == "ok":
             if attempt > 1:
                 result.warnings.append(f"recovered_on_attempt_{attempt}")
@@ -668,37 +694,88 @@ def enrich_foreclosure_records(
                 except (ValueError, TypeError):
                     pass
 
-            t0 = time.time()
+            _rec_t0 = time.perf_counter()
             logger.info("OCR [%d/%d] capturing %s ...", i, len(records), rid)
             # Fresh page per record — disposed after each capture so SPA
             # state, JS context, and memory don't accumulate.
+            _newpage_t = time.perf_counter()
             page = context.new_page()
+            _t_newpage = time.perf_counter() - _newpage_t
+            cap = None
+            _t_capture_total = 0.0
             try:
+                _cap_t = time.perf_counter()
                 try:
                     cap = capture_with_retry(page, rid, base_url)
                 except Exception as e:
+                    _t_capture_total = time.perf_counter() - _cap_t
                     logger.warning("OCR capture uncaught error for %s: %s", rid, e)
                     rec.setdefault("parse_warnings", []).append(f"ocr_capture_error:{type(e).__name__}")
                     stats.capture_errors += 1
+                    logger.info(
+                        "OCR [%d/%d] %s done (error): total=%.1fs new_page=%.2fs capture=%.1fs",
+                        i, len(records), rid,
+                        time.perf_counter() - _rec_t0, _t_newpage, _t_capture_total,
+                    )
                     continue
+                _t_capture_total = time.perf_counter() - _cap_t
             finally:
+                _close_t = time.perf_counter()
                 try:
                     page.close()
                 except Exception:
                     pass
+                _t_close = time.perf_counter() - _close_t
 
             if cap.status == "no_images":
                 rec.setdefault("parse_warnings", []).append("ocr_no_images")
                 stats.no_images += 1
+                logger.info(
+                    "OCR [%d/%d] %s done (no_images): total=%.1fs "
+                    "capture=%.1fs (goto=%.1fs passive=%.1fs pagecount=%.2fs reload=%.1fs) "
+                    "attempts=%d reload_fired=%s warnings=%s",
+                    i, len(records), rid,
+                    time.perf_counter() - _rec_t0,
+                    _t_capture_total,
+                    cap.t_goto, cap.t_passive_wait, cap.t_pagecount_detect, cap.t_reload,
+                    cap.attempts, cap.reload_fired, cap.warnings,
+                )
                 continue
             elif cap.status == "error":
                 rec.setdefault("parse_warnings", []).append("ocr_capture_error")
                 stats.capture_errors += 1
+                logger.info(
+                    "OCR [%d/%d] %s done (error): total=%.1fs capture=%.1fs warnings=%s",
+                    i, len(records), rid,
+                    time.perf_counter() - _rec_t0, _t_capture_total, cap.warnings,
+                )
                 continue
 
             stats.captured_ok += 1
+            _ocr_t = time.perf_counter()
             text = _ocr_pages(cap.pages, tess_cmd, pool=pool)
+            _t_ocr = time.perf_counter() - _ocr_t
+            _extract_t = time.perf_counter()
             fields = extract_fields_from_text(text)
+            _t_extract = time.perf_counter() - _extract_t
+
+            # Forensic line: per-phase wall time for this record. Single
+            # structured log line so a run can be analysed with grep/awk.
+            per_page_str = ",".join(f"{t:.1f}" for t in cap.t_per_page) if cap.t_per_page else "-"
+            logger.info(
+                "OCR [%d/%d] %s done: total=%.1fs capture=%.1fs "
+                "(goto=%.1fs passive=%.1fs pagecount=%.2fs reload=%.1fs per_page=[%s]) "
+                "ocr=%.1fs extract=%.2fs new_page=%.2fs close=%.2fs "
+                "| pages=%d attempts=%d reload_fired=%s timeouts=%d text_len=%d",
+                i, len(records), rid,
+                time.perf_counter() - _rec_t0,
+                _t_capture_total,
+                cap.t_goto, cap.t_passive_wait, cap.t_pagecount_detect, cap.t_reload,
+                per_page_str,
+                _t_ocr, _t_extract, _t_newpage, _t_close,
+                len(cap.pages), cap.attempts, cap.reload_fired,
+                cap.per_page_timeouts, len(text),
+            )
 
             if fields.is_hoa_lien:
                 rec["active"] = False
