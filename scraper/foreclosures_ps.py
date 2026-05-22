@@ -218,12 +218,6 @@ def _build_results_url(
     return f"{config.PUBLICSEARCH_BASE}/results?{urlencode(params)}"
 
 
-# One-shot probe: fires on the first _harvest_current_page call regardless
-# of row count. Logs page state + row layout so we can diagnose empty-page
-# cases (selector mismatch, session not established, redirect, etc.).
-_PROBED_PAGE_STATE = False
-
-
 def _harvest_current_page(page, offset: int = 0) -> list[ForeclosureNoticePSRecord]:
     """Extract one page of Notice-of-Foreclosure rows.
 
@@ -237,13 +231,7 @@ def _harvest_current_page(page, offset: int = 0) -> list[ForeclosureNoticePSReco
       col-6   DOC NUMBER (instrument number)
       col-7   PROPERTY ADDRESS (full street when known; falls back to city)
     """
-    global _PROBED_PAGE_STATE
-
     rows = page.locator("section.search-results__results-wrap table tbody tr").all()
-
-    if not _PROBED_PAGE_STATE:
-        _probe_page_state(page, rows, offset)
-        _PROBED_PAGE_STATE = True
 
     records: list[ForeclosureNoticePSRecord] = []
     for row in rows:
@@ -255,89 +243,6 @@ def _harvest_current_page(page, offset: int = 0) -> list[ForeclosureNoticePSReco
             logger.debug("publicsearch foreclosures row parse failed: %s", e)
 
     return records
-
-
-def _probe_page_state(page, rows: list, offset: int) -> None:
-    """One-shot defensive probe: capture authoritative evidence of what
-    publicsearch.us actually rendered to our scraper.
-
-    Saves THREE artifacts to ``data/probes/`` so we have ground truth
-    regardless of what the page looks like:
-      - ``foreclosures_<ts>.png``   — full-page screenshot
-      - ``foreclosures_<ts>.html``  — full page DOM (page.content())
-      - ``foreclosures_<ts>.txt``   — log summary (URL, title, counts)
-
-    Also logs the same summary at INFO so it appears in the terminal /
-    log file. The screenshot + HTML are the authoritative artifacts;
-    the log lines are convenience.
-
-    Operator: open the .png and .html files at data/probes/ after a run
-    to see exactly what the SPA rendered. No inference required.
-    """
-    from datetime import datetime
-
-    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-    probe_dir = config.DATA_DIR / "probes"
-    try:
-        probe_dir.mkdir(parents=True, exist_ok=True)
-    except Exception as e:
-        logger.warning("FORECLOSURES PROBE: could not create %s: %s", probe_dir, e)
-        return
-
-    png_path  = probe_dir / f"foreclosures_{ts}.png"
-    html_path = probe_dir / f"foreclosures_{ts}.html"
-    txt_path  = probe_dir / f"foreclosures_{ts}.txt"
-
-    # Collect the basics safely — every field independently guarded so
-    # one failure doesn't lose the others.
-    info: dict[str, str] = {}
-    try:
-        info["page_url"] = page.url
-    except Exception as e:
-        info["page_url"] = f"<error: {e}>"
-    try:
-        info["page_title"] = page.title()
-    except Exception as e:
-        info["page_title"] = f"<error: {e}>"
-    try:
-        info["rows_by_specific_selector"] = str(len(rows))
-    except Exception:
-        info["rows_by_specific_selector"] = "<error>"
-    try:
-        info["total_tr_on_page"] = str(page.locator("tr").count())
-    except Exception as e:
-        info["total_tr_on_page"] = f"<error: {e}>"
-    try:
-        info["total_tables_on_page"] = str(page.locator("table").count())
-    except Exception as e:
-        info["total_tables_on_page"] = f"<error: {e}>"
-    info["offset"] = str(offset)
-    info["timestamp"] = ts
-
-    # ----- Authoritative artifacts -----
-    try:
-        page.screenshot(path=str(png_path), full_page=True)
-        info["screenshot"] = str(png_path)
-    except Exception as e:
-        info["screenshot"] = f"<failed: {e}>"
-
-    try:
-        html = page.content() or ""
-        html_path.write_text(html, encoding="utf-8")
-        info["html_dump"] = f"{html_path} ({len(html)} chars)"
-    except Exception as e:
-        info["html_dump"] = f"<failed: {e}>"
-
-    # ----- Log summary -----
-    summary_lines = [f"  {k}: {v}" for k, v in info.items()]
-    summary = "FORECLOSURES PROBE:\n" + "\n".join(summary_lines)
-    logger.info(summary)
-
-    # Also write the summary file
-    try:
-        txt_path.write_text(summary + "\n", encoding="utf-8")
-    except Exception:
-        pass
 
 
 def _parse_result_row(row) -> Optional[ForeclosureNoticePSRecord]:

@@ -179,6 +179,13 @@ INSTRUMENT_CODES: dict[str, list[str]] = {
 #   - ML  (MECHANIC'S LIEN ...)         │ resolved via REL; LC dominated by
 #   - LC  (LIEN AFFIDAVIT/CLAIM/NOTICE)─┘ city/utility/HOA liens (low ROI).
 #
+# AJ (ABSTRACT OF JUDGMENT) intentionally OMITTED (decision PR 12.10 — 2026-05-22
+# CSV review showed AJ dominated by consumer-debt judgments — Capital One, SCIL
+# Texas, Velocity Investments, Midland Credit, Wells Fargo, auto insurance —
+# NOT property distress. Judgment creditor can attach to property in theory but
+# in practice these are credit-card collections that rarely correlate with a
+# motivated seller.
+#
 # To re-enable any of the above, add the literal display name back here
 # (must match publicsearch.us's doctype-typeahead string character for
 # character — see the source-of-truth comment above).
@@ -186,7 +193,6 @@ DALLAS_CODE_DISPLAY_NAMES: dict[str, str] = {
     # ── HIGH-signal motivated-seller distress ──
     "LP":  "LIS PENDENS (NOTICE OF)",        # lawsuit affecting title
     "TXL": "TAX LIEN",                       # owner can't pay property tax
-    "AJ":  "ABSTRACT OF JUDGMENT",           # creditor judgment attached to property
     "PB":  "PROBATE PROCEEDINGS",            # death of owner → heirs liquidating
     "BR":  "BANKRUPTCY PROCEEDINGS",         # owner in bankruptcy
     "SZS": "SEIZURE & SALE",                 # IRS / govt forced sale
