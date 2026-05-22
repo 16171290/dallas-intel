@@ -381,6 +381,59 @@ class TestLCCityLienSwap:
         assert len(kept) == 0
         assert len(removed) == 1
 
+    def test_nof_swap_keeps_individual_grantor(self):
+        # NOF (Notice of Foreclosure): grantee is always absent (no buyer yet).
+        # The motivated-seller lead is the grantor (homeowner). Without the
+        # NOF swap added in PR 12.7, every foreclosure record would be dropped
+        # for empty grantee on line ~291 of entity_filter.
+        records = [{
+            "dallas_code": "NOF",
+            "grantor": "DAVID WALKER and LINDA E. WALKER",
+            "grantee": None,
+        }]
+        kept, removed = filter_entity_records(records)
+        assert len(kept) == 1
+        assert len(removed) == 0
+
+    def test_nof_swap_removes_corporate_grantor(self):
+        # Commercial-entity foreclosures (e.g. PARKER & PARKER REAL ESTATE LLC)
+        # are NOT motivated-seller leads -- they're business loans defaulting.
+        # The NOF swap should still apply the corporate-entity check.
+        records = [{
+            "dallas_code": "NOF",
+            "grantor": "PARKER & PARKER REAL ESTATE, LLC",
+            "grantee": None,
+        }]
+        kept, removed = filter_entity_records(records)
+        assert len(kept) == 0
+        assert len(removed) == 1
+
+    def test_nof_empty_grantor_still_kept(self):
+        # When OCR couldn't extract the owner name (~50% of records), the
+        # record still has value: sale_date, source_url, sometimes
+        # city-level address. Operator clicks the source URL to find the
+        # name manually. Don't drop these.
+        records = [{
+            "dallas_code": "NOF",
+            "grantor": None,
+            "grantee": None,
+            "record_id": "315566857",
+        }]
+        kept, removed = filter_entity_records(records)
+        assert len(kept) == 1, "NOF with empty grantor must be kept (OCR-miss not record-invalid)"
+
+    def test_non_nof_empty_target_still_removed(self):
+        # The empty-target removal is preserved for non-NOF codes. A WD
+        # (warranty deed) with no grantee is junk.
+        records = [{
+            "dallas_code": "WD",
+            "grantor": "JONES SAM",
+            "grantee": None,
+        }]
+        kept, removed = filter_entity_records(records)
+        assert len(kept) == 0
+        assert len(removed) == 1
+
     def test_non_lc_code_does_not_swap(self):
         # LP with governmental grantee - NO swap, remove
         records = [{
