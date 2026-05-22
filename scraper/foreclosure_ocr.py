@@ -388,6 +388,29 @@ def _capture_one(page, record_id: str, base_url: str,
     except Exception:
         pass
 
+    # Mirror the manual-refresh workaround the operator confirmed works on
+    # publicsearch.us: when the first /doc/{id} load hangs (you see a
+    # spinning circle, no images), pressing Ctrl+R fixes it. The SPA's
+    # signed-URL-minting backend is flaky on first request. If our passive
+    # wait completed with no images captured AND the viewer's "of N"
+    # pagination text never appeared, do a page.reload() and wait again
+    # before declaring failure.
+    if not result.pages and total_pages is None:
+        result.warnings.append("initial_load_hung_reloading")
+        try:
+            page.reload(wait_until="networkidle", timeout=30_000)
+            time.sleep(passive_wait_s)
+            # Re-detect total_pages after the reload.
+            try:
+                body_text = page.locator("body").inner_text()
+                m = re.search(r"\bof\s+(\d+)\b", body_text)
+                if m:
+                    total_pages = int(m.group(1))
+            except Exception:
+                pass
+        except Exception as e:
+            result.warnings.append(f"reload_failed: {e}")
+
     if total_pages and len(result.pages) < total_pages:
         for target_page in range(2, total_pages + 1):
             if target_page in result.pages:
