@@ -1063,6 +1063,16 @@
       "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
     }[c]));
 
+    /* Owner-column display. For NOF (Notice of Foreclosure) records the
+       grantee is always empty at notice-filing time, so the OCR-extracted
+       grantor IS the underlying homeowner — show that. For all other
+       record types the grantee is the lead target. Falls back to the
+       DCAD-resolved owner name when both are empty. */
+    function ownerName(rec) {
+      const primary = rec.dallas_code === "NOF" ? rec.grantor : rec.grantee;
+      return primary || rec.dcad_owner || "";
+    }
+
     /* Commercial-entity detector. Returns true if dcad_owner contains
        a commercial-entity token as a whole word. */
     function isCommercialEntity(rec) {
@@ -1421,7 +1431,7 @@
               </div>
             </td>
             <td class="cell-address" title="${escapeHtml(r.address_normalized || r.address || '')}">${escapeHtml(r.address_normalized || r.address || '--')}</td>
-            <td class="cell-grantee" title="${escapeHtml(r.grantee || r.dcad_owner || '')}">${escapeHtml(r.grantee || r.dcad_owner || '--')}</td>
+            <td class="cell-grantee" title="${escapeHtml(ownerName(r))}">${escapeHtml(ownerName(r) || '--')}</td>
             <td><span class="badge">${escapeHtml(r.category || r.dallas_code || '--')}</span></td>
             <td class="cell-mono" title="When this record first appeared in the pipeline (not the legal filing date)">${escapeHtml(r.first_seen || '--')}</td>
             <td class="cell-num">${fmtMoney(r.dcad_market_value)}</td>
