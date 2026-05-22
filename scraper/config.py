@@ -157,11 +157,29 @@ INSTRUMENT_CODES: dict[str, list[str]] = {
 # embedded on /results pages.
 #
 # Codes NOT in this map are not searchable on publicsearch.us:
-#   - NOF: Notice of Foreclosure (handled by the foreclosure-PDF walker)
+#   - NOF: Notice of Foreclosure (handled by scraper/foreclosures_ps.py
+#          via the publicsearch.us Foreclosures *department*, not the
+#          Real-Property doctype filter).
+#
+# Routine-transaction codes intentionally OMITTED so we skip scraping
+# them (decision PR 12.8 — those records are just normal property
+# transfers, not motivated-seller signals, and they dominated weekly
+# volume with no actionable leads):
+#   - WD  (WARRANTY DEED)              ─┐ Normal residential sales — the
+#   - QCD (QUIT CLAIM DEED)             │ buyer just bought, NOT a
+#   - DE  (DEED, generic)               │ motivated seller. WD alone was
+#   - SW  (SPECIAL WARRANTY DEED)       │ hitting the 500-record/run cap.
+#   - GN  (GENERAL WARRANTY DEED)      ─┘
+#   - SD  (SHERIFF'S DEED)             ─┐ Post-sale deed transfers; the
+#   - TD  (TRUSTEE'S/SUBSTITUTE         │ sale already happened. Buyer
+#          TRUSTEE'S DEED)             ─┘ is usually an investor competitor.
+#
+# To re-enable any of the above, add the literal display name back here
+# (must match publicsearch.us's doctype-typeahead string character for
+# character — see the source-of-truth comment above).
 DALLAS_CODE_DISPLAY_NAMES: dict[str, str] = {
     "LP":  "LIS PENDENS (NOTICE OF)",
     "RLP": "RELEASE OF LIS PENDENS",
-    "TD":  "TRUSTEE'S/SUBSTITUTE TRUSTEE'S DEED",
     "LN":  "LIEN",
     "LC":  "LIEN AFFIDAVIT/CLAIM/NOTICE",
     "ML":  "MECHANIC'S LIEN CONTRACT/AFFIDAVIT",
@@ -169,12 +187,6 @@ DALLAS_CODE_DISPLAY_NAMES: dict[str, str] = {
     "JUD": "JUDGMENT",
     "AJ":  "ABSTRACT OF JUDGMENT",
     "PB":  "PROBATE PROCEEDINGS",
-    "WD":  "WARRANTY DEED",
-    "QCD": "QUIT CLAIM DEED",
-    "SD":  "SHERIFF'S DEED",
-    "DE":  "DEED",
-    "SW":  "SPECIAL WARRANTY DEED",
-    "GN":  "GENERAL WARRANTY DEED",
     "BR":  "BANKRUPTCY PROCEEDINGS",
     "SZS": "SEIZURE & SALE",
     "REL": "RELEASE",
