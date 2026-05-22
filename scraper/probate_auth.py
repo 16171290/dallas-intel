@@ -242,6 +242,7 @@ def acquire_session() -> Optional[dict[str, str]]:
                             "Probate auth: unexpected post-login URL: %s",
                             final_url,
                         )
+                    _capture_failure_diagnostics(page, "signin_timeout")
                     return None
                 try:
                     page.wait_for_load_state("networkidle", timeout=10_000)
@@ -326,3 +327,109 @@ def _extract_error_text(page) -> str:
     except Exception:
         pass
     return ""
+
+
+# Selectors scanned for any visible failure message — not just the canonical
+# #validation-summary-alert. Tyler may surface errors in any of these.
+_FAILURE_TEXT_SELECTORS: tuple[str, ...] = (
+    "#validation-summary-alert",
+    ".validation-summary",
+    ".validation-summary-errors",
+    ".alert",
+    ".alert-danger",
+    ".alert-error",
+    ".text-danger",
+    '[role="alert"]',
+    ".error-message",
+    ".field-validation-error",
+)
+
+
+def _capture_failure_diagnostics(page, label: str) -> None:
+    """Best-effort dump of what the IdP page looked like when login failed.
+
+    Writes a screenshot + HTML to ``data/probes/probate_<label>_<ts>.{png,html}``
+    and logs:
+      - Final URL and page title
+      - Any visible text from common error/alert selectors
+      - Whether navigator.webdriver is exposed (primary bot-detection signal)
+      - List of forms / input IDs actually present on the page (so we can
+        tell if selectors drifted)
+
+    Never raises. Caller still soft-fails the auth.
+    """
+    from datetime import datetime
+
+    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+    probe_dir = config.DATA_DIR / "probes"
+    try:
+        probe_dir.mkdir(parents=True, exist_ok=True)
+    except Exception as e:
+        logger.warning("Probate diagnostics: could not create %s: %s", probe_dir, e)
+        return
+
+    png_path  = probe_dir / f"probate_{label}_{ts}.png"
+    html_path = probe_dir / f"probate_{label}_{ts}.html"
+
+    # URL + title (cheap)
+    try:
+        logger.info("Probate diagnostics: final_url=%s", page.url)
+    except Exception:
+        pass
+    try:
+        logger.info("Probate diagnostics: page_title=%r", page.title())
+    except Exception:
+        pass
+
+    # navigator.webdriver — if True, Tyler can trivially detect Playwright.
+    try:
+        is_webdriver = page.evaluate("() => navigator.webdriver")
+        logger.info("Probate diagnostics: navigator.webdriver=%s", is_webdriver)
+    except Exception as e:
+        logger.info("Probate diagnostics: navigator.webdriver probe failed: %s", e)
+
+    # Scan every common error/alert selector for visible text.
+    found_any = False
+    for sel in _FAILURE_TEXT_SELECTORS:
+        try:
+            elements = page.query_selector_all(sel)
+            for el in elements:
+                txt = (el.inner_text() or "").strip()
+                if txt:
+                    logger.info("Probate diagnostics: %s -> %r", sel, txt[:200])
+                    found_any = True
+        except Exception:
+            continue
+    if not found_any:
+        logger.info("Probate diagnostics: no visible text in any known error selector")
+
+    # Inventory of input field IDs — catches selector drift (e.g. Tyler
+    # renames UserName to Email). We just list what's present; comparing
+    # against SELECTOR_EMAIL/SELECTOR_PASS is left to log review.
+    try:
+        ids = page.evaluate(
+            "() => Array.from(document.querySelectorAll('input, button'))"
+            "  .map(e => ({tag: e.tagName.toLowerCase(), id: e.id, "
+            "             type: e.getAttribute('type'), "
+            "             name: e.getAttribute('name')}))"
+            "  .filter(e => e.id || e.name)"
+        )
+        logger.info("Probate diagnostics: form inputs/buttons: %s", ids)
+    except Exception as e:
+        logger.info("Probate diagnostics: input inventory failed: %s", e)
+
+    # Screenshot + HTML (the authoritative artifacts).
+    try:
+        page.screenshot(path=str(png_path), full_page=True)
+        logger.info("Probate diagnostics: screenshot saved %s", png_path)
+    except Exception as e:
+        logger.info("Probate diagnostics: screenshot failed: %s", e)
+    try:
+        html = page.content() or ""
+        html_path.write_text(html, encoding="utf-8")
+        logger.info(
+            "Probate diagnostics: HTML saved %s (%d chars)",
+            html_path, len(html),
+        )
+    except Exception as e:
+        logger.info("Probate diagnostics: HTML dump failed: %s", e)
