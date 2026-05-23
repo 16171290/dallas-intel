@@ -125,8 +125,26 @@ def acquire_session() -> Optional[dict[str, str]]:
 
     Never raises. Caller should check for ``None`` and soft-fail.
     """
-    email    = os.environ.get(config.PROBATE_EMAIL_ENV, "").strip()
-    password = os.environ.get(config.PROBATE_PASSWORD_ENV, "").strip()
+    email_raw = os.environ.get(config.PROBATE_EMAIL_ENV, "")
+    password  = os.environ.get(config.PROBATE_PASSWORD_ENV, "").strip()
+
+    # Defensive sanitization (PR 12.23). The Tyler IdP rejects the
+    # username with "commas not allowed" if the value contains a comma,
+    # but commas are invalid in any RFC-compliant email anyway — they
+    # only get here if the GHA secret was typed with extra junk
+    # (trailing comma, wrapping quotes, leading whitespace, etc.).
+    # Strip the obvious offenders rather than fail the run.
+    email = email_raw.strip()
+    for junk in (",", '"', "'", ";", " ", "\t"):
+        email = email.replace(junk, "")
+    if email != email_raw.strip():
+        logger.warning(
+            "Probate auth: %s contained %d junk char(s) "
+            "(commas/quotes/semicolons/whitespace) that were stripped. "
+            "Re-set the GHA secret to remove them.",
+            config.PROBATE_EMAIL_ENV,
+            len(email_raw.strip()) - len(email),
+        )
 
     if not email or not password:
         logger.warning(
@@ -218,6 +236,27 @@ def acquire_session() -> Optional[dict[str, str]]:
                 logger.info("Probate auth: submitting credentials")
                 page.fill(SELECTOR_EMAIL, email)
                 page.fill(SELECTOR_PASS, password)
+
+                # PR 12.23 diagnostic: read the username input back from
+                # the DOM post-fill and log its length + structural
+                # fingerprint (no value leakage). If Tyler's form is
+                # mangling input client-side, the readback won't match
+                # what we passed in.
+                try:
+                    filled_email = page.input_value(SELECTOR_EMAIL) or ""
+                    logger.info(
+                        "Probate auth: username field readback "
+                        "len=%d has_at=%s has_comma=%s has_space=%s "
+                        "matches_input=%s",
+                        len(filled_email),
+                        "@" in filled_email,
+                        "," in filled_email,
+                        " " in filled_email,
+                        filled_email == email,
+                    )
+                except Exception as e:
+                    logger.warning("Probate auth: readback failed: %s", e)
+
                 page.click(SELECTOR_SUBMIT)
 
                 # Step 6: wait for post-auth landing (dashboard OR /ui/Home)
