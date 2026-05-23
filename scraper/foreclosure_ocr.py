@@ -725,17 +725,20 @@ def enrich_foreclosure_records(
             r.setdefault("parse_warnings", []).append("ocr_skipped_no_python_bindings")
         return records, stats
 
-    # Multiprocessing pool for parallel page OCR. Lazy init — only spawn
-    # workers when there's actually a record to OCR (so we don't pay
-    # spawn cost if all records are past-sale-date and skipped).
-    # Capped at 8 workers; Windows pool overhead dominates beyond that.
+    # Multiprocessing pool DISABLED BY DEFAULT (PR 12.22). Reproduced
+    # locally and on GHA: running Tesseract through multiprocessing.Pool
+    # with 2+ workers on a 4-vCPU machine causes a ~150x per-worker
+    # slowdown even with OMP_NUM_THREADS=1. Single-process PSM=6 = 1.07s,
+    # Pool(4) PSM=6 = 159s/page. The pool's apparent "parallel speedup"
+    # was masking this — each worker was so slow that 4 in parallel ≈
+    # 1 serial in PSM=3 terms. Serial OCR in the main process is the
+    # correct choice: ~2s/page × ~3 pages × 56 records ≈ 6 min total.
     #
-    # Kill switch: set FORECLOSURE_OCR_PARALLEL=false to disable parallel
-    # OCR entirely. Use this if multiprocessing.Pool() hangs on your
-    # machine (some Windows + Playwright interactions are flaky).
+    # Set FORECLOSURE_OCR_PARALLEL=true to re-enable for testing on
+    # high-CPU machines where the contention pattern may differ.
     pool_size = min(multiprocessing.cpu_count(), 8)
     pool: Optional[multiprocessing.pool.Pool] = None
-    parallel_enabled = os.environ.get("FORECLOSURE_OCR_PARALLEL", "true").strip().lower() in (
+    parallel_enabled = os.environ.get("FORECLOSURE_OCR_PARALLEL", "false").strip().lower() in (
         "true", "1", "yes", "on",
     )
 
