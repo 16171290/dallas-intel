@@ -24,6 +24,16 @@ import pandas as pd
 
 from . import config, normalize
 from .probate_matcher import match_decedent_to_dcad
+
+
+# Stricter criteria for the applicant (heir) DCAD match than the decedent
+# match. The probe (probe_probate_applicant_dcad.py) showed that loose
+# tiers produce ~14% FP rate on applicants vs essentially none on
+# decedents — applicants tend to be younger with common surnames where
+# initial_form / surname_only over-match. For the applicant mailing
+# field we'd rather show nothing than show a wrong address.
+_APPLICANT_MAILING_ACCEPT_TIERS = ("exact", "no_middle")
+_APPLICANT_MAILING_MAX_ACCOUNTS = 2
 from .foreclosure_pdfs import ForeclosureRecord
 from .foreclosures_ps import ForeclosureNoticePSRecord
 from .publicsearch import PublicSearchRecord
@@ -391,6 +401,7 @@ def canonicalize_probate(
     *,
     owner_index: Optional[Mapping[str, list[str]]] = None,
     account_address_index: Optional[Mapping[str, dict]] = None,
+    mailing_index: Optional[Mapping[str, dict]] = None,
 ) -> CanonicalRecord:
     """Convert a ProbateRecord into the canonical dict shape (Sec E.2).
 
@@ -459,6 +470,35 @@ def canonicalize_probate(
             if decedent_properties:
                 primary_address_normalized = decedent_properties[0]["address_normalized"]
 
+    # Applicant fan-out — find a mailing address for the heir/petitioner.
+    # STRICTER criteria than decedent fan-out: only exact/no_middle tiers,
+    # no common-name-pollution warning, and <= 2 accounts. Why stricter:
+    # applicant hit rate is lower (~48%) and looser tiers produce too many
+    # FPs on common names (Sylvia Garcia matching one of 10 different
+    # Sylvia Garcias would give a junk mailing address). We'd rather
+    # leave the field blank than mislead the operator.
+    applicant_mailing: Optional[dict] = None
+    if owner_index and rec.applicant_name and mailing_index:
+        amatch = match_decedent_to_dcad(rec.applicant_name, owner_index)
+        if (
+            amatch is not None
+            and amatch.tier in _APPLICANT_MAILING_ACCEPT_TIERS
+            and amatch.warning is None
+            and len(amatch.accounts) <= _APPLICANT_MAILING_MAX_ACCOUNTS
+        ):
+            primary_acct = amatch.accounts[0]
+            mail = mailing_index.get(primary_acct, {})
+            if mail.get("address"):
+                applicant_mailing = {
+                    "tier":         amatch.tier,
+                    "matched_name": amatch.matched_name,
+                    "account_num":  primary_acct,
+                    "address":      mail.get("address"),
+                    "city":         mail.get("city"),
+                    "state":        mail.get("state"),
+                    "zip":          mail.get("zip"),
+                }
+
     return {
         "record_id":          f"pro-{rec.case_data_id}",
         "source":             "probate.txcourts.gov",
@@ -497,6 +537,7 @@ def canonicalize_probate(
             "decedent_owned_properties": decedent_properties,
             "dcad_match_tier":           match_tier,
             "dcad_match_warning":        match_warning,
+            "applicant_mailing":         applicant_mailing,
         },
         "address_city":       None,
         "address_state":      None,

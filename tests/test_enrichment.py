@@ -503,3 +503,125 @@ class TestCanonicalizeProbate:
         assert out["signal_metadata"]["decedent_owned_properties"] == []
         assert out["signal_metadata"]["dcad_match_tier"] is None
 
+    # ----- Applicant mailing fan-out (PR 5.y) -----------------------------
+    # Stricter criteria than decedent: exact / no_middle only, no
+    # common_name_pollution, <= 2 accounts.
+
+    def test_applicant_exact_match_populates_mailing(self):
+        rec = self._make_record(
+            decedent_name="WALLACE, VON ELLEN",
+            applicant_name="MORTON, REBECCA J.",
+        )
+        owner_index = {"MORTON REBECCA J": ["acct_app"]}
+        mailing_index = {"acct_app": {
+            "address": "3960 DAVILA DR", "city": "DALLAS",
+            "state": "TEXAS", "zip": "75220",
+        }}
+        out = enrichment.canonicalize_probate(
+            rec, owner_index=owner_index,
+            account_address_index={},
+            mailing_index=mailing_index,
+        )
+        am = out["signal_metadata"]["applicant_mailing"]
+        assert am is not None
+        assert am["tier"] == "exact"
+        assert am["address"] == "3960 DAVILA DR"
+        assert am["state"] == "TEXAS"
+
+    def test_applicant_no_middle_match_populates_mailing(self):
+        rec = self._make_record(applicant_name="HALL, WENDY E.")
+        owner_index = {"HALL WENDY": ["acct_h"]}
+        mailing_index = {"acct_h": {
+            "address": "3916 DANZIG DR", "city": "GRAND PRAIRIE",
+            "state": "TX", "zip": "75052",
+        }}
+        out = enrichment.canonicalize_probate(
+            rec, owner_index=owner_index,
+            account_address_index={}, mailing_index=mailing_index,
+        )
+        assert out["signal_metadata"]["applicant_mailing"]["tier"] == "no_middle"
+        assert out["signal_metadata"]["applicant_mailing"]["address"] == "3916 DANZIG DR"
+
+    def test_applicant_common_name_pollution_rejected(self):
+        """4+ accounts triggers common_name_pollution warning — Option B
+        rejects, applicant_mailing stays None."""
+        rec = self._make_record(applicant_name="GARCIA, SYLVIA ELIZABETH")
+        owner_index = {
+            "GARCIA SYLVIA": [f"a{i}" for i in range(10)],  # 10 accounts -> pollution
+        }
+        mailing_index = {"a0": {"address": "111 ANY ST"}}
+        out = enrichment.canonicalize_probate(
+            rec, owner_index=owner_index,
+            account_address_index={}, mailing_index=mailing_index,
+        )
+        assert out["signal_metadata"]["applicant_mailing"] is None
+
+    def test_applicant_surname_only_rejected(self):
+        """surname_only tier is below the high-confidence threshold —
+        Option B excludes it for applicant mailing."""
+        rec = self._make_record(applicant_name="WALLACE, ALLEN GLENN")
+        # owner_index keyed by just 'WALLACE' (family-trust collapse) —
+        # would match surname_only tier with <=2 accounts
+        owner_index = {"WALLACE": ["acct_w", "acct_w2"]}
+        mailing_index = {"acct_w": {"address": "6314 NORWAY RD"}}
+        out = enrichment.canonicalize_probate(
+            rec, owner_index=owner_index,
+            account_address_index={}, mailing_index=mailing_index,
+        )
+        assert out["signal_metadata"]["applicant_mailing"] is None
+
+    def test_applicant_initial_form_rejected(self):
+        """initial_form tier also excluded by Option B's strict criteria."""
+        rec = self._make_record(applicant_name="MATUS, JOSE ARISTIDES")
+        owner_index = {"MATUS JOSE A": ["acct_m"]}  # initial_form tier match
+        mailing_index = {"acct_m": {"address": "232 TOUCHDOWN DR"}}
+        out = enrichment.canonicalize_probate(
+            rec, owner_index=owner_index,
+            account_address_index={}, mailing_index=mailing_index,
+        )
+        assert out["signal_metadata"]["applicant_mailing"] is None
+
+    def test_applicant_three_accounts_rejected_by_max(self):
+        """Exact-tier match with 3 accounts: no pollution warning (warning
+        fires at >3) but Option B's <=2 cap rejects it anyway."""
+        rec = self._make_record(applicant_name="WALLACE, ALLEN")
+        owner_index = {"WALLACE ALLEN": ["a", "b", "c"]}  # 3 accts
+        mailing_index = {"a": {"address": "111 ANY ST"}}
+        out = enrichment.canonicalize_probate(
+            rec, owner_index=owner_index,
+            account_address_index={}, mailing_index=mailing_index,
+        )
+        assert out["signal_metadata"]["applicant_mailing"] is None
+
+    def test_applicant_no_mailing_index_yields_none(self):
+        """Backwards compat — mailing_index omitted means no applicant
+        mailing populated, even if there's an exact match."""
+        rec = self._make_record(applicant_name="MORTON, REBECCA J.")
+        owner_index = {"MORTON REBECCA J": ["acct_app"]}
+        out = enrichment.canonicalize_probate(
+            rec, owner_index=owner_index, account_address_index={},
+        )
+        assert out["signal_metadata"]["applicant_mailing"] is None
+
+    def test_applicant_none_skips_fanout(self):
+        rec = self._make_record(applicant_name=None)
+        out = enrichment.canonicalize_probate(
+            rec, owner_index={"X Y": ["a"]},
+            account_address_index={},
+            mailing_index={"a": {"address": "1 ANY ST"}},
+        )
+        assert out["signal_metadata"]["applicant_mailing"] is None
+
+    def test_applicant_missing_address_in_mailing_index_yields_none(self):
+        """Matcher hit, account looked up in mailing_index, but the
+        address field is missing — leave the field None rather than
+        ship a useless tier-only payload."""
+        rec = self._make_record(applicant_name="MORTON, REBECCA J.")
+        owner_index = {"MORTON REBECCA J": ["acct_app"]}
+        mailing_index = {"acct_app": {"address": None, "city": "DALLAS"}}
+        out = enrichment.canonicalize_probate(
+            rec, owner_index=owner_index,
+            account_address_index={}, mailing_index=mailing_index,
+        )
+        assert out["signal_metadata"]["applicant_mailing"] is None
+
