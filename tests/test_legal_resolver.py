@@ -6,11 +6,13 @@ import pytest
 
 from scraper import legal_resolver
 from scraper.legal_resolver import (
+    APNResolverStats,
     LegalResolverStats,
     ParsedLegal,
     build_legal_index,
     normalize_subdivision,
     parse_legal_from_snippet,
+    resolve_apn_to_address,
     resolve_legal_descriptions,
     _generate_subdivision_variants,
     _parse_dcad_legal2,
@@ -460,3 +462,93 @@ class TestLegalResolverStats:
     def test_resolution_rate_partial(self):
         s = LegalResolverStats(total=4, resolved=3)
         assert s.resolution_rate == 0.75
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# resolve_apn_to_address
+# ═══════════════════════════════════════════════════════════════════════════
+
+class TestResolveAPN:
+    def _make_dcad(self) -> dict[str, pd.DataFrame]:
+        return _make_dcad_tables([
+            {
+                "ACCOUNT_NUM": "00000811302800000",
+                "STREET_NUM": "4314",
+                "FULL_STREET_NAME": "HAMILTON",
+                "LEGAL1": "X", "LEGAL2": "Y",
+            },
+            {
+                "ACCOUNT_NUM": "180052700",
+                "STREET_NUM": "120",
+                "FULL_STREET_NAME": "EDGEFIELD AVE",
+                "LEGAL1": "X", "LEGAL2": "Y",
+            },
+        ])
+
+    def test_apn_zero_padded_match(self):
+        """OCR extracts '811302800000' (zeros stripped). DCAD stores
+        '00000811302800000'. We try the zero-padded form."""
+        records = [{
+            "record_id": "r1",
+            "signal_metadata": {"ocr": {"apn": "811302800000"}},
+        }]
+        stats = resolve_apn_to_address(records, self._make_dcad())
+        assert stats.resolved == 1
+        assert "4314" in records[0]["address_normalized"]
+        assert "HAMILTON" in records[0]["address_normalized"]
+
+    def test_apn_short_form_match(self):
+        records = [{
+            "record_id": "r1",
+            "signal_metadata": {"ocr": {"apn": "180052700"}},
+        }]
+        stats = resolve_apn_to_address(records, self._make_dcad())
+        assert stats.resolved == 1
+        assert "120" in records[0]["address_normalized"]
+        assert "EDGEFIELD" in records[0]["address_normalized"]
+
+    def test_apn_no_match(self):
+        records = [{
+            "record_id": "r1",
+            "signal_metadata": {"ocr": {"apn": "999999999"}},
+        }]
+        stats = resolve_apn_to_address(records, self._make_dcad())
+        assert stats.resolved == 0
+        assert stats.no_match == 1
+        assert records[0].get("address_normalized") is None
+
+    def test_no_apn_in_record(self):
+        records = [{"record_id": "r1"}]
+        stats = resolve_apn_to_address(records, self._make_dcad())
+        assert stats.resolved == 0
+        assert stats.no_apn == 1
+
+    def test_skips_records_with_existing_address(self):
+        """If address_normalized is already set (e.g., from foreclosure_pdf
+        source or earlier resolver), don't overwrite."""
+        records = [{
+            "record_id": "r1",
+            "address_normalized": "PRE-EXISTING ADDR",
+            "signal_metadata": {"ocr": {"apn": "180052700"}},
+        }]
+        stats = resolve_apn_to_address(records, self._make_dcad())
+        assert stats.resolved == 0
+        assert records[0]["address_normalized"] == "PRE-EXISTING ADDR"
+
+    def test_empty_dcad_tables_does_not_crash(self):
+        records = [{"record_id": "r1",
+                    "signal_metadata": {"ocr": {"apn": "180052700"}}}]
+        stats = resolve_apn_to_address(records, {})
+        assert stats.resolved == 0
+
+    def test_apn_resolver_stats_defaults(self):
+        s = APNResolverStats()
+        assert s.total == 0
+        assert s.no_apn == 0
+        assert s.no_match == 0
+        assert s.resolved == 0
+        assert s.resolution_rate == 0.0
+
+    def test_apn_resolver_stats_rate(self):
+        s = APNResolverStats(total=10, resolved=3)
+        assert s.resolution_rate == 0.3
