@@ -1,43 +1,48 @@
-"""Measure DCAD hit rate for re:SearchTX probate decedents.
+"""Measure DCAD hit rate for re:SearchTX probate decedents (v2).
 
-Standalone recon — does NOT modify the pipeline. Reads the current
-data/records.json (which already contains the re:SearchTX probate
-records pulled by the latest cron), loads DCAD bulk data from the
-local week-cached ZIP, and for each decedent name attempts a DCAD
-owner-index lookup. Reports:
+Standalone recon — does NOT modify the pipeline. Bypasses the
+production ``match_debtor_to_dcad`` (which has an internal rotation
+designed for bankruptcy RSS format and produces surname-dropped
+false positives on Tyler's "LAST, FIRST MIDDLE" inputs).
 
-  - Total decedents tested
-  - Hits via normalize-only path (the correct path for Tyler "LAST,FIRST" format)
-  - Hits via bankruptcy-rotate path (only correct for Tyler's rare
-    no-comma "FIRST MIDDLE LAST" outliers)
-  - Hits via either path
-  - Sample successful matches with property addresses
-  - Sample misses (with normalized form, to help diagnose why)
-  - DCAD account counts per hit (decedents who own multiple properties)
+What this probe does:
 
-Usage (PowerShell, Windows)
----------------------------
-    cd <repo>
-    .\.venv\Scripts\Activate.ps1
+  1. Reads data/records.json, filters to source=probate.txcourts.gov
+  2. Loads DCAD bulk data from ~/.dcad_cache
+  3. Builds two indexes:
+       - primary_index   from ACCOUNT_INFO (one owner per row, with
+         joint-owner & splits)
+       - secondary_index from MULTI_OWNER  (extra co-owners per account)
+  4. For each decedent name:
+       - Normalizes it (strip punct, suffixes, etc.)
+       - Detects whether Tyler emitted it WITH a comma ("LAST, FIRST")
+         or WITHOUT ("FIRST MIDDLE LAST" — the rare outlier)
+       - For comma-case: try the normalized key directly
+       - For no-comma case: try BOTH the normalized key AND a rotated
+         form (move last token to front, mimicking the bankruptcy
+         converter — but applied at the caller, not silently inside)
+       - Uses a SURNAME-PRESERVING tier ladder:
+            Tier 1: exact   (LAST FIRST MIDDLE)
+            Tier 2: drop middle (LAST FIRST)
+         NO Tier 3. Dropping anything past the first name produces too
+         many surname-less false positives (e.g. "DONALD W" matches
+         random people).
+  5. Reports separate hit counts for primary, secondary, combined.
+  6. Sample hits show the FULL matched DCAD owner name (not just the
+     lookup key) so visual sanity check is easy. Multi-account matches
+     (>3 accounts) are flagged as likely common-name pollution.
+
+Usage:
     python probe_probate_dcad_hitrate.py
-
-No env vars required. Uses ~/.dcad_cache/dcad-{year}-week{YYYYWW}.zip
-that the cron already maintains. If the cache is missing or stale,
-the script will attempt a fresh download via the same path the cron
-uses (your home IP can reach dallascad.org; cloud sandboxes are
-sometimes 403-blocked).
-
-Exit codes:
-    0  measurement completed (read the printed report)
-    2  records.json missing or has no probate records
-    3  DCAD data unavailable
 """
 
 from __future__ import annotations
 
 import json
 import sys
+from collections import Counter, defaultdict
 from pathlib import Path
+from typing import Optional
 
 
 def main() -> int:
@@ -55,16 +60,12 @@ def main() -> int:
     print(f"re:SearchTX records:        {len(rsxtx)}")
     print(f"with decedent name (grantor): {len(decedents)}")
     if not decedents:
-        print("Nothing to measure.", file=sys.stderr)
         return 2
 
-    # Load DCAD via the same code path the cron uses, so we know the
-    # measurement reflects what production would see.
-    print("\nLoading DCAD bulk data (uses ~/.dcad_cache if warm)...")
+    print("\nLoading DCAD bulk data...")
     try:
         from scraper.dcad_bulk import fetch_dcad_zip, parse_dcad_tables, build_account_index
-        from scraper.dcad_owner_index import build_owner_index, normalize_dcad_owner_name
-        from scraper.name_matcher import match_debtor_to_dcad, convert_bankruptcy_to_dcad_format
+        from scraper.dcad_owner_index import normalize_dcad_owner_name, expand_joint_owners
     except ImportError as e:
         print(f"ERROR: failed to import scraper modules: {e}", file=sys.stderr)
         return 3
@@ -77,102 +78,233 @@ def main() -> int:
 
     print(f"DCAD ZIP: {zip_path}")
     tables = parse_dcad_tables(zip_path)
+    print(f"DCAD tables loaded: {sorted(tables.keys())}")
 
-    # parse_dcad_tables returns DataFrames; build_owner_index expects
-    # list[dict] (it's never called in production — main.py only uses
-    # build_address_index). Convert the one table we need.
-    account_info_df = tables.get("ACCOUNT_INFO")
-    if account_info_df is None or account_info_df.empty:
-        print("ERROR: ACCOUNT_INFO table missing from DCAD bundle", file=sys.stderr)
-        return 3
-    tables_as_dicts = {"ACCOUNT_INFO": account_info_df.to_dict("records")}
-    owner_index   = build_owner_index(tables_as_dicts)
+    # Build PRIMARY index from ACCOUNT_INFO (one owner per row)
+    primary_index, primary_full_name = _build_index_from_df(
+        tables.get("ACCOUNT_INFO"),
+        owner_col_candidates=("OWNER_NAME1", "OWNER_NAME", "OWNER1_NAME"),
+        account_col_candidates=("ACCOUNT_NUM", "ACCT_NUM"),
+        label="primary",
+    )
+
+    # Build SECONDARY index from MULTI_OWNER
+    multi_df = tables.get("MULTI_OWNER")
+    if multi_df is None or multi_df.empty:
+        print("WARNING: MULTI_OWNER table missing or empty")
+        secondary_index: dict[str, list[str]] = {}
+        secondary_full_name: dict[str, str] = {}
+    else:
+        # Inspect columns so we pick the right ones for MULTI_OWNER
+        print(f"MULTI_OWNER columns: {list(multi_df.columns)}")
+        secondary_index, secondary_full_name = _build_index_from_df(
+            multi_df,
+            owner_col_candidates=("OWNER_NAME", "OWNER_NAME1", "NAME", "MULTI_OWNER_NAME"),
+            account_col_candidates=("ACCOUNT_NUM", "ACCT_NUM"),
+            label="secondary",
+        )
+
     account_index = build_account_index(tables)
-    print(f"owner_index entries:   {len(owner_index):,}")
-    print(f"account_index entries: {len(account_index):,}")
+    print(f"primary_index   entries: {len(primary_index):,}")
+    print(f"secondary_index entries: {len(secondary_index):,}")
+    print(f"account_index   entries: {len(account_index):,}")
 
-    # Run both candidate paths on every decedent
-    hits_normalize_only: list[tuple] = []
-    hits_bankruptcy_only: list[tuple] = []
-    hits_both:            list[tuple] = []
-    misses:               list[tuple] = []
+    # Run matches
+    hits_primary: list[dict] = []
+    hits_secondary_only: list[dict] = []
+    misses: list[dict] = []
 
     for rid, name in decedents:
-        # Path A: normalize-only (correct for Tyler's "LAST, FIRST MIDDLE")
-        key_a = normalize_dcad_owner_name(name)
-        m_a   = match_debtor_to_dcad(key_a, owner_index) if key_a else None
+        keys = _candidate_keys(name)  # list of (key, source: 'asis'|'rotated')
+        result = None
 
-        # Path B: bankruptcy rotate then normalize (correct for the rare
-        # Tyler outlier that comes back as "FIRST MIDDLE LAST")
-        key_b_pre = convert_bankruptcy_to_dcad_format(name)
-        key_b     = normalize_dcad_owner_name(key_b_pre) if key_b_pre else None
-        m_b       = match_debtor_to_dcad(key_b, owner_index) if key_b else None
+        for key, key_source in keys:
+            m = _lookup_with_tiers(key, primary_index, primary_full_name)
+            if m:
+                result = {
+                    "record_id": rid, "decedent": name,
+                    "lookup_key": key, "key_source": key_source,
+                    "tier": m["tier"], "matched_name": m["matched_name"],
+                    "matched_dcad_owner_raw": m["matched_full"],
+                    "accounts": m["accounts"], "found_in": "primary",
+                }
+                break
+        if result is None:
+            for key, key_source in keys:
+                m = _lookup_with_tiers(key, secondary_index, secondary_full_name)
+                if m:
+                    result = {
+                        "record_id": rid, "decedent": name,
+                        "lookup_key": key, "key_source": key_source,
+                        "tier": m["tier"], "matched_name": m["matched_name"],
+                        "matched_dcad_owner_raw": m["matched_full"],
+                        "accounts": m["accounts"], "found_in": "secondary",
+                    }
+                    break
 
-        if m_a and m_b:
-            hits_both.append((rid, name, m_a, m_b))
-        elif m_a:
-            hits_normalize_only.append((rid, name, m_a))
-        elif m_b:
-            hits_bankruptcy_only.append((rid, name, m_b))
+        if result is None:
+            misses.append({
+                "record_id": rid, "decedent": name,
+                "tried_keys": keys,
+            })
+        elif result["found_in"] == "primary":
+            hits_primary.append(result)
         else:
-            misses.append((rid, name, key_a, key_b))
+            hits_secondary_only.append(result)
 
     total = len(decedents)
-    n_a    = len(hits_normalize_only) + len(hits_both)
-    n_b    = len(hits_bankruptcy_only) + len(hits_both)
-    n_any  = n_a + len(hits_bankruptcy_only)
-    print()
-    print("=" * 70)
-    print("HIT-RATE SUMMARY")
-    print("=" * 70)
-    print(f"  normalize-only path:        {n_a:3d}/{total} ({100*n_a/total:.0f}%)")
-    print(f"  bankruptcy-rotate path:     {n_b:3d}/{total} ({100*n_b/total:.0f}%)")
-    print(f"  either path (recommended):  {n_any:3d}/{total} ({100*n_any/total:.0f}%)")
-    print(f"  both paths agreed:          {len(hits_both):3d}")
-    print(f"  misses:                     {len(misses):3d}")
+    n_primary = len(hits_primary)
+    n_secondary = len(hits_secondary_only)
+    n_either = n_primary + n_secondary
 
-    # Account counts — how many properties does each successful match own?
-    all_hits = hits_normalize_only + hits_both + hits_bankruptcy_only
     print()
-    print("Properties owned per successful match (decedent->DCAD):")
-    from collections import Counter
+    print("=" * 70)
+    print("HIT-RATE SUMMARY (surname-preserving tiers, no rotation FP)")
+    print("=" * 70)
+    print(f"  ACCOUNT_INFO (primary) hits:        {n_primary:3d}/{total} ({100*n_primary/total:.0f}%)")
+    print(f"  MULTI_OWNER-only (secondary) hits:  {n_secondary:3d}/{total} ({100*n_secondary/total:.0f}%)")
+    print(f"  Combined hit rate:                  {n_either:3d}/{total} ({100*n_either/total:.0f}%)")
+    print(f"  Misses:                             {len(misses):3d}")
+
+    # Account count histogram (1=single property, 2-3=normal multi, >3=suspect)
+    print()
+    print("Properties per matched decedent:")
     cnt = Counter()
-    for h in all_hits:
-        m = h[2] if len(h) >= 3 else None
-        if m:
-            cnt[min(len(m.accounts), 5)] += 1  # cap at 5 for the histogram
+    flagged_multi = []
+    for h in hits_primary + hits_secondary_only:
+        n = len(h["accounts"])
+        cnt[min(n, 10)] += 1
+        if n > 3:
+            flagged_multi.append(h)
     for n in sorted(cnt):
-        label = f"{n}" if n < 5 else "5+"
-        print(f"    {label} account(s): {cnt[n]:3d}")
+        label = f">{n-1}" if n == 10 else str(n)
+        print(f"    {label:>3} property: {cnt[n]:3d}")
+    if flagged_multi:
+        print(f"\n  WARNING: {len(flagged_multi)} match(es) have >3 properties — likely common-name pollution")
+        for h in flagged_multi:
+            print(f"    {h['decedent']!r} -> matched {h['matched_dcad_owner_raw']!r}  ({len(h['accounts'])} accts) tier={h['tier']}")
 
-    # Sample successes with full addresses (this is the operator-visible output)
+    # Sample hits with full property addresses
     print()
     print("=" * 70)
-    print("SAMPLE HITS (decedent -> property address)")
+    print("SAMPLE HITS WITH PROPERTY ADDRESSES")
     print("=" * 70)
-    sample = (hits_both + hits_normalize_only + hits_bankruptcy_only)[:12]
-    for h in sample:
-        rid, name = h[0], h[1]
-        m = h[2]
-        print(f"\n  record={rid}")
-        print(f"  decedent: {name!r}")
-        print(f"  strategy: {m.match_strategy}  matched_dcad_owner={m.matched_name!r}  accounts={len(m.accounts)}")
-        for acc in m.accounts[:3]:
+    for h in (hits_primary + hits_secondary_only)[:15]:
+        print(f"\n  record={h['record_id']}  ({h['found_in']})")
+        print(f"  decedent:           {h['decedent']!r}")
+        print(f"  lookup key:         {h['lookup_key']!r}  ({h['key_source']}, tier={h['tier']})")
+        print(f"  matched DCAD owner: {h['matched_dcad_owner_raw']!r}")
+        for acc in h["accounts"][:3]:
             ai = account_index.get(acc, {})
             print(f"    {acc}  {ai.get('address_normalized', '?')!r}  "
                   f"city={ai.get('address_city')}  zip={ai.get('address_zip')}")
 
-    # Sample misses with diagnostic info
+    # Sample misses
     print()
     print("=" * 70)
-    print("SAMPLE MISSES (first 10) — keys we tried but didn't match")
+    print(f"SAMPLE MISSES (first 12 of {len(misses)})")
     print("=" * 70)
-    for rid, name, key_a, key_b in misses[:10]:
-        print(f"  decedent={name!r}")
-        print(f"    normalize-only key:   {key_a!r}")
-        print(f"    bankruptcy-rotate key: {key_b!r}")
+    for m in misses[:12]:
+        print(f"  decedent={m['decedent']!r}")
+        for k, src in m["tried_keys"]:
+            print(f"    tried {src:8s}: {k!r}")
 
     return 0
+
+
+# ----------------------------------------------------------------------------
+# Helpers
+# ----------------------------------------------------------------------------
+
+
+def _build_index_from_df(df, *, owner_col_candidates, account_col_candidates, label: str):
+    """Build {normalized_owner: [account_nums]} and {normalized_owner: full_raw_owner_string} from a DataFrame."""
+    if df is None or df.empty:
+        return {}, {}
+    from scraper.dcad_owner_index import normalize_dcad_owner_name, expand_joint_owners
+
+    owner_col = next((c for c in owner_col_candidates if c in df.columns), None)
+    account_col = next((c for c in account_col_candidates if c in df.columns), None)
+    if not owner_col or not account_col:
+        print(f"WARNING: {label} index — could not find owner/account columns. "
+              f"have={list(df.columns)} owner_candidates={owner_col_candidates} "
+              f"account_candidates={account_col_candidates}")
+        return {}, {}
+    print(f"{label} index: using owner_col={owner_col!r} account_col={account_col!r}")
+
+    index: dict[str, list[str]] = defaultdict(list)
+    full_name: dict[str, str] = {}  # normalized -> first raw owner string seen (for display)
+
+    for raw_owner, account in zip(df[owner_col], df[account_col]):
+        if not raw_owner or not account:
+            continue
+        raw_owner = str(raw_owner)
+        account = str(account)
+        for individual in expand_joint_owners(raw_owner):
+            normalized = normalize_dcad_owner_name(individual)
+            if not normalized:
+                continue
+            index[normalized].append(account)
+            full_name.setdefault(normalized, individual)
+
+    return dict(index), full_name
+
+
+def _candidate_keys(name: str) -> list[tuple[str, str]]:
+    """Return list of (key, source) tuples to try for a Tyler decedent name.
+
+    Tyler convention: "LAST, FIRST MIDDLE" (with comma).
+    Outlier:           "FIRST MIDDLE LAST" (no comma; rare).
+
+    For the comma form, the normalized key is already in DCAD format
+    (LAST FIRST MIDDLE) — try it as-is.
+    For the no-comma form, we don't know which is the surname, so try
+    BOTH: as-is (assume already DCAD format, rarely true) AND rotated
+    (assume FIRST MIDDLE LAST, surname is last token, rotate to front).
+    """
+    from scraper.dcad_owner_index import normalize_dcad_owner_name
+    has_comma = "," in (name or "")
+    norm = normalize_dcad_owner_name(name)
+    out: list[tuple[str, str]] = []
+    if norm:
+        out.append((norm, "asis"))
+    if not has_comma and norm:
+        # Try rotated (move last token to front) — Tyler's no-comma outlier
+        tokens = norm.split()
+        if len(tokens) >= 2:
+            rotated = " ".join([tokens[-1]] + tokens[:-1])
+            if rotated != norm:
+                out.append((rotated, "rotated"))
+    return out
+
+
+def _lookup_with_tiers(key: str, index: dict[str, list[str]], full_name: dict[str, str]) -> Optional[dict]:
+    """Surname-preserving tier ladder. Never drops the surname.
+
+    Tier 1: exact (full key)
+    Tier 2: drop middle name (first two tokens only — surname + first name)
+            Only fires when key has 3+ tokens.
+    """
+    # Tier 1: exact
+    if key in index:
+        return {
+            "tier": "exact",
+            "matched_name": key,
+            "matched_full": full_name.get(key, key),
+            "accounts": list(index[key]),
+        }
+    # Tier 2: no_middle
+    tokens = key.split()
+    if len(tokens) >= 3:
+        no_middle = f"{tokens[0]} {tokens[1]}"
+        if no_middle in index:
+            return {
+                "tier": "no_middle",
+                "matched_name": no_middle,
+                "matched_full": full_name.get(no_middle, no_middle),
+                "accounts": list(index[no_middle]),
+            }
+    return None
 
 
 if __name__ == "__main__":
