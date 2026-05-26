@@ -62,12 +62,16 @@ ASSESS_LIEN = re.compile(r"ASSESSMENT\s+LIEN", re.I)  # weaker than HOA_LIEN_RE
 def candidates_from_records_json(records_path: Path, limit: int) -> list[str]:
     """Auto-detect failing NOF record IDs from local records.json.
 
-    A record is "failing" iff its category is foreclosure_nof AND any of:
+    A record is "failing" iff dallas_code=="NOF" AND source=="publicsearch.us"
+    AND any of:
       - dcad_account is null/missing (DCAD match failed), OR
       - OCR ran (signal_metadata.ocr.pages_captured >= 1) but
         signal_metadata.ocr.address_pattern is None, OR
       - address_normalized has no digit in its first comma-segment
         (city-only, no street number).
+
+    Only publicsearch.us-sourced NOFs are probe-able; foreclosure_pdf
+    records have synthetic IDs that won't resolve at /doc/{id}.
 
     limit=0 means no cap.
     """
@@ -77,7 +81,7 @@ def candidates_from_records_json(records_path: Path, limit: int) -> list[str]:
     data = read_records_json(records_path)
     out: list[str] = []
     for rec in data:
-        if rec.get("category") != "foreclosure_nof":
+        if rec.get("dallas_code") != "NOF" or rec.get("source") != "publicsearch.us":
             continue
         sm = rec.get("signal_metadata") or {}
         ocr = sm.get("ocr") or {}
@@ -96,14 +100,16 @@ def candidates_from_records_json(records_path: Path, limit: int) -> list[str]:
 
 
 def all_nof_ids_from_records_json(records_path: Path) -> list[str]:
-    """Return every foreclosure_nof record's publicsearch id. No filtering."""
+    """Return every publicsearch.us-sourced NOF record_id. No filtering by
+    match-status; only filters out foreclosure_pdf-sourced records whose
+    synthetic IDs can't be fetched via /doc/{id}."""
     if not records_path.exists():
         print(f"records.json not found at {records_path}", file=sys.stderr)
         return []
     data = read_records_json(records_path)
     out: list[str] = []
     for rec in data:
-        if rec.get("category") != "foreclosure_nof":
+        if rec.get("dallas_code") != "NOF" or rec.get("source") != "publicsearch.us":
             continue
         rid = str(rec.get("source_id") or rec.get("record_id") or "").strip()
         if rid:
@@ -246,11 +252,11 @@ def main() -> None:
     if args.all_nofs:
         ids = all_nof_ids_from_records_json(records_path)
         if not ids:
-            print("No foreclosure_nof records found in records.json", file=sys.stderr)
+            print("No publicsearch.us-sourced NOF records found in records.json", file=sys.stderr)
             sys.exit(1)
         if args.limit > 0:
             ids = ids[:args.limit]
-        print(f"Probing ALL {len(ids)} foreclosure_nof records from records.json")
+        print(f"Probing ALL {len(ids)} publicsearch-sourced NOF records from records.json")
     elif args.from_records_json:
         ids = candidates_from_records_json(records_path, args.limit)
         if not ids:
