@@ -245,3 +245,178 @@ class TestInstrumentCodes:
         assert not normalize.is_suppression_code(None)
 
 
+# ============================================================================
+# format_owner_name (2026-05-26)
+# ============================================================================
+
+class TestFormatOwnerName:
+    """The owner/grantor/grantee column formatter. Covers all the dirt
+    categories observed in the live records.json corpus."""
+
+    # --- Empty / degenerate input ---
+    def test_none_returns_empty(self):
+        assert normalize.format_owner_name(None) == ""
+
+    def test_empty_string_returns_empty(self):
+        assert normalize.format_owner_name("") == ""
+        assert normalize.format_owner_name("   ") == ""
+
+    # --- Comma form (LAST, FIRST MIDDLE) ---
+    def test_comma_form_simple(self):
+        assert normalize.format_owner_name("BERGER, ANN M.") == "Berger, Ann M."
+
+    def test_comma_form_internal_whitespace(self):
+        # publicsearch list-view sometimes has stray internal spaces
+        assert normalize.format_owner_name("BARBA , JUDITH") == "Barba, Judith"
+        assert normalize.format_owner_name("CHAVEZ , CATHERINE  FRANCES") == "Chavez, Catherine Frances"
+
+    def test_comma_form_with_suffix(self):
+        assert normalize.format_owner_name("ARTHUR LEE JONES, Jr") == "Jones, Arthur Lee Jr"
+        assert normalize.format_owner_name("MOORE, ALBERT, Jr") == "Moore, Albert Jr"
+        assert normalize.format_owner_name("TART, JAMES  STUART, Sr") == "Tart, James Stuart Sr"
+
+    def test_comma_form_multi_word_last_name(self):
+        assert normalize.format_owner_name("BROWN JOHNS, CHERYL LEE") == "Brown Johns, Cheryl Lee"
+
+    def test_comma_form_hyphenated(self):
+        assert normalize.format_owner_name("CHAVEZ-AGUIRRE, FELICIA") == "Chavez-Aguirre, Felicia"
+
+    # --- No-comma form, FIRST-LAST default ---
+    def test_no_comma_first_last(self):
+        assert normalize.format_owner_name("Bobbie Meyers") == "Meyers, Bobbie"
+        assert normalize.format_owner_name("CYNTHIA HAWKINS") == "Hawkins, Cynthia"
+        assert normalize.format_owner_name("JASON ANTHONY LOWE") == "Lowe, Jason Anthony"
+
+    def test_no_comma_first_initial_last(self):
+        assert normalize.format_owner_name("JESUS J. BETANCOURT") == "Betancourt, Jesus J."
+
+    # --- No-comma form, LAST-FIRST (DCAD style) ---
+    def test_dcad_format_last_first(self):
+        assert normalize.format_owner_name("BERGER ANN M", source_format="last_first") == "Berger, Ann M"
+        assert normalize.format_owner_name("BRYAN MICHAEL SANFORD", source_format="last_first") == "Bryan, Michael Sanford"
+
+    def test_dcad_format_joint_owners_share_surname(self):
+        """DCAD's 'LAST FIRST & SECOND_FIRST' format -> both share surname."""
+        result = normalize.format_owner_name("MEEKING STEVEN & GINA", source_format="last_first")
+        assert result == "Meeking, Steven & Meeking, Gina"
+
+    def test_dcad_format_joint_partner_with_middle(self):
+        """'MOORE ALBERT & SUSIE MAE' -> SUSIE MAE inherits MOORE."""
+        result = normalize.format_owner_name("MOORE ALBERT & SUSIE MAE", source_format="last_first")
+        assert result == "Moore, Albert & Moore, Susie Mae"
+
+    def test_dcad_format_joint_first_initial(self):
+        """'FLORES JAIME O & MARIE G' -> both Flores."""
+        result = normalize.format_owner_name("FLORES JAIME O & MARIE G", source_format="last_first")
+        assert result == "Flores, Jaime O & Flores, Marie G"
+
+    # --- Marital-status stripping ---
+    def test_strips_single_man(self):
+        assert normalize.format_owner_name("James N. Kun, a Single Man") == "Kun, James N."
+
+    def test_strips_single_woman(self):
+        assert normalize.format_owner_name("COLE A. MONTGOMERY, SINGLE WOMAN") == "Montgomery, Cole A."
+
+    def test_strips_unmarried_woman(self):
+        assert normalize.format_owner_name("JACQUELYN J. TAYLOR, UNMARRIED WOMAN") == "Taylor, Jacquelyn J."
+
+    def test_strips_truncated_unmarried_woma(self):
+        """OCR sometimes truncates 'WOMAN' to 'WOMA'."""
+        assert normalize.format_owner_name("SKYLER OUSLEY, AN UNMARRIED WOMA") == "Ousley, Skyler"
+
+    def test_strips_husband_and_wife(self):
+        text = "JAIME O. FLORES AND MARIE G. FLORES, HUSBAND AND WIFE AS"
+        assert normalize.format_owner_name(text) == "Flores, Jaime O. & Flores, Marie G."
+
+    def test_strips_trailing_husband(self):
+        text = "BREANNA MARIE BATTIE and WALLACE BRYAN CLARK II, HUSBAND"
+        assert normalize.format_owner_name(text) == "Battie, Breanna Marie & Clark, Wallace Bryan II"
+
+    def test_strips_as_her_sole(self):
+        text = "_ | ADRIENNE PATRICE BROWN, A SINGLE WOMAN AS HER SOLE AND"
+        assert normalize.format_owner_name(text) == "Brown, Adrienne Patrice"
+
+    # --- OCR garbage prefixes ---
+    def test_strips_leading_pipe(self):
+        assert normalize.format_owner_name("| LUIS CARLOS ACUNA, A SINGLE MAN") == "Acuna, Luis Carlos"
+
+    def test_strips_leading_underscore(self):
+        text = "_ | ADRIENNE PATRICE BROWN, A SINGLE WOMAN AS HER SOLE AND"
+        assert normalize.format_owner_name(text) == "Brown, Adrienne Patrice"
+
+    # --- DECD / ESTATE markers ---
+    def test_strips_decd_marker(self):
+        # Auto-detects LAST FIRST via the DECD marker.
+        assert normalize.format_owner_name("FLYNN LINDA BARFIELD DECD") == "Flynn, Linda Barfield"
+        assert normalize.format_owner_name("NIXON JONATHAN BARRY DECD") == "Nixon, Jonathan Barry"
+
+    def test_strips_trailing_estate(self):
+        assert normalize.format_owner_name("MURDOCK DAVID H ESTATE") == "Murdock, David H"
+
+    def test_strips_aka(self):
+        assert normalize.format_owner_name("GORDON VERTIS ONETA DECD AKA") == "Gordon, Vertis Oneta"
+
+    def test_preserves_life_estate_as_entity(self):
+        """'LIFE ESTATE' is an entity marker — don't reformat."""
+        assert normalize.format_owner_name(
+            "STINSON BELINDA LIFE ESTATE",
+            source_format="last_first",
+        ) == "Stinson Belinda Life Estate"
+
+    # --- Joint owners with own surnames (FIRST-LAST format) ---
+    def test_joint_owners_both_surnames(self):
+        result = normalize.format_owner_name("DAVID WALKER and LINDA E. WALKER")
+        assert result == "Walker, David & Walker, Linda E."
+
+    def test_joint_owners_via_spouse_clause(self):
+        """X AND HIS/HER WIFE/HUSBAND, Y -> two owners."""
+        text = "LUIS VELASQUEZ AND HIS WIFE, ZULMA ARRIAZA"
+        result = normalize.format_owner_name(text)
+        assert "Velasquez, Luis" in result
+        assert "Arriaza" in result and "Zulma" in result
+        assert " & " in result
+
+    # --- Entity short-circuit ---
+    def test_llc_preserved_uppercase(self):
+        assert normalize.format_owner_name("GULF COAST WESTERN LLC") == "Gulf Coast Western LLC"
+
+    def test_trust_not_reformatted(self):
+        # Trusts shouldn't get their first token re-ordered as a surname.
+        assert normalize.format_owner_name(
+            "ARTHUR REVOCABLE TRUST THE", source_format="last_first"
+        ) == "Arthur Revocable Trust The"
+        assert normalize.format_owner_name(
+            "JENSEN FAMILY TRUST", source_format="last_first"
+        ) == "Jensen Family Trust"
+
+    # --- Title-case edge cases ---
+    def test_mc_prefix(self):
+        assert normalize.format_owner_name("EVELYN MCNEIL") == "McNeil, Evelyn"
+        assert normalize.format_owner_name("MCALLISTER MICHAEL LEN", source_format="last_first") == "McAllister, Michael Len"
+
+    def test_mac_left_alone_for_short_name(self):
+        """'MACK' is a regular surname — title-cased as 'Mack', not 'MacK'."""
+        result = normalize.format_owner_name(
+            "MCGUIRE MACK & TROSHANE", source_format="last_first"
+        )
+        assert result == "McGuire, Mack & McGuire, Troshane"
+
+    def test_roman_numeral_suffix(self):
+        text = "WALLACE BRYAN CLARK II"
+        assert normalize.format_owner_name(text) == "Clark, Wallace Bryan II"
+
+    # --- Truncation tails (OCR noise after the name) ---
+    def test_strips_truncated_will_text(self):
+        text = "LUCY J. LANGWELL provides thpt if"
+        assert normalize.format_owner_name(text) == "Langwell, Lucy J."
+
+    def test_strips_truncated_grantor_borrower_tail(self):
+        text = "Larry J Woods Jr., a single man as"
+        assert normalize.format_owner_name(text) == "Woods, Larry J Jr"
+
+    # --- Invalid source_format ---
+    def test_invalid_source_format_raises(self):
+        with pytest.raises(ValueError):
+            normalize.format_owner_name("Smith John", source_format="bogus")
+
+

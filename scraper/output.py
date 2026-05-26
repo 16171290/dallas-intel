@@ -24,6 +24,8 @@ from datetime import date
 from pathlib import Path
 from typing import Any, Iterable
 
+from . import normalize
+
 logger = logging.getLogger(__name__)
 
 CanonicalRecord = dict[str, Any]
@@ -33,6 +35,34 @@ CanonicalRecord = dict[str, Any]
 # JSON archive
 # ============================================================================
 
+# Field -> source_format hint for normalize.format_owner_name. The "auto"
+# branch picks last-first when DECD/ESTATE markers appear, else first-last.
+# dcad_owner is always DCAD-shaped (LAST FIRST [MIDDLE]) so we force it.
+_NAME_FIELD_FORMATS: dict[str, str] = {
+    "grantor":    "auto",
+    "grantee":    "auto",
+    "dcad_owner": "last_first",
+}
+
+
+def _format_name_fields(records: list[CanonicalRecord]) -> None:
+    """Normalize owner/grantor/grantee names to 'Last, First Middle [Suffix]'.
+
+    Runs in-place. Mirrors the raw value into a sibling ``*_raw`` field so the
+    pre-formatted string remains auditable in records.json. Idempotent: if
+    ``<field>_raw`` already exists we don't re-stash (re-formatting is safe).
+    """
+    for rec in records:
+        for field, fmt in _NAME_FIELD_FORMATS.items():
+            raw = rec.get(field)
+            if not raw:
+                continue
+            formatted = normalize.format_owner_name(raw, source_format=fmt)
+            if formatted and formatted != raw:
+                rec.setdefault(f"{field}_raw", raw)
+                rec[field] = formatted
+
+
 def write_records_json(records: list[CanonicalRecord], path: Path) -> None:
     """Atomic write of the full records archive to ``path``.
 
@@ -41,8 +71,16 @@ def write_records_json(records: list[CanonicalRecord], path: Path) -> None:
 
     Records are sorted by score (descending) then by filing_date (descending)
     so the dashboard's default view is meaningful without client-side sort.
+
+    Names (grantor/grantee/dcad_owner) are normalized to
+    "Last, First Middle [Suffix]" title-case in place; the original raw
+    value is preserved in a sibling ``<field>_raw`` field for audit.
     """
     path.parent.mkdir(parents=True, exist_ok=True)
+
+    # Format names before sorting so any name-based downstream consumer
+    # sees the canonical form.
+    _format_name_fields(records)
 
     sorted_records = sorted(
         records,

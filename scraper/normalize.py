@@ -385,3 +385,378 @@ def is_hoa_entity(name: Optional[str]) -> bool:
             return True
 
     return False
+
+
+# ============================================================================
+# Owner / grantor / grantee name formatting (2026-05-26)
+# ============================================================================
+#
+# Records arrive with names from three sources, each with different dirt:
+#
+#   1. publicsearch list-view scrape - usually "LAST, FIRST MIDDLE" form,
+#      often with stray internal whitespace ("BARBA , JUDITH")
+#   2. DCAD ACCOUNT_INFO.OWNER_NAME1 - "LAST FIRST MIDDLE" form (no comma),
+#      joint owners as "LAST FIRST & SECOND_FIRST" (e.g. "FLORES JAIME & MARIE")
+#   3. foreclosure_ocr extracted grantor - "First Last" or "FIRST LAST",
+#      heavily decorated with marital-status boilerplate ("A SINGLE MAN",
+#      "WIFE AND HUSBAND"), often truncated mid-sentence by OCR
+#
+# format_owner_name normalizes all three to "Last, First Middle [Suffix]"
+# title-case, e.g. "Smith, John A Jr". Entity names (TRUST/LLC/CORP) are
+# title-cased but not re-ordered. Joint owners separated by ' & '.
+
+# Anywhere these phrases appear, everything from that point onward is
+# OCR boilerplate / marital-status decoration, not part of the name.
+# Most-specific patterns first so "husband and wife" wins over "husband".
+_NAME_TAIL_SENTINELS: list[re.Pattern] = [
+    re.compile(r",?\s+husband\s+and\s+wife\b.*$",   re.I),
+    re.compile(r",?\s+wife\s+and\s+husband\b.*$",   re.I),
+    re.compile(r",?\s+an?\s+single\s+(?:man|woman)\b.*$", re.I),
+    re.compile(r",?\s+an?\s+married\s+(?:man|woman)\b.*$", re.I),
+    re.compile(r",?\s+an?\s+unmarried\s+wom\w*\b.*$", re.I),  # OCR-truncated "WOMA"
+    re.compile(r",?\s+an?\s+unmarried\s+man\b.*$",  re.I),
+    re.compile(r",?\s+as\s+(?:her|his)\s+sole\b.*$", re.I),
+    re.compile(r",?\s+as\s+(?:her|his)\s+separate\b.*$", re.I),
+    re.compile(r",?\s+husband\b.*$",    re.I),
+    re.compile(r",?\s+wife\b.*$",       re.I),
+    re.compile(r",?\s+single\b.*$",     re.I),
+    re.compile(r",?\s+unmarried\b.*$",  re.I),
+    re.compile(r",?\s+married\b.*$",    re.I),
+    re.compile(r"\s+provides\s+\w+.*$", re.I),  # OCR-leaked will boilerplate
+]
+
+# DECD / ESTATE / AKA markers - strip these as standalone tokens.
+# Note: "LIFE ESTATE" and "FAMILY TRUST" are entity markers; handled separately.
+_DECD_MARKER_RE = re.compile(
+    r"\b(?:DECD|DECEASED|AKA|A\.K\.A\.)\b\s*", re.I
+)
+# Trailing " ESTATE" only when not preceded by "LIFE" (which is an entity).
+_TRAILING_ESTATE_RE = re.compile(r"(?<!\bLIFE)\s+ESTATE\s*$", re.I)
+
+# "X AND HIS/HER WIFE/HUSBAND, Y" -> "X AND Y" pre-processor.
+# Without this, the WIFE/HUSBAND sentinel above would clip Y entirely.
+_JOINT_VIA_SPOUSE_RE = re.compile(
+    r"\s+AND\s+(?:HIS|HER)\s+(?:WIFE|HUSBAND)\s*,\s*", re.I
+)
+
+# Entity markers - when present, don't re-order LAST/FIRST. Title-case only.
+_ENTITY_TOKENS = {
+    "TRUST", "LLC", "L.L.C.", "LP", "L.P.", "LTD", "INC", "CORP",
+    "CORPORATION", "COMPANY", "CO", "PARTNERSHIP", "PARTNERS",
+    "ASSOCIATION", "ASSN", "FUND", "HOLDINGS", "PROPERTIES",
+}
+_ENTITY_PHRASES = [
+    "LIFE ESTATE",
+    "ESTATE OF",
+    "FAMILY TRUST",
+    "REVOCABLE TRUST",
+    "LIVING TRUST",
+]
+
+# Joint-owner splitter. Word-boundary "and" / "AND" / "&".
+_JOINT_SPLIT_RE = re.compile(r"\s+(?:and|AND|And|&)\s+")
+
+# Personal-name suffixes (preserve, repositioned after first name).
+_SUFFIX_RE = re.compile(r"^(?:Jr|Sr|II|III|IV|2nd|3rd)\.?$", re.I)
+
+
+def _looks_like_entity(s: str) -> bool:
+    """Return True if the string looks like a non-person entity (trust, LLC,
+    estate-of-foo, etc.) and should NOT be re-ordered as a person name."""
+    if not s:
+        return False
+    upper = s.upper()
+    for phrase in _ENTITY_PHRASES:
+        if phrase in upper:
+            return True
+    tokens = {t.rstrip(".,").upper() for t in s.split()}
+    return bool(tokens & _ENTITY_TOKENS)
+
+
+_ALL_CAPS_TOKENS = {
+    "LLC", "L.L.C.", "LP", "L.P.", "LTD", "INC", "INC.",
+    "CORP", "CORP.", "CO", "USA", "II", "III", "IV", "VI",
+}
+
+
+def _title_case_token(tok: str) -> str:
+    """Title-case a single name token respecting Mc/Mac/O', Roman numerals,
+    and entity suffixes (LLC, INC, LP).
+
+      "MCDONALD" -> "McDonald"
+      "MACARTHUR" -> "MacArthur"
+      "O'CONNOR" -> "O'Connor"
+      "II" -> "II"   (Roman numeral preserved)
+      "M." -> "M."   (single-letter initial uppercase)
+      "LLC" -> "LLC" (entity suffix all-caps)
+    """
+    if not tok:
+        return ""
+    # Always-uppercase tokens (entity suffixes + Roman numerals).
+    if tok.upper() in _ALL_CAPS_TOKENS:
+        return tok.upper()
+    # Roman numerals (catch any not in the explicit set).
+    if re.fullmatch(r"(?:II|III|IV|VI|VII|VIII|IX|XI|XII)", tok, re.I):
+        return tok.upper()
+    # Single-letter initial (possibly with period).
+    bare = tok.rstrip(".")
+    if len(bare) == 1 and bare.isalpha():
+        return bare.upper() + ("." if tok.endswith(".") else "")
+    # Mc prefix: "McDonald" / "McCullough". Safe to apply on all-caps
+    # input because Mc-as-first-two-letters always indicates Mc surname.
+    if re.match(r"^MC[A-Z]", tok, re.I) and len(tok) >= 3:
+        return "Mc" + tok[2].upper() + tok[3:].lower()
+    # NOTE: Mac-prefix rule deliberately omitted. "MACK" / "MACEY" are
+    # regular surnames; from all-caps input we can't tell whether
+    # "MACARTHUR" wants "MacArthur" or "Macarthur". Default title-case
+    # gives "Macarthur" which is wrong less often than "MacK".
+    # O' prefix: "O'Connor"
+    if re.match(r"^O'[A-Z]", tok, re.I):
+        return "O'" + tok[2].upper() + tok[3:].lower()
+    # Hyphenated names: "Smith-Jones"
+    if "-" in tok:
+        return "-".join(_title_case_token(p) for p in tok.split("-"))
+    # Default: first letter upper, rest lower.
+    return tok[:1].upper() + tok[1:].lower()
+
+
+def _title_case_name(s: str) -> str:
+    """Apply token-aware title-casing to a full name string."""
+    return " ".join(_title_case_token(t) for t in s.split())
+
+
+def _extract_suffix(tokens: list[str]) -> tuple[list[str], str]:
+    """Pop a trailing Jr/Sr/II/III suffix off the token list.
+
+    Returns ``(remaining_tokens, suffix_str)`` where suffix_str is "" if
+    no suffix was present. The suffix is stripped of any trailing period.
+    """
+    if not tokens:
+        return tokens, ""
+    last = tokens[-1].rstrip(".,")
+    if _SUFFIX_RE.fullmatch(last):
+        # Canonical-case the suffix.
+        canonical = {"jr": "Jr", "sr": "Sr", "ii": "II", "iii": "III",
+                     "iv": "IV", "2nd": "II", "3rd": "III"}
+        return tokens[:-1], canonical.get(last.lower(), last)
+    return tokens, ""
+
+
+def _format_single_person(raw: str, *, no_comma_format: str = "first_last") -> str:
+    """Convert one person's name to ``"Last, First Middle [Suffix]"``.
+
+    Parses the input based on the presence of a comma:
+
+      - Comma form ``"LAST, FIRST MIDDLE"`` (publicsearch / DCAD comma-style):
+        first segment is the surname, rest is first + middle.
+      - No-comma form: parse depends on ``no_comma_format``:
+          * ``"first_last"`` (default): ``"First Middle Last"`` — OCR / deed
+            text format; LAST token is the surname.
+          * ``"last_first"``: ``"Last First Middle"`` — DCAD owner / probate
+            decedent format; FIRST token is the surname.
+    """
+    raw = raw.strip().rstrip(",")
+    if not raw:
+        return ""
+
+    # Comma form: parse first segment as surname.
+    if "," in raw:
+        parts = [p.strip() for p in raw.split(",")]
+        suffix = ""
+        if len(parts) >= 2 and _SUFFIX_RE.fullmatch(parts[-1].rstrip(".")):
+            canonical = {"jr": "Jr", "sr": "Sr", "ii": "II", "iii": "III",
+                         "iv": "IV", "2nd": "II", "3rd": "III"}
+            suffix = canonical.get(parts[-1].rstrip(".").lower(),
+                                   parts[-1].rstrip("."))
+            parts = parts[:-1]
+
+        if len(parts) == 1:
+            # No explicit last-name separator — fall through to no-comma branch.
+            return _format_single_person(
+                parts[0] + (" " + suffix if suffix else ""),
+                no_comma_format=no_comma_format,
+            )
+
+        last = parts[0].strip()
+        first_middle = " ".join(p for p in parts[1:] if p).strip()
+        fm_tokens = first_middle.split()
+        fm_tokens, embedded_suffix = _extract_suffix(fm_tokens)
+        if embedded_suffix and not suffix:
+            suffix = embedded_suffix
+        first_middle = " ".join(fm_tokens)
+
+        last_tc = _title_case_name(last)
+        fm_tc   = _title_case_name(first_middle)
+        return (
+            f"{last_tc}, {fm_tc}" + (f" {suffix}" if suffix else "")
+        ).strip().rstrip(",")
+
+    # No-comma form. Surname position depends on no_comma_format.
+    tokens = raw.split()
+    tokens, suffix = _extract_suffix(tokens)
+    if not tokens:
+        return ""
+    if len(tokens) == 1:
+        out = _title_case_token(tokens[0])
+        return f"{out} {suffix}".strip() if suffix else out
+
+    if no_comma_format == "last_first":
+        # DCAD / probate-decedent format: FIRST token is the surname.
+        last = tokens[0]
+        first_middle = " ".join(tokens[1:])
+    else:
+        # Default: LAST token is the surname (deed/OCR convention).
+        last = tokens[-1]
+        first_middle = " ".join(tokens[:-1])
+
+    last_tc = _title_case_name(last)
+    fm_tc   = _title_case_name(first_middle)
+    return (
+        f"{last_tc}, {fm_tc}" + (f" {suffix}" if suffix else "")
+    ).strip().rstrip(",")
+
+
+def format_owner_name(raw: Optional[str], *, source_format: str = "auto") -> str:
+    """Normalize an owner / grantor / grantee name to ``"Last, First Middle [Suffix]"``.
+
+    Parameters
+    ----------
+    raw : str | None
+        Raw name string from any source. Empty / None returns "".
+    source_format : str
+        How to interpret no-comma names (the comma-present form is
+        unambiguous: it's always "LAST, FIRST MIDDLE"). One of:
+
+        * ``"auto"`` (default) — detect: if "DECD" / "DECEASED" / "ESTATE"
+          markers are present, treat as "LAST FIRST MIDDLE" (DCAD-style,
+          common for probate decedents); otherwise treat as "FIRST MIDDLE
+          LAST" (deed/OCR convention).
+        * ``"last_first"`` — force "LAST FIRST MIDDLE" parse. Use for
+          ``dcad_owner`` field where DCAD's ACCOUNT_INFO always puts the
+          surname first.
+        * ``"first_last"`` — force "FIRST MIDDLE LAST" parse.
+
+    Examples::
+
+        format_owner_name("JAMES N. KUN, A SINGLE MAN")
+            -> "Kun, James N."
+        format_owner_name("BARBA , JUDITH")
+            -> "Barba, Judith"
+        format_owner_name("Bobbie Meyers")
+            -> "Meyers, Bobbie"
+        format_owner_name("BERGER ANN M", source_format="last_first")
+            -> "Berger, Ann M"
+        format_owner_name("STAFFORD CHARLES & SHARON", source_format="last_first")
+            -> "Stafford, Charles & Stafford, Sharon"
+        format_owner_name("FLYNN LINDA BARFIELD DECD")
+            -> "Flynn, Linda Barfield"   # auto-detects via DECD marker
+        format_owner_name("DAVID WALKER and LINDA E. WALKER")
+            -> "Walker, David & Walker, Linda E."
+        format_owner_name("ARTHUR REVOCABLE TRUST THE")
+            -> "Arthur Revocable Trust The"
+    """
+    if not raw:
+        return ""
+    s = str(raw).strip()
+    if not s:
+        return ""
+
+    # 1. Strip OCR-prefix garbage ("_", "|", quotes, leading whitespace).
+    s = re.sub(r"^[_|\"'\s]+", "", s)
+
+    # 2. Pre-process "X AND HIS/HER WIFE/HUSBAND, Y" -> "X AND Y" so we
+    #    don't clip Y when stripping marital-status sentinels next.
+    s = _JOINT_VIA_SPOUSE_RE.sub(" AND ", s)
+
+    # 3. Auto-detection: if "DECD" / "DECEASED" / "ESTATE" appears AND
+    #    the caller didn't override, this is DCAD-style "LAST FIRST".
+    if source_format == "auto":
+        if _DECD_MARKER_RE.search(s) or _TRAILING_ESTATE_RE.search(s):
+            no_comma_format = "last_first"
+        else:
+            no_comma_format = "first_last"
+    elif source_format in ("last_first", "first_last"):
+        no_comma_format = source_format
+    else:
+        raise ValueError(f"Unknown source_format: {source_format!r}")
+
+    # 4. Drop trailing marital-status / OCR-boilerplate sentinels.
+    for pat in _NAME_TAIL_SENTINELS:
+        s = pat.sub("", s)
+
+    # 5. Strip DECD / DECEASED / AKA markers anywhere.
+    s = _DECD_MARKER_RE.sub("", s)
+    # 6. Strip trailing standalone ESTATE (but not "LIFE ESTATE").
+    s = _TRAILING_ESTATE_RE.sub("", s)
+
+    # 7. Collapse runs of whitespace and trim.
+    s = re.sub(r"\s+", " ", s).strip().rstrip(",")
+    if not s:
+        return ""
+
+    # 8. Entity short-circuit — title-case but don't re-order.
+    if _looks_like_entity(s):
+        return _title_case_name(s)
+
+    # 9. Joint-owner split. After cleaning above, AND/and/& separates
+    #    distinct people (the WIFE/HUSBAND clip was pre-processed).
+    parts = [p.strip().rstrip(",") for p in _JOINT_SPLIT_RE.split(s) if p.strip()]
+
+    if len(parts) == 1:
+        return _format_single_person(parts[0], no_comma_format=no_comma_format)
+
+    # 10. Multi-person inheritance. When a later part is missing its own
+    #     surname (e.g. "GINA" in "MEEKING STEVEN & GINA"), prepend the
+    #     primary owner's surname before formatting. This logic only
+    #     applies when the primary name is in LAST-FIRST form (DCAD); in
+    #     FIRST-LAST form the inheritance pattern is rare and risky.
+    formatted: list[str] = []
+    primary_surname_tokens: list[str] = []
+    for i, part in enumerate(parts):
+        if (
+            i > 0
+            and no_comma_format == "last_first"
+            and "," not in part
+            and _looks_like_partner_first_only(part, no_comma_format)
+            and primary_surname_tokens
+        ):
+            part = " ".join(primary_surname_tokens) + " " + part
+        formatted_part = _format_single_person(part, no_comma_format=no_comma_format)
+        if formatted_part:
+            formatted.append(formatted_part)
+            if i == 0 and "," in formatted_part:
+                # Capture the primary's surname (everything before the
+                # first comma) so subsequent partner-only parts can
+                # inherit it. Upper-case so single-person reformat sees
+                # it in the original DCAD shape.
+                primary_surname_tokens = formatted_part.split(",", 1)[0].upper().split()
+
+    return " & ".join(formatted)
+
+
+def _looks_like_partner_first_only(s: str, no_comma_format: str = "first_last") -> bool:
+    """True if the string looks like a spouse's first name (and optional
+    middle) without a surname of its own.
+
+    In DCAD's ``last_first`` format, joint owners are almost always spouses
+    sharing a surname — the second part is the spouse's first/middle name
+    alone (e.g. ``"MOORE ALBERT & SUSIE MAE"`` -> SUSIE MAE inherits MOORE).
+    So in last_first mode we treat 1-2 token parts as inheritors. A 3+
+    token second part is treated as having its own surname.
+
+    In ``first_last`` mode (deed convention) inheritance is rare and risky
+    because deeds typically spell out both surnames; we only inherit on
+    bare single-token names or "FIRST INITIAL" forms.
+    """
+    tokens = s.split()
+    if not tokens:
+        return False
+    if no_comma_format == "last_first":
+        return len(tokens) <= 2
+    # first_last default: bare first name only.
+    if len(tokens) == 1:
+        return True
+    if len(tokens) == 2 and len(tokens[-1].rstrip(".")) <= 1:
+        return True
+    return False
+
