@@ -400,3 +400,106 @@ class TestCanonicalizeProbate:
         assert out["signal_metadata"]["attorneys"] == ["ORIGINAL"]
         assert out["signal_metadata"]["attorneys"] is not attorneys
 
+    # ----- DCAD fan-out (PR 5.x) ------------------------------------------
+
+    def test_no_owner_index_skips_fanout(self):
+        """Backwards compat — calling without owner_index keeps the legacy
+        address=None, no metadata behavior."""
+        rec = self._make_record(decedent_name="WALLACE, VON ELLEN")
+        out = enrichment.canonicalize_probate(rec)
+        assert out["address_normalized"] is None
+        assert out["signal_metadata"]["decedent_owned_properties"] == []
+        assert out["signal_metadata"]["dcad_match_tier"] is None
+        assert out["signal_metadata"]["dcad_match_warning"] is None
+
+    def test_match_populates_address_and_properties(self):
+        rec = self._make_record(decedent_name="WALLACE, VON ELLEN")
+        owner_index = {"WALLACE VON ELLEN": ["acct_w"]}
+        account_addr_index = {
+            "acct_w": {
+                "address_normalized": "1316 SATURN ST",
+                "address_city": "CEDAR HILL",
+                "address_state": "TX",
+                "address_zip": "75104",
+            },
+        }
+        out = enrichment.canonicalize_probate(
+            rec, owner_index=owner_index,
+            account_address_index=account_addr_index,
+        )
+        assert out["address_normalized"] == "1316 SATURN ST"
+        props = out["signal_metadata"]["decedent_owned_properties"]
+        assert len(props) == 1
+        assert props[0]["account_num"] == "acct_w"
+        assert props[0]["address_normalized"] == "1316 SATURN ST"
+        assert props[0]["address_city"] == "CEDAR HILL"
+        assert out["signal_metadata"]["dcad_match_tier"] == "exact"
+        assert out["signal_metadata"]["dcad_match_warning"] is None
+
+    def test_match_uses_first_property_as_primary(self):
+        """For multi-property matches, top-level address_normalized takes
+        the first account; signal_metadata lists all of them."""
+        rec = self._make_record(decedent_name="WARREN, ALLEN, Jr")
+        owner_index = {"WARREN ALLEN": ["acct_a", "acct_b"]}
+        account_addr_index = {
+            "acct_a": {"address_normalized": "1337 EXETER DR"},
+            "acct_b": {"address_normalized": "203 GOLDEN POND DR"},
+        }
+        out = enrichment.canonicalize_probate(
+            rec, owner_index=owner_index,
+            account_address_index=account_addr_index,
+        )
+        assert out["address_normalized"] == "1337 EXETER DR"
+        props = out["signal_metadata"]["decedent_owned_properties"]
+        assert len(props) == 2
+        assert [p["account_num"] for p in props] == ["acct_a", "acct_b"]
+
+    def test_no_match_leaves_fields_none(self):
+        rec = self._make_record(decedent_name="NONEXISTENT, PERSON")
+        owner_index = {"WALLACE VON ELLEN": ["acct_w"]}
+        out = enrichment.canonicalize_probate(
+            rec, owner_index=owner_index, account_address_index={},
+        )
+        assert out["address_normalized"] is None
+        assert out["signal_metadata"]["decedent_owned_properties"] == []
+        assert out["signal_metadata"]["dcad_match_tier"] is None
+        assert out["signal_metadata"]["dcad_match_warning"] is None
+
+    def test_common_name_pollution_warning_propagated(self):
+        rec = self._make_record(decedent_name="WILSON, ROBERT")
+        accounts = [f"acct_{i}" for i in range(8)]
+        owner_index = {"WILSON ROBERT": accounts}
+        account_addr_index = {
+            f"acct_{i}": {"address_normalized": f"{i} MAIN ST"} for i in range(8)
+        }
+        out = enrichment.canonicalize_probate(
+            rec, owner_index=owner_index,
+            account_address_index=account_addr_index,
+        )
+        assert out["signal_metadata"]["dcad_match_warning"] == "common_name_pollution"
+        assert len(out["signal_metadata"]["decedent_owned_properties"]) == 8
+
+    def test_account_address_index_missing_account_yields_none_fields(self):
+        """If the matcher returns an account that account_address_index
+        doesn't know about, the property entry's address fields are None
+        rather than crashing."""
+        rec = self._make_record(decedent_name="WALLACE, VON ELLEN")
+        owner_index = {"WALLACE VON ELLEN": ["unknown_acct"]}
+        out = enrichment.canonicalize_probate(
+            rec, owner_index=owner_index, account_address_index={},
+        )
+        props = out["signal_metadata"]["decedent_owned_properties"]
+        assert len(props) == 1
+        assert props[0]["account_num"] == "unknown_acct"
+        assert props[0]["address_normalized"] is None
+        assert out["address_normalized"] is None  # falls through cleanly
+
+    def test_missing_decedent_name_skips_fanout(self):
+        rec = self._make_record(decedent_name=None)
+        owner_index = {"WALLACE VON ELLEN": ["acct_w"]}
+        out = enrichment.canonicalize_probate(
+            rec, owner_index=owner_index, account_address_index={},
+        )
+        assert out["signal_metadata"]["decedent_owned_properties"] == []
+        assert out["signal_metadata"]["dcad_match_tier"] is None
+
