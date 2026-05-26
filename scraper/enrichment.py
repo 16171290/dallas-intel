@@ -18,11 +18,12 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Mapping, Optional
 
 import pandas as pd
 
 from . import config, normalize
+from .probate_matcher import match_decedent_to_dcad
 from .foreclosure_pdfs import ForeclosureRecord
 from .foreclosures_ps import ForeclosureNoticePSRecord
 from .publicsearch import PublicSearchRecord
@@ -385,7 +386,12 @@ def _any_active(rows: pd.DataFrame, col: str) -> bool:
 
 
 
-def canonicalize_probate(rec: "ProbateRecord") -> CanonicalRecord:
+def canonicalize_probate(
+    rec: "ProbateRecord",
+    *,
+    owner_index: Optional[Mapping[str, list[str]]] = None,
+    account_address_index: Optional[Mapping[str, dict]] = None,
+) -> CanonicalRecord:
     """Convert a ProbateRecord into the canonical dict shape (Sec E.2).
 
     Probate cases map to the ``PROB`` category with literal Dallas code ``PB``
@@ -393,21 +399,65 @@ def canonicalize_probate(rec: "ProbateRecord") -> CanonicalRecord:
       - ``grantor`` is the decedent (the party from whom the estate flows)
       - ``grantee`` is the applicant (the party petitioning for letters)
 
-    Probate filings do not carry a property address at filing time, so
-    all address fields are ``None``. DCAD fan-out (matching applicants to
-    owned properties) is a downstream concern and lives outside this
-    canonicalizer.
+    DCAD fan-out (PR 5.x): probate filings themselves carry no property
+    address. To surface the decedent's owned Dallas property as a
+    motivated-seller lead, we look up the decedent_name in DCAD's
+    owner_index via ``probate_matcher.match_decedent_to_dcad``. When a
+    match is found:
+      - ``address_normalized`` is set to the FIRST matched property's
+        normalized address. The downstream ``enrich_record`` then
+        re-derives ``dcad_account`` / ``dcad_owner`` / market value /
+        exemptions through the canonical address-keyed path.
+      - ``signal_metadata.decedent_owned_properties`` carries the FULL
+        list of matched properties (a decedent may own 1+ parcels).
+      - ``signal_metadata.dcad_match_tier`` records which matcher tier
+        produced the hit (exact / no_middle / initial_form / etc.).
+      - ``signal_metadata.dcad_match_warning`` is set to
+        "common_name_pollution" when the match resolves to >3 accounts
+        (likely multiple unrelated people sharing a common name —
+        operator should manually verify).
+
+    When ``owner_index`` is not provided (e.g. unit tests, or backwards
+    compatibility) the function falls back to address=None and no
+    fan-out happens. No regression vs the pre-fan-out behavior.
 
     Probate-specific context (judge, attorneys, case_type, case_status,
-    jurisdiction, additional_applicants) is preserved under ``signal_metadata``
-    rather than top-level keys, keeping the canonical schema stable across
-    sources.
+    jurisdiction, additional_applicants) is preserved under
+    ``signal_metadata`` rather than top-level keys, keeping the canonical
+    schema stable across sources.
     """
     # Strip Tyler ISO timestamp to YYYY-MM-DD to match the date-only convention
     # used by publicsearch. Tyler returns dates as either "2026-05-14T17:00:00"
     # or "2026-05-14T17:00:00+00:00"; slicing the first 10 chars yields the date
     # portion deterministically.
     filing_date = rec.date_filed[:10] if rec.date_filed else None
+
+    # DCAD fan-out — find properties owned by the decedent
+    decedent_properties: list[dict] = []
+    match_tier: Optional[str] = None
+    match_warning: Optional[str] = None
+    primary_address_normalized: Optional[str] = None
+
+    if owner_index and rec.decedent_name:
+        match = match_decedent_to_dcad(rec.decedent_name, owner_index)
+        if match:
+            match_tier = match.tier
+            match_warning = match.warning
+            for acct in match.accounts:
+                addr_info = (account_address_index or {}).get(acct, {})
+                decedent_properties.append({
+                    "account_num":        acct,
+                    "address_normalized": addr_info.get("address_normalized"),
+                    "address_city":       addr_info.get("address_city"),
+                    "address_state":      addr_info.get("address_state"),
+                    "address_zip":        addr_info.get("address_zip"),
+                })
+            # Use the first matched property's address as the primary
+            # so downstream enrich_record fills DCAD fields via its
+            # canonical address-keyed lookup. Order within match.accounts
+            # is DCAD's natural insertion order — first found wins for now.
+            if decedent_properties:
+                primary_address_normalized = decedent_properties[0]["address_normalized"]
 
     return {
         "record_id":          f"pro-{rec.case_data_id}",
@@ -419,7 +469,7 @@ def canonicalize_probate(rec: "ProbateRecord") -> CanonicalRecord:
         "grantor":            rec.decedent_name,
         "grantee":            rec.applicant_name,
         "address":            None,
-        "address_normalized": None,
+        "address_normalized": primary_address_normalized,
         "dcad_account":       None,
         "dcad_owner":         None,
         "dcad_market_value":  None,
@@ -438,12 +488,15 @@ def canonicalize_probate(rec: "ProbateRecord") -> CanonicalRecord:
         "active":             True,
         "release_record_id":  None,
         "signal_metadata":    {
-            "case_type":             rec.case_type,
-            "case_status":           rec.case_status,
-            "judge":                 rec.judge,
-            "attorneys":             list(rec.attorneys),
-            "jurisdiction":          rec.jurisdiction,
-            "additional_applicants": list(rec.additional_applicants),
+            "case_type":                 rec.case_type,
+            "case_status":               rec.case_status,
+            "judge":                     rec.judge,
+            "attorneys":                 list(rec.attorneys),
+            "jurisdiction":              rec.jurisdiction,
+            "additional_applicants":     list(rec.additional_applicants),
+            "decedent_owned_properties": decedent_properties,
+            "dcad_match_tier":           match_tier,
+            "dcad_match_warning":        match_warning,
         },
         "address_city":       None,
         "address_state":      None,
