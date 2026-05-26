@@ -56,7 +56,10 @@ def main() -> int:
         r for r in data.get("records", [])
         if r.get("source") == "probate.txcourts.gov"
     ]
-    decedents = [(r.get("record_id"), r.get("grantor")) for r in rsxtx if r.get("grantor")]
+    decedents = [
+        (r.get("instrument_num"), r.get("grantor"))
+        for r in rsxtx if r.get("grantor")
+    ]
     print(f"re:SearchTX records:        {len(rsxtx)}")
     print(f"with decedent name (grantor): {len(decedents)}")
     if not decedents:
@@ -122,7 +125,7 @@ def main() -> int:
             m = _lookup_with_tiers(key, primary_index, primary_full_name)
             if m:
                 result = {
-                    "record_id": rid, "decedent": name,
+                    "case_number": rid, "decedent": name,
                     "lookup_key": key, "key_source": key_source,
                     "tier": m["tier"], "matched_name": m["matched_name"],
                     "matched_dcad_owner_raw": m["matched_full"],
@@ -134,7 +137,7 @@ def main() -> int:
                 m = _lookup_with_tiers(key, secondary_index, secondary_full_name)
                 if m:
                     result = {
-                        "record_id": rid, "decedent": name,
+                        "case_number": rid, "decedent": name,
                         "lookup_key": key, "key_source": key_source,
                         "tier": m["tier"], "matched_name": m["matched_name"],
                         "matched_dcad_owner_raw": m["matched_full"],
@@ -144,7 +147,7 @@ def main() -> int:
 
         if result is None:
             misses.append({
-                "record_id": rid, "decedent": name,
+                "case_number": rid, "decedent": name,
                 "tried_keys": keys,
             })
         elif result["found_in"] == "primary":
@@ -190,7 +193,7 @@ def main() -> int:
     print("SAMPLE HITS WITH PROPERTY ADDRESSES")
     print("=" * 70)
     for h in (hits_primary + hits_secondary_only)[:15]:
-        print(f"\n  record={h['record_id']}  ({h['found_in']})")
+        print(f"\n  case={h['case_number']}  ({h['found_in']})")
         print(f"  decedent:           {h['decedent']!r}")
         print(f"  lookup key:         {h['lookup_key']!r}  ({h['key_source']}, tier={h['tier']})")
         print(f"  matched DCAD owner: {h['matched_dcad_owner_raw']!r}")
@@ -205,7 +208,7 @@ def main() -> int:
     print(f"SAMPLE MISSES (first 12 of {len(misses)})")
     print("=" * 70)
     for m in misses[:12]:
-        print(f"  decedent={m['decedent']!r}")
+        print(f"  case={m['case_number']}  decedent={m['decedent']!r}")
         for k, src in m["tried_keys"]:
             print(f"    tried {src:8s}: {k!r}")
 
