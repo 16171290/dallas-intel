@@ -123,8 +123,11 @@ def main() -> int:
         keys = _candidate_keys(name)
         result = None
 
-        for key, key_source in keys:
-            m = _lookup_with_tiers(key, primary_index, primary_full_name, surname_to_keys)
+        for key, key_source, surname_first in keys:
+            m = _lookup_with_tiers(
+                key, primary_index, primary_full_name, surname_to_keys,
+                surname_is_first_token=surname_first,
+            )
             if m:
                 result = {
                     "case_number": instrument_num, "decedent": name,
@@ -135,13 +138,14 @@ def main() -> int:
                 }
                 break
             if m is False:
-                # Sentinel: surname-only would have hit, but uniqueness gate rejected.
-                # Track for diagnostic.
                 surname_only_skipped_common.append((name, key, len(surname_to_keys.get(key.split()[0], []))))
 
         if result is None:
-            for key, key_source in keys:
-                m = _lookup_with_tiers(key, secondary_index, secondary_full_name, None)
+            for key, key_source, surname_first in keys:
+                m = _lookup_with_tiers(
+                    key, secondary_index, secondary_full_name, None,
+                    surname_is_first_token=surname_first,
+                )
                 if m:
                     result = {
                         "case_number": instrument_num, "decedent": name,
@@ -230,11 +234,11 @@ def main() -> int:
     print("variant name (married name, nickname, etc.) or truly nothing.")
     for m in misses:
         print(f"\n  case={m['case_number']}  decedent={m['decedent']!r}")
-        for k, src in m["tried_keys"]:
+        for k, src, _safe in m["tried_keys"]:
             print(f"    tried {src:8s}: {k!r}")
         # Diagnostic: show what's in the DCAD index for each candidate surname
         surnames_to_check = set()
-        for k, _src in m["tried_keys"]:
+        for k, _src, _safe in m["tried_keys"]:
             if k:
                 first_tok = k.split()[0]
                 if first_tok and len(first_tok) >= 3:
@@ -287,19 +291,36 @@ def _build_index_from_df(df, *, owner_col_candidates, account_col_candidates, la
     return dict(index), full_name
 
 
-def _candidate_keys(name: str) -> list[tuple[str, str]]:
+def _candidate_keys(name: str) -> list[tuple[str, str, bool]]:
+    """Return list of (key, source, surname_is_first_token) tuples.
+
+    surname_is_first_token tells _lookup_with_tiers whether it's safe to
+    apply the surname-preserving multi-token tiers (no_middle / initial /
+    surname_only). Those tiers all assume the first token of the lookup
+    key IS the surname. That holds for:
+      - comma-form Tyler names ("LAST, FIRST MIDDLE") in asis form
+      - any rotated key (we explicitly moved the last token to front)
+    It does NOT hold for no-comma Tyler names in asis form: those are
+    "FIRST MIDDLE LAST" and the first token is the FIRST NAME.
+
+    PR v4 fix: previously the no-comma asis key was tried with full tier
+    ladder, producing false positives like 'CYNTHIA HAWKINS' surname-only
+    matching 'CYNTHIA TRUST THE'.
+    """
     from scraper.dcad_owner_index import normalize_dcad_owner_name
     has_comma = "," in (name or "")
     norm = normalize_dcad_owner_name(name)
-    out: list[tuple[str, str]] = []
+    out: list[tuple[str, str, bool]] = []
     if norm:
-        out.append((norm, "asis"))
+        # asis: surname-first-token guaranteed only when name had a comma
+        out.append((norm, "asis", has_comma))
     if not has_comma and norm:
         tokens = norm.split()
         if len(tokens) >= 2:
             rotated = " ".join([tokens[-1]] + tokens[:-1])
             if rotated != norm:
-                out.append((rotated, "rotated"))
+                # rotated: surname is now first token by construction
+                out.append((rotated, "rotated", True))
     return out
 
 
@@ -308,18 +329,25 @@ def _lookup_with_tiers(
     index: dict[str, list[str]],
     full_name: dict[str, str],
     surname_to_keys: Optional[dict[str, list[str]]],
+    *,
+    surname_is_first_token: bool = True,
 ) -> Optional[dict]:
     """Tier ladder. ALL tiers preserve the surname.
 
     Tier 1: exact match.
-    Tier 2: no_middle    -> LAST FIRST
-    Tier 3: initial_form -> LAST FIRST INITIAL_OF_MIDDLE
-    Tier 4: surname_only -> LAST  (only if surname maps to <= N accounts)
+    Tier 2: no_middle      -> LAST FIRST                      (3+ tokens)
+    Tier 3: initial_form   -> LAST FIRST INITIAL_OF_MIDDLE    (3+ tokens)
+    Tier 3b: double_initial -> LAST FIRST INITIAL_OF_M1 INITIAL_OF_M2  (4+ tokens)
+    Tier 4: surname_only   -> LAST  (only if surname maps to <= N accounts)
+
+    Tiers 2-4 require surname_is_first_token=True (we trust the first
+    token is the surname). When False (e.g. no-comma Tyler name in asis
+    form), only Tier 1 is tried.
 
     Returns dict on hit, None on miss, False if surname-only would have
-    matched but was rejected for being too common (signal for diagnostic).
+    matched but was rejected for being too common.
     """
-    # Tier 1: exact
+    # Tier 1: exact — always safe regardless of token order
     if key in index:
         return {
             "tier": "exact",
@@ -327,6 +355,10 @@ def _lookup_with_tiers(
             "matched_full": full_name.get(key, key),
             "accounts": list(index[key]),
         }
+
+    # All remaining tiers assume surname is first token. Bail if not safe.
+    if not surname_is_first_token:
+        return None
 
     tokens = key.split()
 
@@ -354,6 +386,21 @@ def _lookup_with_tiers(
                     "accounts": list(index[initial_form]),
                 }
 
+    # Tier 3b: double_initial  (LAST FIRST INITIAL_OF_M1 INITIAL_OF_M2)
+    # Catches DCAD's "LAST FIRST M1 M2" abbreviation form for 4-name people.
+    if len(tokens) >= 4:
+        m1 = tokens[2][:1]
+        m2 = tokens[3][:1]
+        if m1.isalpha() and m2.isalpha():
+            double_initial = f"{tokens[0]} {tokens[1]} {m1} {m2}"
+            if double_initial in index:
+                return {
+                    "tier": "double_initial",
+                    "matched_name": double_initial,
+                    "matched_full": full_name.get(double_initial, double_initial),
+                    "accounts": list(index[double_initial]),
+                }
+
     # Tier 4: surname_only (uniqueness-gated). Only for primary index.
     if surname_to_keys is not None and tokens:
         surname = tokens[0]
@@ -367,8 +414,7 @@ def _lookup_with_tiers(
                     "accounts": list(accts),
                 }
             else:
-                # Surname-only would match but is too common — record for diagnostic
-                return False  # sentinel
+                return False  # sentinel: too common
 
     return None
 
