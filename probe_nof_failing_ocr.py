@@ -61,11 +61,14 @@ ASSESS_LIEN = re.compile(r"ASSESSMENT\s+LIEN", re.I)  # weaker than HOA_LIEN_RE
 def candidates_from_records_json(records_path: Path, limit: int) -> list[str]:
     """Auto-detect failing NOF record IDs from local records.json.
 
-    A record is "failing" iff its category is foreclosure_nof AND either:
+    A record is "failing" iff its category is foreclosure_nof AND any of:
+      - dcad_account is null/missing (DCAD match failed), OR
       - OCR ran (signal_metadata.ocr.pages_captured >= 1) but
         signal_metadata.ocr.address_pattern is None, OR
       - address_normalized has no digit in its first comma-segment
-        (i.e. city-only, no street number).
+        (city-only, no street number).
+
+    limit=0 means no cap.
     """
     if not records_path.exists():
         print(f"records.json not found at {records_path}", file=sys.stderr)
@@ -81,12 +84,29 @@ def candidates_from_records_json(records_path: Path, limit: int) -> list[str]:
         first_segment = addr.split(",")[0].strip() if addr else ""
         is_city_only = bool(first_segment) and not any(c.isdigit() for c in first_segment)
         ocr_missed   = ocr.get("pages_captured", 0) >= 1 and not ocr.get("address_pattern")
-        if is_city_only or ocr_missed:
+        no_dcad      = not rec.get("dcad_account")
+        if is_city_only or ocr_missed or no_dcad:
             rid = str(rec.get("source_id") or rec.get("record_id") or "").strip()
             if rid:
                 out.append(rid)
-        if len(out) >= limit:
+        if limit > 0 and len(out) >= limit:
             break
+    return out
+
+
+def all_nof_ids_from_records_json(records_path: Path) -> list[str]:
+    """Return every foreclosure_nof record's publicsearch id. No filtering."""
+    if not records_path.exists():
+        print(f"records.json not found at {records_path}", file=sys.stderr)
+        return []
+    data = json.loads(records_path.read_text())
+    out: list[str] = []
+    for rec in data:
+        if rec.get("category") != "foreclosure_nof":
+            continue
+        rid = str(rec.get("source_id") or rec.get("record_id") or "").strip()
+        if rid:
+            out.append(rid)
     return out
 
 
@@ -210,17 +230,32 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("record_ids", nargs="*", help="publicsearch.us /doc/{id} digits")
     ap.add_argument("--from-records-json", action="store_true",
-                    help="Auto-detect failing NOFs from data/records.json")
-    ap.add_argument("--limit", type=int, default=8,
-                    help="Max records to probe when --from-records-json")
+                    help="Auto-detect FAILING NOFs from data/records.json "
+                         "(no dcad_account, or city-only address, or OCR-missed)")
+    ap.add_argument("--all-nofs", action="store_true",
+                    help="Probe EVERY foreclosure_nof record in data/records.json "
+                         "(not just failing). Useful for measuring APN/Exhibit-A "
+                         "frequency across the full population.")
+    ap.add_argument("--limit", type=int, default=0,
+                    help="Max records to probe (0 = no cap, the default).")
     args = ap.parse_args()
 
-    if args.from_records_json:
-        ids = candidates_from_records_json(REPO_ROOT / "data" / "records.json", args.limit)
+    records_path = REPO_ROOT / "data" / "records.json"
+
+    if args.all_nofs:
+        ids = all_nof_ids_from_records_json(records_path)
+        if not ids:
+            print("No foreclosure_nof records found in records.json", file=sys.stderr)
+            sys.exit(1)
+        if args.limit > 0:
+            ids = ids[:args.limit]
+        print(f"Probing ALL {len(ids)} foreclosure_nof records from records.json")
+    elif args.from_records_json:
+        ids = candidates_from_records_json(records_path, args.limit)
         if not ids:
             print("No failing NOF candidates detected in records.json", file=sys.stderr)
             sys.exit(1)
-        print(f"Auto-detected {len(ids)} candidate IDs from records.json")
+        print(f"Auto-detected {len(ids)} FAILING NOF candidate IDs from records.json")
     else:
         ids = args.record_ids
 
