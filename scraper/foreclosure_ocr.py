@@ -100,6 +100,17 @@ def _find_tesseract() -> Optional[str]:
 # Universal extraction patterns
 # ═══════════════════════════════════════════════════════════════════════════
 
+# USPS street suffixes consolidated. Used in both the all-caps top-of-doc
+# pattern and the new mixed-case unlabeled patterns added per the 41-record
+# NOF probe (2026-05-26) that showed 22/28 unmatched records had a street
+# address visible but in mixed-case / garbage-laden format the current
+# all-uppercase patterns rejected.
+_STREET_SUFFIX_GROUP = (
+    r"(?:Street|St|Drive|Dr|Avenue|Ave|Road|Rd|Lane|Ln|Boulevard|Blvd|"
+    r"Court|Ct|Circle|Cir|Place|Pl|Way|Trail|Trl|Parkway|Pkwy|"
+    r"Highway|Hwy|Terrace|Ter)"
+)
+
 # Grantor / homeowner — try in priority order, first match wins.
 # OCR-noise notes:
 #   - Tesseract sometimes renders "(" as curly "‘" or "'"; we allow both
@@ -129,6 +140,21 @@ GRANTOR_PATTERNS: list[tuple[re.Pattern, str]] = [
      "deed-executed-by-secures"),
     (re.compile(r"([A-Z][A-Za-z]+(?:\s+[A-Z][A-Za-z]+)+)\s*\(\s*[\"']Borrower[\"']\s*\)"),
      "name-quoted-borrower"),
+    # ServiceLink format (added per probe 2026-05-26):
+    #   "WHEREAS, on April 16, 2010, LAPRENSA GRANT AND REGIONALD GRANT,
+    #    WIFE AND HUSBAND, ... as Grantor/Borrower"
+    # Anchor before the marital-status keyword so the captured name stops
+    # at the natural boundary.
+    (re.compile(
+        r"WHEREAS,?\s+on\s+\w+\s+\d{1,2},?\s+\d{4},?\s+"
+        r"([A-Z][A-Z\s,.&'-]{3,150}?),?\s+"
+        r"(?:WIFE\s+AND\s+HUSBAND|HUSBAND\s+AND\s+WIFE|A\s+SINGLE|MARRIED|WITH\s+HIM|WITH\s+HER)",
+        re.I), "whereas-on-date-name-marital"),
+    # Fallback: pre-"as Grantor/Borrower" name capture (no marital anchor).
+    # Lower priority than the marital-anchored form because it can over-capture.
+    (re.compile(
+        r"(?:^|\n|\.\s+)([A-Z][A-Z\s,.&'-]{5,80})\s+as\s+Grantor\s*/\s*Borrower",
+        re.I), "name-as-grantor-borrower"),
 ]
 
 # Sale date — both word and numeric formats; section-anchored when possible.
@@ -146,6 +172,15 @@ SALE_DATE_PATTERNS: list[tuple[re.Pattern, str]] = [
     (re.compile(
         r"NOTICE\s+IS\s+HEREBY\s+GIVEN\s+that\s+on\s+(?:Tuesday|Monday|Wednesday|Thursday|Friday|Saturday|Sunday)?,?\s*([A-Z][a-z]+\s+\d{1,2},?\s+\d{4})",
         re.I), "narrative-is-hereby"),
+    # OCR-garble tolerant: "HEREBY" frequently OCRs to "MIEREBY", "WIEREBY"
+    # etc; "NOTICE IS" also seen as "NOW THEREFORE-N@". Allow up to 30
+    # chars of OCR garbage between the preamble and "GIVEN that on DATE"
+    # (probe 2026-05-26).
+    (re.compile(
+        r"(?:NOTICE\s+IS|NOW\s+THEREFORE)[\s\S]{0,30}?GIVEN\s+that\s+on\s+"
+        r"(?:Tuesday|Monday|Wednesday|Thursday|Friday|Saturday|Sunday|\w+)?,?\s*"
+        r"([A-Z][a-z]+\s+\d{1,2},?\s+\d{4})",
+        re.I), "narrative-given-fallback"),
     (re.compile(r"(?:^|\n)\s*Date\s*:\s*([A-Z][a-z]+\s+\d{1,2},?\s+\d{4})", re.I | re.M),
      "bare-date-word"),
     (re.compile(r"(?:^|\n)\s*Date\s*:\s*(\d{1,2}/\d{1,2}/\d{2,4})", re.I | re.M),
@@ -171,10 +206,41 @@ ADDRESS_PATTERNS: list[tuple[re.Pattern, str]] = [
     (re.compile(
         r"(?:^|\n)\s*([0-9]+\s+[A-Z][A-Z\s\.'-]+(?:DR|DRIVE|ST|STREET|AVE|AVENUE|RD|ROAD|LN|LANE|BLVD|BOULEVARD|CT|COURT|CIR|CIRCLE|PL|PLACE|WAY|TRL|TRAIL|PKWY|HWY|TER|TERRACE))\s*\n(?:[^\n]*\n){0,2}\s*([A-Z][A-Z\s]+,\s*(?:TX|TEXAS)\s+\d{5})",
         re.I), "top-of-doc-2line"),
+    # ------------------------------------------------------------------
+    # Mixed-case / OCR-garbage-tolerant unlabeled patterns added per the
+    # full-population probe (2026-05-26). The all-caps patterns above
+    # reject "Lenway Street", "Dallas Parkway" etc. Sized to recover
+    # ~22 of 28 records that had a street address but no label.
+    # ------------------------------------------------------------------
+    # Mixed-case single-line: "2639 Lenway Street, Dallas, TX 75215"
+    (re.compile(
+        r"\b(\d{2,6}\s+[A-Z][A-Za-z\.\-\' ]{2,40}?\s+" + _STREET_SUFFIX_GROUP + r"),?\s+"
+        r"([A-Z][A-Za-z]+(?:\s+[A-Z][A-Za-z]+){0,3})\s*,\s*(?:TX|Texas)\s+(\d{5})",
+        re.I), "mixed-case-one-line"),
+    # Mixed-case two-line with OCR barcode garbage between street and city:
+    #   "5605 SADDLEBACK ROAD 000000 10820736\nGARLAND, TX 75043"
+    # Allow arbitrary trailing chars on the street line; allow up to ~40
+    # garbage chars on the city line prefix.
+    (re.compile(
+        r"(?:^|\n)\s*(\d{2,6}\s+[A-Z][A-Za-z\.\-\' ]{2,40}?\s+" + _STREET_SUFFIX_GROUP + r")[^\n]*\n"
+        r"[^\n]{0,40}?([A-Z][A-Za-z]+(?:\s+[A-Z][A-Za-z]+){0,3})\s*,?\s*(?:TX|Texas)\s+(\d{5})",
+        re.I), "mixed-case-two-line"),
+    # No-comma 4+ word form: "611 Matthew Place Richardson TX 75081"
+    (re.compile(
+        r"\b(\d{2,6}\s+[A-Z][A-Za-z]+\s+" + _STREET_SUFFIX_GROUP + r")\s+"
+        r"([A-Z][A-Za-z]+(?:\s+[A-Z][A-Za-z]+){0,2})\s+(?:TX|Texas)\s+(\d{5})",
+        re.I), "no-comma-street-city-tx-zip"),
 ]
 
 # Loan amount.
 LOAN_AMOUNT_PATTERNS: list[tuple[re.Pattern, str]] = [
+    # OCR-garble tolerant: Tesseract sometimes inserts a space inside a
+    # numeric value ("$11 5,862.00" -> "11" by the strict patterns below).
+    # Tried FIRST so it wins when a cents-form amount is OCR-fragmented;
+    # the parser strips internal whitespace post-capture.
+    (re.compile(
+        r"original\s+(?:principal\s+)?amount\s+of\s+\$\s*([\d,\s]{4,15}\.\d{2})",
+        re.I), "original-amount-space-tolerant"),
     (re.compile(r"original\s+principal\s+amount\s+of\s+\$\s*([\d,]+(?:\.\d{2})?)", re.I),
      "original-principal-amount-of"),
     (re.compile(r"Original\s+Principal\s*[:\-]?\s*\$\s*([\d,]+(?:\.\d{2})?)", re.I),
@@ -191,17 +257,33 @@ LOAN_AMOUNT_PATTERNS: list[tuple[re.Pattern, str]] = [
 # OCR-extracted street address).
 LEGAL_DESC_PATTERNS: list[tuple[re.Pattern, str]] = [
     (re.compile(
-        r"Legal\s+Description\s*[:\-]?\s*([^\n]+(?:\n[^\n]+){0,4}?(?:COUNTY,?\s+TEXAS\.?|TEXAS\.?))",
+        r"Legal\s+Description\s*[:\-]?\s*([^\n]+(?:\s+[^\n]+){0,4}?(?:COUNTY,?\s+TEXAS\.?|TEXAS\.?))",
         re.I), "labeled-legal-description"),
+    # NOTE per probe 2026-05-26: `\n[^\n]+` rejected OCR's blank lines
+    # between rows. Switched to `\s+[^\n]+` so the line-continuation
+    # tolerates `\n\n` page-spaced layouts (e.g. EXHIBIT A pages with
+    # double-spaced lines under Walnut Creek Estates / LAPRENSA GRANT).
     (re.compile(
-        r"EXHIBIT\s*[\"']?\s*A\s*[\"']?[^L]*?(BEING\s+LOT\s+\d+[^\n]+(?:\n[^\n]+){0,4}?COUNTY,?\s+TEXAS\.?)",
+        r"EXHIBIT\s*[\"']?\s*A\s*[\"']?[^L]*?(BEING\s+LOT\s+\d+[^\n]+(?:\s+[^\n]+){0,4}?COUNTY,?\s+TEXAS\.?)",
         re.I), "exhibit-A-being-lot"),
     (re.compile(
-        r"(BEING\s+LOT\s+\d+[^\n]+(?:\n[^\n]+){0,4}?COUNTY,?\s+TEXAS\.?)", re.I),
+        r"(BEING\s+LOT\s+\d+[^\n]+(?:\s+[^\n]+){0,4}?COUNTY,?\s+TEXAS\.?)", re.I),
      "being-lot"),
     (re.compile(
-        r"(LOT\s+\d+[,.]?\s+(?:IN\s+)?BLOCK\s+[\d/]+[^\n]+(?:\n[^\n]+){0,4}?COUNTY,?\s+TEXAS\.?)",
+        r"(LOT\s+\d+[,.]?\s+(?:IN\s+)?BLOCK\s+[\d/]+[^\n]+(?:\s+[^\n]+){0,4}?COUNTY,?\s+TEXAS\.?)",
         re.I), "lot-block"),
+]
+
+# APN extraction (Fix 4 per probe 2026-05-26). ServiceLink-format NOFs
+# carry the DCAD account number padded with leading zeros on page 1.
+# Stripped of leading zeros, it maps directly to DCAD's ACCOUNT_NUM,
+# bypassing address-text extraction entirely. Hit rate is ~5% of NOFs
+# alone, but the path is high-confidence (no false positives) and cheap.
+APN_PATTERNS: list[tuple[re.Pattern, str]] = [
+    # OCR often concatenates trailing cadastral chars onto the APN
+    # ("APN 180052700C0070000"), so we don't anchor on \b at the end —
+    # capture the leading digit run after stripping zero-padding.
+    (re.compile(r"\bAPN\s*[#:]?\s*0*(\d{6,15})", re.I), "apn-labeled"),
 ]
 
 
@@ -223,6 +305,8 @@ class ExtractedFields:
     loan_amount_pattern: Optional[str] = None
     legal_description: Optional[str] = None
     legal_desc_pattern: Optional[str] = None
+    apn:              Optional[str] = None  # DCAD account_num, leading zeros stripped
+    apn_pattern:      Optional[str] = None
     is_hoa_lien:      bool = False
     warnings:         list[str] = field(default_factory=list)
 
@@ -286,6 +370,42 @@ def _to_iso_date(raw: str) -> Optional[str]:
     return None
 
 
+# OCR-derived legal-description -> publicsearch-snippet adapter.
+# legal_resolver.parse_legal_from_snippet expects the publicsearch list-view
+# format ("<TWP> | Subdivision - Name: <NAME> Lot: <N> Block: <B>"). OCR
+# extracts text like "BEING LOT 16, IN BLOCK E/8443, OF WALNUT CREEK
+# ESTATES, SECTION ONE, AN ADDITION TO..." which the resolver can't parse.
+# This helper bridges the two formats so 41-record probe's 14/17 parsable
+# legal descriptions can route through the existing legal_resolver pass.
+_OCR_LEGAL_RE = re.compile(
+    r"(?:BEING\s+)?LOT\s+(\d+[A-Z]?)\s*,?\s*(?:IN\s+)?BLOCK\s+([A-Z0-9/\-]+)\s*,?\s+"
+    r"OF\s+([A-Z][A-Z0-9\s\.\-/]+?)"
+    r"(?:,\s+(?:AN?\s+ADDITION|SECTION|PHASE|INSTALLMENT|NO\.|ACCORDING)|\.|\s+ACCORDING|$)",
+    re.I,
+)
+
+
+def _legal_desc_to_snippet(legal_desc: str) -> Optional[str]:
+    """Parse an OCR'd legal description into publicsearch-snippet format.
+
+    Returns ``"| Subdivision - Name: <NAME> Lot: <N> Block: <B>"`` on
+    success, or ``None`` if subdivision/lot/block can't all three be
+    extracted. The leading ``|`` keeps the format compatible with the
+    resolver's `<township> | <fields>` shape (township unused for lookup).
+    """
+    if not legal_desc:
+        return None
+    m = _OCR_LEGAL_RE.search(legal_desc)
+    if not m:
+        return None
+    lot   = m.group(1).strip()
+    block = m.group(2).strip()
+    subdiv = re.sub(r"\s+", " ", m.group(3).strip().rstrip(",.")).strip()
+    if not (lot and block and subdiv):
+        return None
+    return f"| Subdivision - Name: {subdiv} Lot: {lot} Block: {block}"
+
+
 def extract_fields_from_text(ocr_text: str) -> ExtractedFields:
     """Pure function: run universal patterns over OCR text and return
     extracted fields. No side effects, no I/O. Unit-testable."""
@@ -308,12 +428,19 @@ def extract_fields_from_text(ocr_text: str) -> ExtractedFields:
     out.property_address, out.address_pattern = _try_patterns(ocr_text, ADDRESS_PATTERNS)
     out.loan_amount, out.loan_amount_pattern = _try_patterns(ocr_text, LOAN_AMOUNT_PATTERNS)
     out.legal_description, out.legal_desc_pattern = _try_patterns(ocr_text, LEGAL_DESC_PATTERNS)
+    out.apn, out.apn_pattern = _try_patterns(ocr_text, APN_PATTERNS)
+
+    # OCR sometimes inserts a space inside a number ("$11 5,862.00").
+    # The space-tolerant loan-amount pattern preserves the space in the
+    # capture; strip it here so downstream dollar parsing sees "115,862.00".
+    if out.loan_amount and " " in out.loan_amount:
+        out.loan_amount = re.sub(r"\s+", "", out.loan_amount)
 
     if not out.grantor:
         out.warnings.append("no_grantor_extracted")
     if not out.sale_date_iso:
         out.warnings.append("no_sale_date_extracted")
-    if not out.property_address and not out.legal_description:
+    if not out.property_address and not out.legal_description and not out.apn:
         out.warnings.append("no_address_or_legal_description")
 
     return out
@@ -1086,10 +1213,26 @@ def enrich_foreclosure_records(
                 rec["amount"] = fields.loan_amount
                 stats.loan_amount_extracted += 1
             if fields.legal_description:
-                # Stash legal description in raw_excerpt for legal_resolver to
-                # consume on its next pass. Don't blow away existing snippet.
+                # Stash legal description in raw_excerpt for legal_resolver
+                # to consume on its next pass. Two strategies:
+                #   1. If the OCR'd legal description parses into a
+                #      structured (subdivision, lot, block) and the
+                #      existing snippet has no "Subdivision - Name:" tag,
+                #      REPLACE raw_excerpt with a publicsearch-format
+                #      snippet so legal_resolver can match it.
+                #   2. Otherwise fall back to the original append-behind-
+                #      separator behavior (keeps backwards compat).
                 existing = rec.get("raw_excerpt") or ""
-                if "LOT" not in existing.upper():
+                snippet  = _legal_desc_to_snippet(fields.legal_description)
+                if snippet and "Subdivision - Name:" not in existing:
+                    # Preserve any leading township-ish prefix from the
+                    # original snippet (everything before the first "|").
+                    prefix = existing.split("|", 1)[0].strip() if existing else ""
+                    rec["raw_excerpt"] = (
+                        f"{prefix} {snippet}".strip()
+                        if prefix else snippet.lstrip("| ").lstrip()
+                    )[:500]
+                elif "LOT" not in existing.upper():
                     rec["raw_excerpt"] = (
                         f"{existing} | {fields.legal_description}"
                     ).strip(" |")[:500]
@@ -1103,6 +1246,8 @@ def enrich_foreclosure_records(
                 "address_pattern":      fields.address_pattern,
                 "loan_amount_pattern":  fields.loan_amount_pattern,
                 "legal_desc_pattern":   fields.legal_desc_pattern,
+                "apn_pattern":          fields.apn_pattern,
+                "apn":                  fields.apn,
                 "pages_captured":       len(cap.pages),
                 "capture_warnings":     cap.warnings,
             }
