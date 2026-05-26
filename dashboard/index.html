@@ -325,6 +325,8 @@
     .cell-mono { font-family: var(--font-mono); font-size: 12px; }
     .cell-address { font-weight: 500; max-width: 320px; }
     .cell-grantee { color: var(--text-muted); max-width: 220px; }
+    .cell-decedent { color: var(--text-muted); max-width: 220px; font-style: italic; }
+    .cell-property-address { color: var(--text-muted); max-width: 280px; font-size: 12px; }
     .cell-num { font-family: var(--font-mono); font-size: 12px; text-align: right; }
 
     /* Score visualization */
@@ -793,6 +795,8 @@
       .filters { gap: var(--space-2); padding: var(--space-3); }
       .cell-address { max-width: 200px; }
       .cell-grantee { max-width: 140px; }
+      .cell-decedent { max-width: 140px; }
+      .cell-property-address { max-width: 180px; }
       .about-grid { grid-template-columns: 1fr; }
     }
   </style>
@@ -877,6 +881,8 @@
               <th data-sort="score" class="sort-desc">Score</th>
               <th data-sort="address_normalized">Address</th>
               <th data-sort="grantee">Owner / Grantee</th>
+              <th data-sort="grantor">Decedent</th>
+              <th class="no-sort">Property Address</th>
               <th data-sort="category">Category</th>
               <th data-sort="first_seen">Detected</th>
               <th data-sort="dcad_market_value">Value</th>
@@ -886,7 +892,7 @@
             </tr>
           </thead>
           <tbody id="records-tbody">
-            <tr><td colspan="9" class="empty-state">Loading records<span class="em">...</span></td></tr>
+            <tr><td colspan="11" class="empty-state">Loading records<span class="em">...</span></td></tr>
           </tbody>
         </table>
       </div>
@@ -1073,6 +1079,34 @@
       return primary || rec.dcad_owner || "";
     }
 
+    /* Decedent column. Only populated for probate records (PB) — that's
+       where the grantor field literally is the dead person whose estate
+       is being settled. Other categories don't have a meaningful
+       "decedent" concept so we render blank/-- rather than misleadingly
+       reusing a different field. */
+    function decedentName(rec) {
+      return rec.dallas_code === "PB" ? (rec.grantor || "") : "";
+    }
+
+    /* Property-address column for probate. Pulls the list of DCAD parcels
+       owned by the decedent from signal_metadata.decedent_owned_properties
+       (populated by canonicalize_probate's fan-out). Returns:
+         - one address per line, "<addr> (<city> <zip>)" format
+         - "--" if no matches found / not a probate record
+       Tooltip on the cell shows the full multi-line text for cases where
+       the column gets truncated. */
+    function probateOwnedProperties(rec) {
+      if (rec.dallas_code !== "PB") return [];
+      const props = (rec.signal_metadata && rec.signal_metadata.decedent_owned_properties) || [];
+      return props.map(p => {
+        const parts = [];
+        if (p.address_normalized) parts.push(p.address_normalized);
+        const loc = [p.address_city, p.address_zip].filter(Boolean).join(" ");
+        if (loc) parts.push(`(${loc})`);
+        return parts.join(" ");
+      }).filter(Boolean);
+    }
+
     /* Commercial-entity detector. Returns true if dcad_owner contains
        a commercial-entity token as a whole word. */
     function isCommercialEntity(rec) {
@@ -1248,7 +1282,7 @@
         updateWorkflowInfo();
       } catch (err) {
         $("#records-tbody").innerHTML =
-          `<tr><td colspan="9" class="empty-state">
+          `<tr><td colspan="11" class="empty-state">
              Could not load records.json<br>
              <span style="font-size: 13px; font-style: normal; color: var(--text-muted)">${escapeHtml(err.message)}</span>
            </td></tr>`;
@@ -1328,6 +1362,7 @@
             r.address, r.address_normalized, r.grantee, r.grantor,
             r.dcad_owner, r.instrument_num,
             wfEntry.phone, wfEntry.notes,
+            ...probateOwnedProperties(r),
           ].filter(Boolean).join(" ").toLowerCase();
           if (!hay.includes(q)) return false;
         }
@@ -1377,7 +1412,7 @@
       $("#record-count").textContent  = state.records.length.toLocaleString();
 
       if (state.visible.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="9" class="empty-state">
+        tbody.innerHTML = `<tr><td colspan="11" class="empty-state">
           No records match<span class="em">.</span>
         </td></tr>`;
         return;
@@ -1432,6 +1467,12 @@
             </td>
             <td class="cell-address" title="${escapeHtml(r.address_normalized || r.address || '')}">${escapeHtml(r.address_normalized || r.address || '--')}</td>
             <td class="cell-grantee" title="${escapeHtml(ownerName(r))}">${escapeHtml(ownerName(r) || '--')}</td>
+            <td class="cell-decedent" title="${escapeHtml(decedentName(r))}">${escapeHtml(decedentName(r) || '--')}</td>
+            <td class="cell-property-address" title="${escapeHtml(probateOwnedProperties(r).join('\n'))}">${
+              probateOwnedProperties(r).length
+                ? escapeHtml(probateOwnedProperties(r).join(' | '))
+                : '--'
+            }</td>
             <td><span class="badge">${escapeHtml(r.category || r.dallas_code || '--')}</span></td>
             <td class="cell-mono" title="When this record first appeared in the pipeline (not the legal filing date)">${escapeHtml(r.first_seen || '--')}</td>
             <td class="cell-num">${fmtMoney(r.dcad_market_value)}</td>
@@ -1577,6 +1618,17 @@
         ? `<a href="${escapeHtml(rec.source_url)}" target="_blank" rel="noopener noreferrer">Open source file</a>`
         : "";
 
+      // Decedent's owned properties (probate fan-out output, PR 5.x).
+      // Shown only when a probate record has DCAD matches; the joined
+      // string lists every parcel the decedent owned along with the
+      // matcher tier used (so operator can audit match quality).
+      const ownedProps = probateOwnedProperties(rec);
+      const matchTier = rec.signal_metadata && rec.signal_metadata.dcad_match_tier;
+      const matchWarn = rec.signal_metadata && rec.signal_metadata.dcad_match_warning;
+      const ownedPropsLine = ownedProps.length
+        ? ownedProps.join("\n") + (matchTier ? `\n[match: ${matchTier}${matchWarn ? "; WARNING: " + matchWarn : ""}]` : "")
+        : null;
+
       const fields = [
         ["Score",            rec.score],
         ["Category",         rec.category],
@@ -1591,6 +1643,7 @@
         ["Buy-box reasons",  Array.isArray(rec.buy_box_reasons) && rec.buy_box_reasons.length ? rec.buy_box_reasons.join("; ") : null],
         ["Grantor",          rec.grantor],
         ["Grantee",          rec.grantee],
+        ["Decedent owned property", ownedPropsLine],
         ["DCAD account",     rec.dcad_account],
         ["DCAD owner",       rec.dcad_owner],
         ["Property address", rec.address_normalized || rec.address],
