@@ -327,6 +327,7 @@
     .cell-grantee { color: var(--text-muted); max-width: 220px; }
     .cell-decedent { color: var(--text-muted); max-width: 220px; font-style: italic; }
     .cell-property-address { color: var(--text-muted); max-width: 280px; font-size: 12px; }
+    .cell-mailing-address { color: var(--text-muted); max-width: 260px; font-size: 12px; }
     .cell-num { font-family: var(--font-mono); font-size: 12px; text-align: right; }
 
     /* Score visualization */
@@ -797,6 +798,7 @@
       .cell-grantee { max-width: 140px; }
       .cell-decedent { max-width: 140px; }
       .cell-property-address { max-width: 180px; }
+      .cell-mailing-address { max-width: 160px; }
       .about-grid { grid-template-columns: 1fr; }
     }
   </style>
@@ -883,6 +885,7 @@
               <th data-sort="grantee">Owner / Grantee</th>
               <th data-sort="grantor">Decedent</th>
               <th class="no-sort">Property Address</th>
+              <th class="no-sort">Mailing Address</th>
               <th data-sort="category">Category</th>
               <th data-sort="first_seen">Detected</th>
               <th data-sort="dcad_market_value">Value</th>
@@ -892,7 +895,7 @@
             </tr>
           </thead>
           <tbody id="records-tbody">
-            <tr><td colspan="11" class="empty-state">Loading records<span class="em">...</span></td></tr>
+            <tr><td colspan="12" class="empty-state">Loading records<span class="em">...</span></td></tr>
           </tbody>
         </table>
       </div>
@@ -1107,6 +1110,20 @@
       }).filter(Boolean);
     }
 
+    /* Applicant mailing column. Only populated for probate (PB) records
+       when canonicalize_probate found a HIGH-CONFIDENCE applicant match
+       (exact / no_middle tier, no common-name pollution, <=2 accounts).
+       Lower-confidence matches were intentionally NOT populated server-side
+       — the field is null in that case and we render '--'. Returns the
+       formatted string ready for cell display, or '' if nothing to show. */
+    function applicantMailing(rec) {
+      if (rec.dallas_code !== "PB") return "";
+      const m = rec.signal_metadata && rec.signal_metadata.applicant_mailing;
+      if (!m || !m.address) return "";
+      const loc = [m.city, m.state, m.zip].filter(Boolean).join(" ");
+      return loc ? `${m.address} (${loc})` : m.address;
+    }
+
     /* Commercial-entity detector. Returns true if dcad_owner contains
        a commercial-entity token as a whole word. */
     function isCommercialEntity(rec) {
@@ -1282,7 +1299,7 @@
         updateWorkflowInfo();
       } catch (err) {
         $("#records-tbody").innerHTML =
-          `<tr><td colspan="11" class="empty-state">
+          `<tr><td colspan="12" class="empty-state">
              Could not load records.json<br>
              <span style="font-size: 13px; font-style: normal; color: var(--text-muted)">${escapeHtml(err.message)}</span>
            </td></tr>`;
@@ -1363,6 +1380,7 @@
             r.dcad_owner, r.instrument_num,
             wfEntry.phone, wfEntry.notes,
             ...probateOwnedProperties(r),
+            applicantMailing(r),
           ].filter(Boolean).join(" ").toLowerCase();
           if (!hay.includes(q)) return false;
         }
@@ -1412,7 +1430,7 @@
       $("#record-count").textContent  = state.records.length.toLocaleString();
 
       if (state.visible.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="11" class="empty-state">
+        tbody.innerHTML = `<tr><td colspan="12" class="empty-state">
           No records match<span class="em">.</span>
         </td></tr>`;
         return;
@@ -1472,6 +1490,9 @@
               probateOwnedProperties(r).length
                 ? escapeHtml(probateOwnedProperties(r).join(' | '))
                 : '--'
+            }</td>
+            <td class="cell-mailing-address" title="${escapeHtml(applicantMailing(r))}">${
+              applicantMailing(r) ? escapeHtml(applicantMailing(r)) : '--'
             }</td>
             <td><span class="badge">${escapeHtml(r.category || r.dallas_code || '--')}</span></td>
             <td class="cell-mono" title="When this record first appeared in the pipeline (not the legal filing date)">${escapeHtml(r.first_seen || '--')}</td>
@@ -1632,6 +1653,15 @@
         ? ownedProps.join("\n") + (matchTier ? `\n[match: ${matchTier}${matchWarn ? "; WARNING: " + matchWarn : ""}]` : "")
         : null;
 
+      // Applicant mailing detail (PR 5.y). Populated only when the
+      // matcher produced a high-confidence match (exact / no_middle,
+      // no common-name pollution, <= 2 accts). Include matcher tier
+      // and the matched DCAD owner name so operator can audit.
+      const am = rec.signal_metadata && rec.signal_metadata.applicant_mailing;
+      const applicantMailingLine = (am && am.address)
+        ? `${am.address}\n${[am.city, am.state, am.zip].filter(Boolean).join(" ")}\n[match: ${am.tier}; matched DCAD owner: ${am.matched_name}]`
+        : null;
+
       const fields = [
         ["Score",            rec.score],
         ["Category",         rec.category],
@@ -1647,6 +1677,7 @@
         ["Grantor",          rec.grantor],
         ["Grantee",          rec.grantee],
         ["Decedent owned property", ownedPropsLine],
+        ["Applicant mailing address", applicantMailingLine],
         ["DCAD account",     rec.dcad_account],
         ["DCAD owner",       rec.dcad_owner],
         ["Property address", rec.address_normalized || rec.address],

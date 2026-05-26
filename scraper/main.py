@@ -139,13 +139,16 @@ def _run_pipeline() -> int:
         zip_path = dcad_bulk.fetch_dcad_zip()
         dcad_tables = dcad_bulk.parse_dcad_tables(zip_path)
         address_index = dcad_bulk.build_address_index(dcad_tables)
-        # Owner-keyed indexes for probate decedent->property fan-out.
-        # Built once here so all probate canonicalizations share them.
+        # Owner-keyed indexes for probate decedent->property fan-out
+        # plus applicant->mailing fan-out (PR 5.y). Built once here so
+        # all probate canonicalizations share them.
         owner_index = dcad_owner_index.build_owner_index(dcad_tables)
         account_address_index = dcad_bulk.build_account_index(dcad_tables)
+        mailing_index = dcad_bulk.build_mailing_index(dcad_tables)
         logger.info(
-            "DCAD indexes ready: %d address keys, %d owner keys, %d account keys",
-            len(address_index), len(owner_index), len(account_address_index),
+            "DCAD indexes ready: %d address, %d owner, %d account, %d mailing keys",
+            len(address_index), len(owner_index),
+            len(account_address_index), len(mailing_index),
         )
     except Exception as exc:
         return _fail("DCAD fetch failed", exc, "dcad_bulk")
@@ -335,18 +338,24 @@ def _run_pipeline() -> int:
                     r,
                     owner_index=owner_index,
                     account_address_index=account_address_index,
+                    mailing_index=mailing_index,
                 )
                 for r in probate_records
             ]
-            n_matched = sum(
+            n_dec_matched = sum(
                 1 for r in probate_records_canonical
                 if r["signal_metadata"].get("decedent_owned_properties")
             )
+            n_app_matched = sum(
+                1 for r in probate_records_canonical
+                if r["signal_metadata"].get("applicant_mailing")
+            )
+            total = max(len(probate_records_canonical), 1)
             logger.info(
-                "Probate: %d records fetched, %d matched to DCAD property (%d%%)",
+                "Probate: %d records fetched | %d decedent->DCAD (%d%%) | %d applicant->mailing high-conf (%d%%)",
                 len(probate_records_canonical),
-                n_matched,
-                100 * n_matched // max(len(probate_records_canonical), 1),
+                n_dec_matched, 100 * n_dec_matched // total,
+                n_app_matched, 100 * n_app_matched // total,
             )
         except Exception as exc:
             logger.warning("Probate stage failed: %s - continuing without probate", exc)

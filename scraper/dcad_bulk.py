@@ -392,3 +392,69 @@ def build_account_index(tables: "dict[str, pd.DataFrame]") -> "dict[str, dict]":
 
     logger.info("Built DCAD account index: %d accounts", len(index))
     return index
+
+
+def build_mailing_index(tables: "dict[str, pd.DataFrame]") -> "dict[str, dict]":
+    """Build ``{ACCOUNT_NUM: {address, city, state, zip}}`` for owner mailing.
+
+    Companion to :func:`build_account_index`. While ``build_account_index``
+    returns the PROPERTY address per parcel (where the parcel physically is),
+    this returns the MAILING address per parcel (where DCAD sends the tax
+    bill — could be the property itself, a P.O. box, an out-of-state
+    landlord's home, a c/o relative, etc.).
+
+    Used by ``canonicalize_probate``'s applicant fan-out (PR 5.y): when the
+    applicant (heir) matches DCAD's owner index, we surface the mailing
+    address from the matched account so operators have a real contact
+    address — not just the property the applicant happens to own.
+
+    Columns read (same as ``enrichment.enrich_record`` mailing block):
+      OWNER_ADDRESS_LINE1..4  -> joined with spaces into a single ``address``
+      OWNER_CITY              -> ``city``
+      OWNER_STATE             -> ``state``  (may be "TX" or "TEXAS")
+      OWNER_ZIPCODE           -> ``zip``
+
+    Missing optional columns degrade gracefully — the field is None in
+    the output rather than the function failing.
+
+    Returns ``{}`` if ACCOUNT_INFO is absent.
+    """
+    df = tables.get("ACCOUNT_INFO")
+    if df is None or df.empty:
+        return {}
+    if "ACCOUNT_NUM" not in df.columns:
+        logger.warning("build_mailing_index: ACCOUNT_NUM column missing; returning empty index")
+        return {}
+
+    mailing_line_cols = [
+        c for c in ("OWNER_ADDRESS_LINE1", "OWNER_ADDRESS_LINE2",
+                    "OWNER_ADDRESS_LINE3", "OWNER_ADDRESS_LINE4")
+        if c in df.columns
+    ]
+    has_city  = "OWNER_CITY"    in df.columns
+    has_state = "OWNER_STATE"   in df.columns
+    has_zip   = "OWNER_ZIPCODE" in df.columns
+
+    index: "dict[str, dict]" = {}
+    keep_cols = ["ACCOUNT_NUM"] + mailing_line_cols
+    if has_city:  keep_cols.append("OWNER_CITY")
+    if has_state: keep_cols.append("OWNER_STATE")
+    if has_zip:   keep_cols.append("OWNER_ZIPCODE")
+
+    for row in df[keep_cols].itertuples(index=False):
+        account = str(getattr(row, "ACCOUNT_NUM", "") or "").strip()
+        if not account:
+            continue
+        lines = [
+            str(getattr(row, c, "") or "").strip()
+            for c in mailing_line_cols
+        ]
+        index[account] = {
+            "address": " ".join(l for l in lines if l) or None,
+            "city":    str(getattr(row, "OWNER_CITY",    "") or "").strip() or None if has_city  else None,
+            "state":   str(getattr(row, "OWNER_STATE",   "") or "").strip() or None if has_state else None,
+            "zip":     str(getattr(row, "OWNER_ZIPCODE", "") or "").strip() or None if has_zip   else None,
+        }
+
+    logger.info("Built DCAD mailing index: %d accounts", len(index))
+    return index
