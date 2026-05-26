@@ -1601,8 +1601,11 @@
       // we don't have either side.
       let mailingHint = "";
       if (mailingDisplay) {
-        const ms = (rec.dcad_mailing_state || "").toUpperCase();
-        if (ms && ms !== "TX") {
+        // DCAD stores state inconsistently — sometimes the 2-letter "TX",
+        // sometimes spelled-out "TEXAS". Accept both as in-state.
+        const ms = (rec.dcad_mailing_state || "").toUpperCase().trim();
+        const isTexas = ms === "TX" || ms === "TEXAS";
+        if (ms && !isTexas) {
           mailingHint = '<span class="stale-note">Out-of-state mailing address.</span>';
         } else if (rec.address_zip && rec.dcad_mailing_zip
                    && String(rec.address_zip).slice(0,5) !== String(rec.dcad_mailing_zip).slice(0,5)) {
