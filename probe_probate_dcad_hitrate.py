@@ -77,7 +77,16 @@ def main() -> int:
 
     print(f"DCAD ZIP: {zip_path}")
     tables = parse_dcad_tables(zip_path)
-    owner_index   = build_owner_index(tables)
+
+    # parse_dcad_tables returns DataFrames; build_owner_index expects
+    # list[dict] (it's never called in production — main.py only uses
+    # build_address_index). Convert the one table we need.
+    account_info_df = tables.get("ACCOUNT_INFO")
+    if account_info_df is None or account_info_df.empty:
+        print("ERROR: ACCOUNT_INFO table missing from DCAD bundle", file=sys.stderr)
+        return 3
+    tables_as_dicts = {"ACCOUNT_INFO": account_info_df.to_dict("records")}
+    owner_index   = build_owner_index(tables_as_dicts)
     account_index = build_account_index(tables)
     print(f"owner_index entries:   {len(owner_index):,}")
     print(f"account_index entries: {len(account_index):,}")
