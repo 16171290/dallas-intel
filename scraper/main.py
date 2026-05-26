@@ -56,6 +56,7 @@ from . import (
     buy_box,
     config,
     dcad_bulk,
+    dcad_owner_index,
     enrichment,
     entity_filter,
     foreclosure_ocr,
@@ -138,6 +139,14 @@ def _run_pipeline() -> int:
         zip_path = dcad_bulk.fetch_dcad_zip()
         dcad_tables = dcad_bulk.parse_dcad_tables(zip_path)
         address_index = dcad_bulk.build_address_index(dcad_tables)
+        # Owner-keyed indexes for probate decedent->property fan-out.
+        # Built once here so all probate canonicalizations share them.
+        owner_index = dcad_owner_index.build_owner_index(dcad_tables)
+        account_address_index = dcad_bulk.build_account_index(dcad_tables)
+        logger.info(
+            "DCAD indexes ready: %d address keys, %d owner keys, %d account keys",
+            len(address_index), len(owner_index), len(account_address_index),
+        )
     except Exception as exc:
         return _fail("DCAD fetch failed", exc, "dcad_bulk")
 
@@ -322,9 +331,23 @@ def _run_pipeline() -> int:
         try:
             probate_records = probate.fetch_dallas_probate(days_back=config.DAYS_BACK)
             probate_records_canonical = [
-                enrichment.canonicalize_probate(r) for r in probate_records
+                enrichment.canonicalize_probate(
+                    r,
+                    owner_index=owner_index,
+                    account_address_index=account_address_index,
+                )
+                for r in probate_records
             ]
-            logger.info("Probate: %d records fetched", len(probate_records_canonical))
+            n_matched = sum(
+                1 for r in probate_records_canonical
+                if r["signal_metadata"].get("decedent_owned_properties")
+            )
+            logger.info(
+                "Probate: %d records fetched, %d matched to DCAD property (%d%%)",
+                len(probate_records_canonical),
+                n_matched,
+                100 * n_matched // max(len(probate_records_canonical), 1),
+            )
         except Exception as exc:
             logger.warning("Probate stage failed: %s - continuing without probate", exc)
             monitor.notify_failure(

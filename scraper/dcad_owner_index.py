@@ -128,8 +128,11 @@ def build_owner_index(
     homeowner who owns 2+ properties) collect into one list per name.
 
     Args:
-        dcad_tables: dict of {table_name: list[row]} as returned by
-            ``dcad_bulk.parse_dcad_tables``.
+        dcad_tables: dict of {table_name: rows}. ``rows`` may be either
+            a list[dict] OR a pandas DataFrame — ``dcad_bulk.parse_dcad_tables``
+            returns DataFrames, but the function originally took list[dict]
+            from a removed alternate loader. Both shapes are accepted so
+            production (DataFrame) and tests (list[dict]) work.
         table_name: which DCAD table holds owner data. Default
             ``"ACCOUNT_INFO"``.
 
@@ -137,7 +140,8 @@ def build_owner_index(
         ``{owner_name: [account_num, ...]}``. Empty dict if the
         target table is missing or all rows lack owner fields.
     """
-    rows = dcad_tables.get(table_name) or []
+    table = dcad_tables.get(table_name)
+    rows = _coerce_to_row_dicts(table)
     index: dict[str, list[str]] = defaultdict(list)
 
     for row in rows:
@@ -151,6 +155,19 @@ def build_owner_index(
                 index[normalized].append(account)
 
     return dict(index)
+
+
+def _coerce_to_row_dicts(table) -> list[dict]:
+    """Accept either a list[dict] or a pandas DataFrame; return list[dict]."""
+    if table is None:
+        return []
+    # DataFrame has a .to_dict method that takes orient="records"
+    if hasattr(table, "to_dict") and hasattr(table, "columns"):
+        if table.empty:
+            return []
+        return table.to_dict("records")
+    # Already a list/iterable of dicts
+    return list(table)
 
 
 def normalize_dcad_owner_name(raw: str | None) -> str | None:
