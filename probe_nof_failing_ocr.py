@@ -43,6 +43,7 @@ from scraper.foreclosure_ocr import (  # noqa: E402
     capture_with_retry,
     extract_fields_from_text,
 )
+from scraper.output import read_records_json  # noqa: E402
 from scraper.publicsearch import _open_home, browser_context  # noqa: E402
 
 BASE_URL = "https://dallas.tx.publicsearch.us"
@@ -73,7 +74,7 @@ def candidates_from_records_json(records_path: Path, limit: int) -> list[str]:
     if not records_path.exists():
         print(f"records.json not found at {records_path}", file=sys.stderr)
         return []
-    data = json.loads(records_path.read_text())
+    data = read_records_json(records_path)
     out: list[str] = []
     for rec in data:
         if rec.get("category") != "foreclosure_nof":
@@ -99,7 +100,7 @@ def all_nof_ids_from_records_json(records_path: Path) -> list[str]:
     if not records_path.exists():
         print(f"records.json not found at {records_path}", file=sys.stderr)
         return []
-    data = json.loads(records_path.read_text())
+    data = read_records_json(records_path)
     out: list[str] = []
     for rec in data:
         if rec.get("category") != "foreclosure_nof":
