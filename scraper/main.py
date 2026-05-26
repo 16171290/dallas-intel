@@ -391,6 +391,19 @@ def _run_pipeline() -> int:
     prior_records = output.read_records_json(config.RECORDS_JSON)
     all_records = _merge_seen_dates(all_records, prior_records)
 
+    # 6.4 APN -> DCAD account resolution -------------------------------------
+    # ServiceLink-format NOFs carry APN (DCAD account_num with leading zeros)
+    # on page 1. OCR extracts it into signal_metadata.ocr.apn; this stage
+    # maps APN -> account -> normalized address. Runs BEFORE the legal-desc
+    # resolver because APN is the highest-confidence identifier when present.
+    logger.info("[6.4/12] APN -> DCAD address resolution")
+    apn_stats = legal_resolver.resolve_apn_to_address(all_records, dcad_tables)
+    logger.info(
+        "APN resolver: %d/%d resolved (%.1f%%); no_apn=%d no_match=%d",
+        apn_stats.resolved, apn_stats.total, apn_stats.resolution_rate * 100,
+        apn_stats.no_apn, apn_stats.no_match,
+    )
+
     # 6.5 Legal-description -> DCAD address resolution -----------------------
     # Publicsearch records lack a street address at canonicalization time;
     # they carry the property's legal description in raw_excerpt. This stage

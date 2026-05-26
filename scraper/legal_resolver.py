@@ -405,3 +405,82 @@ def resolve_legal_descriptions(
         stats.no_parse, stats.no_match, stats.multi_match, stats.no_snippet,
     )
     return stats
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# APN -> DCAD account resolver
+# ═══════════════════════════════════════════════════════════════════════════
+
+@dataclass
+class APNResolverStats:
+    """Counts for per-pipeline-run observability."""
+    total: int = 0
+    no_apn: int = 0        # record had no APN in signal_metadata.ocr
+    no_match: int = 0      # APN didn't match any DCAD account
+    resolved: int = 0      # APN matched, address stamped
+
+    @property
+    def resolution_rate(self) -> float:
+        if self.total == 0:
+            return 0.0
+        return self.resolved / self.total
+
+
+def resolve_apn_to_address(
+    records: list[CanonicalRecord],
+    dcad_tables: dict[str, pd.DataFrame],
+) -> APNResolverStats:
+    """Stamp address_normalized on records via APN -> DCAD account match.
+
+    For records where ``signal_metadata.ocr.apn`` is set AND
+    ``address_normalized`` is empty, look up the APN (already
+    leading-zero-stripped by the OCR extractor) in DCAD's
+    ACCOUNT_INFO.ACCOUNT_NUM. On exact match, stamp the parcel's
+    normalized address. Stage 7's address-based enrichment then picks it
+    up.
+
+    Designed to run BEFORE resolve_legal_descriptions because APN is the
+    cheapest and highest-confidence identifier when present.
+    Per the 41-record probe (2026-05-26), APN appears in ~5% of NOFs.
+
+    Records modified in place. Skipped if address_normalized already set.
+    """
+    stats = APNResolverStats(total=len(records))
+    acct_to_addr = _build_account_to_address(dcad_tables)
+    if not acct_to_addr:
+        logger.warning("APN resolver: account-to-address index empty; skipping")
+        stats.no_apn = len(records)
+        return stats
+
+    # Pre-build a set of valid account numbers for O(1) membership tests.
+    # acct_to_addr keys are the source of truth.
+    valid_accts = set(acct_to_addr.keys())
+
+    for rec in records:
+        if rec.get("address_normalized"):
+            continue
+        sm  = rec.get("signal_metadata") or {}
+        ocr = sm.get("ocr") or {}
+        apn = (ocr.get("apn") or "").strip()
+        if not apn:
+            stats.no_apn += 1
+            continue
+
+        # DCAD ACCOUNT_NUM is typically a 17-digit zero-padded string;
+        # also try right-padding our stripped APN with leading zeros to
+        # match common DCAD widths.
+        candidates = {apn, apn.lstrip("0"), apn.zfill(17)}
+        matched = next((c for c in candidates if c in valid_accts), None)
+        if not matched:
+            stats.no_match += 1
+            continue
+
+        rec["address_normalized"] = acct_to_addr[matched]
+        stats.resolved += 1
+
+    logger.info(
+        "APN resolution: %d/%d resolved (%.1f%%); no_apn=%d no_match=%d",
+        stats.resolved, stats.total, stats.resolution_rate * 100,
+        stats.no_apn, stats.no_match,
+    )
+    return stats

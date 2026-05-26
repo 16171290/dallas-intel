@@ -341,3 +341,246 @@ PLG File Number: 25-007799-2
     assert "Lone Oak Trail" in (r.property_address or "")
     assert r.loan_amount == "341,078.00"
     assert r.is_hoa_lien is False
+
+
+# ============================================================================
+# Fix 1: Mixed-case + OCR-garbage-tolerant unlabeled address patterns
+# (Added per full-population probe 2026-05-26)
+# ============================================================================
+
+def test_address_mixed_case_one_line():
+    """Format with no label, mixed case, single line:
+       '2639 Lenway Street, Dallas, TX 75215'"""
+    text = (
+        "C&M No. 44-26-02161\n"
+        "2639 Lenway Street, Dallas, TX 75215\n"
+        "NOTICE OF [SUBSTITUTE] TRUSTEE'S SALE\n"
+    )
+    r = extract_fields_from_text(text)
+    assert "Lenway" in (r.property_address or "")
+    assert "75215" in (r.property_address or "")
+    assert r.address_pattern == "mixed-case-one-line"
+
+
+def test_address_mixed_case_two_line_with_barcode_garbage():
+    """OCR-injected barcode digits between street and city:
+       '5605 SADDLEBACK ROAD 000000 10820736 / GARLAND, TX 75043'"""
+    text = (
+        "Notice of Foreclosure\n"
+        "5605 SADDLEBACK ROAD 000000 10820736\n"
+        "GARLAND, TX 75043\n"
+        "Grantor: ..."
+    )
+    r = extract_fields_from_text(text)
+    assert "SADDLEBACK" in (r.property_address or "")
+    assert "75043" in (r.property_address or "")
+    assert r.address_pattern == "mixed-case-two-line"
+
+
+def test_address_mixed_case_dallas_parkway():
+    """Mixed-case street name 'Dallas Parkway' rejected by all-caps patterns:
+       '14160 Dallas Parkway\nDallas, TX 75254'"""
+    text = (
+        "NOTICE OF FORECLOSURE\n"
+        "14160 Dallas Parkway\n"
+        "Dallas, TX 75254\n"
+    )
+    r = extract_fields_from_text(text)
+    assert "Dallas Parkway" in (r.property_address or "")
+    assert "75254" in (r.property_address or "")
+
+
+def test_address_no_comma_four_word():
+    """No-comma form: '611 Matthew Place Richardson TX 75081'"""
+    text = (
+        "Property to be sold:\n"
+        "611 Matthew Place Richardson TX 75081\n"
+        "More details below."
+    )
+    r = extract_fields_from_text(text)
+    assert "Matthew Place" in (r.property_address or "")
+    assert "75081" in (r.property_address or "")
+    assert r.address_pattern == "no-comma-street-city-tx-zip"
+
+
+def test_address_labeled_still_wins_over_unlabeled():
+    """Labeled 'Property Address:' must still take priority over the new
+    unlabeled mixed-case patterns (priority via list order)."""
+    text = (
+        "Top-of-doc: 2639 Lenway Street, Dallas, TX 75215\n"
+        "Property Address: 2016 Lone Oak Trail Mesquite, TX 75181\n"
+    )
+    r = extract_fields_from_text(text)
+    assert "Lone Oak Trail" in (r.property_address or "")  # labeled wins
+    assert r.address_pattern == "property-address-one-line"
+
+
+# ============================================================================
+# Fix 2: OCR -> publicsearch-snippet bridge for legal_resolver
+# ============================================================================
+
+def test_legal_desc_to_snippet_being_lot():
+    from scraper.foreclosure_ocr import _legal_desc_to_snippet
+    desc = ("BEING LOT 16, IN BLOCK E/8443, OF WALNUT CREEK ESTATES, SECTION "
+            "ONE, AN ADDITION TO THE CITY OF DALLAS, DALLAS COUNTY, TEXAS")
+    snippet = _legal_desc_to_snippet(desc)
+    assert snippet is not None
+    assert "Subdivision - Name: WALNUT CREEK ESTATES" in snippet
+    assert "Lot: 16" in snippet
+    assert "Block: E/8443" in snippet
+
+
+def test_legal_desc_to_snippet_bare_lot_no_being_prefix():
+    from scraper.foreclosure_ocr import _legal_desc_to_snippet
+    desc = "LOT 12, BLOCK B, OF BEAR CREEK RANCH-PHASE 4, AN ADDITION TO DALLAS COUNTY"
+    snippet = _legal_desc_to_snippet(desc)
+    assert snippet is not None
+    assert "Subdivision - Name: BEAR CREEK RANCH-PHASE 4" in snippet
+    assert "Lot: 12" in snippet
+    assert "Block: B" in snippet
+
+
+def test_legal_desc_to_snippet_unparsable_returns_none():
+    from scraper.foreclosure_ocr import _legal_desc_to_snippet
+    # Missing block
+    assert _legal_desc_to_snippet("LOT 16, OF WALNUT CREEK ESTATES") is None
+    # Empty
+    assert _legal_desc_to_snippet("") is None
+    # Garbage
+    assert _legal_desc_to_snippet("asdfqwerty") is None
+
+
+# ============================================================================
+# Fix 3a: legal-desc patterns tolerate OCR double-newlines
+# ============================================================================
+
+def test_legal_desc_being_lot_double_newline_layout():
+    """LAPRENSA GRANT case — page 4 EXHIBIT A layout where every line has
+    a blank line below it. The old `\\n[^\\n]+` rejected blank lines and
+    returned None; the new `\\s+[^\\n]+` skips them."""
+    text = (
+        "EXHIBIT \"A\"\n"
+        "\n"
+        "BEING LOT 16, IN BLOCK E/8443, OF WALNUT CREEK ESTATES, SECTION ONE, AN ADDITION To\n"
+        "\n"
+        "THE CITY OF DALLAS, DALLAS COUNTY, TEXAS, ACCORDING TO THE MAP THEREOF RECORDED\n"
+        "\n"
+        "IN VOLUME 77035, PAGE 1010, OF THE MAP RECORDS OF DALLAS COUNTY, TEXAS.\n"
+    )
+    r = extract_fields_from_text(text)
+    assert r.legal_description is not None
+    assert "WALNUT CREEK ESTATES" in r.legal_description
+
+
+# ============================================================================
+# Fix 3b: Loan amount tolerates OCR-inserted spaces in numbers
+# ============================================================================
+
+def test_loan_amount_ocr_inserted_space():
+    """OCR splits '$115,862.00' into '$11 5,862.00'. The space-tolerant
+    pattern captures it; the extractor strips the space."""
+    text = "in the original amount of $11 5,862.00, payable to the order of Selene Finance"
+    r = extract_fields_from_text(text)
+    assert r.loan_amount == "115,862.00"
+
+
+def test_loan_amount_no_space_still_works():
+    """Existing patterns must keep working unchanged."""
+    text = "in the original principal amount of $341,078.00, payable to..."
+    r = extract_fields_from_text(text)
+    assert r.loan_amount == "341,078.00"
+
+
+# ============================================================================
+# Fix 3c: Grantor patterns for "WHEREAS ... NAME ... as Grantor/Borrower"
+# ============================================================================
+
+def test_grantor_whereas_on_date_marital_status():
+    """ServiceLink format anchored by marital status."""
+    text = (
+        "WHEREAS, on April 16, 2010, LAPRENSA GRANT AND REGIONALD GRANT, "
+        "WIFE AND HUSBAND, WITH HIM JOINING HEREIN TO PERFECT THE SECURITY "
+        "INTEREST BUT NOT TO OTHERWISE BE LIABLE as Grantor/Borrower, "
+        "executed and delivered that certain Deed of Trust..."
+    )
+    r = extract_fields_from_text(text)
+    assert r.grantor is not None
+    assert "LAPRENSA GRANT" in r.grantor
+    assert r.grantor_pattern == "whereas-on-date-name-marital"
+
+
+def test_grantor_name_as_grantor_borrower_fallback():
+    """When no marital status follows the name, use the 'as Grantor/Borrower'
+    fallback (lower-priority pattern)."""
+    text = (
+        "Some preamble.\n"
+        "JOHN Q PROPERTYHOLDER as Grantor/Borrower, executed and delivered..."
+    )
+    r = extract_fields_from_text(text)
+    assert r.grantor is not None
+    assert "JOHN Q PROPERTYHOLDER" in r.grantor
+
+
+# ============================================================================
+# Fix 3d: Sale-date fallback for OCR-garbled "NOTICE IS HEREBY GIVEN"
+# ============================================================================
+
+def test_sale_date_ocr_garbled_hereby():
+    """LAPRENSA GRANT case — OCR rendered 'HEREBY' as 'MIEREBY' and split
+    'NOTICE IS' to 'NOW THEREFORE'. The fallback accepts both preambles
+    plus any word in the HEREBY slot."""
+    text = (
+        "NOW THEREFORE-N@ MIEREBY GIVEN that on Tuesday, August 4, 2026 at "
+        "01:00 PM, no later than three hours thereafter..."
+    )
+    r = extract_fields_from_text(text)
+    assert r.sale_date_iso == "2026-08-04"
+
+
+def test_sale_date_strict_hereby_still_works():
+    """The strict 'NOTICE IS HEREBY GIVEN' pattern must still match
+    cleanly, so we don't regress the dominant template."""
+    text = (
+        "NOTICE IS HEREBY GIVEN that on Tuesday, August 4, 2026 at 01:00 PM, "
+        "no later than three hours thereafter..."
+    )
+    r = extract_fields_from_text(text)
+    assert r.sale_date_iso == "2026-08-04"
+
+
+# ============================================================================
+# Fix 4: APN extraction
+# ============================================================================
+
+def test_apn_extraction_with_leading_zeros():
+    """ServiceLink-format NOFs carry 'APN 00000811302800000' on page 1.
+    Strip leading zeros so it matches DCAD's account_num space."""
+    text = (
+        "TS No TX07000360-26-1 APN 00000811302800000 TO No FCL-217556-TX\n"
+        "NOTICE OF FORECLOSURE SALE..."
+    )
+    r = extract_fields_from_text(text)
+    assert r.apn == "811302800000"
+    assert r.apn_pattern == "apn-labeled"
+
+
+def test_apn_extraction_short_form():
+    """Some notices have non-padded APN (e.g., '180052700')."""
+    text = "APN: 180052700\nNotice of foreclosure..."
+    r = extract_fields_from_text(text)
+    assert r.apn == "180052700"
+
+
+def test_apn_not_in_warnings_when_apn_extracted_but_no_address():
+    """A record with only an APN (no street addr, no legal desc) should
+    NOT raise the 'no_address_or_legal_description' warning since the
+    APN provides a downstream-resolvable identifier."""
+    text = (
+        "Notice of Trustee's Sale\n"
+        "APN 00000811302800000\n"
+        "Grantor: John Doe\n"
+        "Date of Sale: 8/4/2026\n"
+    )
+    r = extract_fields_from_text(text)
+    assert r.apn is not None
+    assert "no_address_or_legal_description" not in r.warnings
