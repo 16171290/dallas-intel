@@ -482,4 +482,7 @@ class TestCaseDetailUrl:
         url = probate.case_detail_url("abc-123-uuid")
         assert "abc-123-uuid" in url
         assert url.startswith("https://research.txcourts.gov/CourtRecordsSearch/")
-        assert url.endswith("/details")
+        # Route confirmed by live browser observation 2026-05-27: singular
+        # "case", no "/details" suffix. The case_data_id is the last segment.
+        assert "/ui/case/" in url
+        assert url.endswith("abc-123-uuid")

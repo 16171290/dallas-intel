@@ -17,7 +17,9 @@ This probe:
   2. Picks ONE unresolved Tyler PB record from data/records.json (or
      accepts --case-data-id on the CLI).
   3. Subscribes to every HTTP response Tyler's SPA makes.
-  4. Navigates to /CourtRecordsSearch/ui/cases/{case_data_id}/details.
+  4. Navigates to /CourtRecordsSearch/ui/case/{case_data_id} (the real
+     SPA route — observed in a live browser session: singular ``case``,
+     no ``/details`` suffix).
   5. Waits ~10s for the SPA to make its bootstrap XHR calls.
   6. Prints + dumps every research.txcourts.gov response with status,
      content-type, and a preview of the body for JSON responses.
@@ -153,9 +155,12 @@ def main() -> int:
 
     from scraper.probate_auth import live_authenticated_session
 
+    # Real SPA route observed in a live browser session (2026-05-27):
+    # singular "case", no "/details" suffix. The previously-assumed
+    # "/ui/cases/{id}/details" route renders Tyler's Angular 404.
     detail_url = (
-        f"https://research.txcourts.gov/CourtRecordsSearch/ui/cases/"
-        f"{case_data_id}/details"
+        f"https://research.txcourts.gov/CourtRecordsSearch/ui/case/"
+        f"{case_data_id}"
     )
 
     with live_authenticated_session() as (cookies, page):

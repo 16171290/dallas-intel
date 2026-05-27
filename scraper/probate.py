@@ -422,8 +422,13 @@ def _party_name(party: dict) -> Optional[str]:
 
 
 def case_detail_url(case_data_id: str) -> str:
-    """Operator-facing URL for one re:SearchTX case detail view."""
+    """Operator-facing URL for one re:SearchTX case detail view.
+
+    Route confirmed by live browser observation 2026-05-27: singular
+    ``case``, no ``/details`` suffix. The earlier plural-with-suffix
+    form rendered Tyler's Angular 404 page.
+    """
     return (
-        f"https://research.txcourts.gov/CourtRecordsSearch/ui/cases/"
-        f"{case_data_id}/details"
+        f"https://research.txcourts.gov/CourtRecordsSearch/ui/case/"
+        f"{case_data_id}"
     )
