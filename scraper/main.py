@@ -68,6 +68,7 @@ from . import (
     output,
     probate,
     publicsearch,
+    resolution_paths,
     scorer,
 )
 
@@ -390,6 +391,17 @@ def _run_pipeline() -> int:
     logger.info("[6/12] Merging with prior records.json")
     prior_records = output.read_records_json(config.RECORDS_JSON)
     all_records = _merge_seen_dates(all_records, prior_records)
+
+    # 6.3 Path B — raw_excerpt clean-address fallback ------------------------
+    # Records sometimes have a corrupted / city-only / venue-trustee value in
+    # address_normalized but contain the correct property address inside
+    # raw_excerpt (Class 24 + Class 1 + Class 25 per docs/FORENSIC_AUDIT_*).
+    # Path B retries the address-index lookup with whatever clean street
+    # address is in raw_excerpt, guarded against known venue/trustee signatures.
+    # See docs/RESOLUTION_PATHS_DESIGN.md §4.
+    logger.info("[6.3/12] Path B: raw_excerpt clean-address fallback")
+    path_b_stats = resolution_paths.run_path_b(all_records, address_index)
+    resolution_paths.log_path_b_summary(path_b_stats)
 
     # 6.4 APN -> DCAD account resolution -------------------------------------
     # ServiceLink-format NOFs carry APN (DCAD account_num with leading zeros)
