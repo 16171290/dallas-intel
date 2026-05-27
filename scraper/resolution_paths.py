@@ -25,7 +25,7 @@ from typing import Optional
 from typing import Callable
 
 from . import address_variants, normalize
-from .probate_matcher import match_decedent_to_dcad
+from .probate_matcher import ProbateMatchResult, match_decedent_to_dcad
 from .stage_6_6_agreement import score_address_match
 from .resolution import (
     GRANTOR_BOILERPLATE_BLOCKLIST,
@@ -560,6 +560,7 @@ class PathAStats:
     matched:                  int = 0    # 1 account, clean
     multi_account_matched:    int = 0    # 2+ accounts, first stamped + warned
     multi_account_picked_by_page: int = 0  # PR 7.7: multi resolved by page text
+    joint_grantor_split_used: int = 0      # PR 7.8: grantor split on & before matching
     guarded:                  int = 0    # match found but Class 19a filter rejected
     no_match:                 int = 0
 
@@ -636,6 +637,82 @@ def _is_trust_first_name_pattern(grantor: str, dcad_owner: str) -> bool:
     if len(before.split()) >= 1:
         return True
     return False
+
+
+# Tier-quality ordering, used when we combine matches from multiple
+# split names (PR 7.8). Higher = more specific = stronger signal.
+# Matches the canonical ordering in scraper.resolution.VALID_TIERS.
+_TIER_QUALITY = {
+    TIER_EXACT:            6,
+    TIER_NO_MIDDLE:        5,
+    TIER_INITIAL_FORM:     4,
+    TIER_DOUBLE_INITIAL:   3,
+    TIER_SURNAME_ONLY:     2,
+}
+
+
+def _split_joint_grantor(grantor: Optional[str]) -> list[str]:
+    """Split a joint-grantor string on ``&`` into individual names.
+
+    PR 7.8: production audit on 2026-05-27 found grantor
+    ``"Walker, David & Walker, Linda E."`` matched only David's
+    accounts via the existing single-name matcher; never tried
+    "Walker, Linda E." independently. The actual foreclosure target
+    was Linda E.'s property in Irving — never even considered.
+
+    Returns ``[grantor]`` (single-element) when no ``&`` is present, so
+    callers can iterate uniformly. Empty / whitespace-only segments are
+    discarded.
+
+    Examples:
+        "Walker, David & Walker, Linda E." → ["Walker, David", "Walker, Linda E."]
+        "Adama, Favour & Adama, Bernard"   → ["Adama, Favour", "Adama, Bernard"]
+        "Salcedo, Erika"                   → ["Salcedo, Erika"]
+        ""                                 → []
+    """
+    if not grantor:
+        return []
+    if "&" not in grantor:
+        return [grantor]
+    parts = [p.strip() for p in grantor.split("&")]
+    return [p for p in parts if p]
+
+
+def _combine_matches(
+    name_matches: list[tuple[str, ProbateMatchResult]],
+) -> ProbateMatchResult:
+    """PR 7.8 helper: when a joint grantor split produces multiple
+    successful matches, combine them into a single synthetic
+    ProbateMatchResult so the downstream Path A flow (Class 19a guard,
+    page-text picker, alternates stamping) operates on the union.
+
+    Deduplicates accounts in first-seen order so the page-text picker
+    has a stable candidate set. Effective tier is the BEST (most
+    specific) tier across all matches. common_name_pollution carries
+    through if ANY individual name match had it.
+    """
+    seen: set[str] = set()
+    combined_accounts: list[str] = []
+    for _name, m in name_matches:
+        for a in m.accounts:
+            if a not in seen:
+                seen.add(a)
+                combined_accounts.append(a)
+
+    best_match = max(
+        name_matches,
+        key=lambda nm: _TIER_QUALITY.get(nm[1].tier, 0),
+    )
+    pollution = any(m.warning == "common_name_pollution"
+                    for _n, m in name_matches)
+
+    return ProbateMatchResult(
+        matched_name=best_match[1].matched_name,
+        accounts=combined_accounts,
+        tier=best_match[1].tier,
+        key_source=best_match[1].key_source,
+        warning="common_name_pollution" if pollution else None,
+    )
 
 
 def _pick_account_by_page_text(
@@ -776,9 +853,19 @@ def run_path_a(
 
         stats.candidates += 1
 
-        match = match_decedent_to_dcad(grantor, owner_index)
+        # PR 7.8: split joint grantors so we don't miss the property
+        # owned by the SECOND named grantor. Single-name grantors flow
+        # through as a 1-element list.
+        names_to_try = _split_joint_grantor(grantor)
+        if len(names_to_try) > 1:
+            stats.joint_grantor_split_used += 1
+        name_matches: list[tuple[str, ProbateMatchResult]] = []
+        for name in names_to_try:
+            m = match_decedent_to_dcad(name, owner_index)
+            if m is not None:
+                name_matches.append((name, m))
 
-        if match is None:
+        if not name_matches:
             append_history(rec, ResolutionHistoryEntry(
                 path=PATH_A_GRANTOR_OWNER_INDEX,
                 stage="6.45",
@@ -787,6 +874,8 @@ def run_path_a(
             ))
             stats.no_match += 1
             continue
+
+        match = _combine_matches(name_matches)
 
         # We have a match. Class 19a guard for surname_only matches:
         # peek at the DCAD owner of the matched account to see if the
