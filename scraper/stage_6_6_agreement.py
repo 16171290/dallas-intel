@@ -46,7 +46,14 @@ from dataclasses import dataclass, field
 from typing import Callable, Optional
 
 from .resolution import (
+    PATH_A_GRANTOR_OWNER_INDEX,
+    PATH_B_RAW_EXCERPT,
+    PATH_C_APN,
+    PATH_C_LEGAL_RESOLVER,
+    PATH_PB_DECEDENT_OWNER_INDEX,
     PATH_STAGE_6_6,
+    PATH_STAGE_7_ADDRESS_INDEX,
+    PATH_VARIANT_LOOKUP,
     STATUS_MATCHED,
     STATUS_MULTI_MATCH,
     STATUS_SKIPPED,
@@ -60,6 +67,26 @@ from .resolution import (
     get_history,
     set_alternate_accounts,
 )
+
+
+# Paths whose ``dcad_account`` represents the PRIMARY PROPERTY of interest
+# for the record (vs. ancillary fields like the heir's mailing address).
+# Stage 6.6 uses this to scope agreement/disagreement detection so that
+# probate applicant-mailing matches (which legitimately differ from the
+# decedent's property) don't get treated as conflicting candidates.
+#
+# Excluded deliberately:
+#   PATH_PB_APPLICANT_OWNER_INDEX — applicant mailing-address resolution,
+#                                   not the property being adjudicated
+_PROPERTY_CANDIDATE_PATHS: frozenset[str] = frozenset({
+    PATH_STAGE_7_ADDRESS_INDEX,
+    PATH_B_RAW_EXCERPT,
+    PATH_VARIANT_LOOKUP,
+    PATH_A_GRANTOR_OWNER_INDEX,
+    PATH_C_LEGAL_RESOLVER,
+    PATH_C_APN,
+    PATH_PB_DECEDENT_OWNER_INDEX,
+})
 
 logger = logging.getLogger(__name__)
 
@@ -117,10 +144,15 @@ def audit_agreement(rec: dict) -> AgreementState:
     MULTI_MATCH. Groups by account; reports kind.
     """
     history = get_history(rec)
+    # PR 7.5: only count matches from paths that resolve the PRIMARY
+    # property of the record. Excludes applicant-mailing matches (which
+    # legitimately differ from the decedent's property in probate cases)
+    # so they don't generate false-positive cross-path disagreements.
     matching_entries = [
         h for h in history
         if h.get("status") in (STATUS_MATCHED, STATUS_MULTI_MATCH)
         and h.get("dcad_account")
+        and h.get("path") in _PROPERTY_CANDIDATE_PATHS
     ]
 
     picks: dict[str, list[str]] = {}
