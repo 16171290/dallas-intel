@@ -472,59 +472,68 @@ def _run_pipeline() -> int:
         apn_stats.no_apn, apn_stats.no_match,
     )
 
-    # 6.45 Path A — NOF grantor → DCAD owner_index ---------------------------
-    # NOF records whose grantor (the foreclosed homeowner) is extracted by
-    # OCR but whose address didn't resolve via Stage 7 / Path B / Variant /
-    # APN can often be matched directly via the grantor name. Same machinery
-    # as PB record decedent fan-out; tier ladder + class 19a guard prevent
-    # the wrong-person-called failure mode. See docs/RESOLUTION_PATHS_DESIGN §5.
-    logger.info("[6.45/12] Path A: NOF grantor -> DCAD owner_index")
+    # Page fetcher — used by Path A's multi-account picker (PR 7.7) AND
+    # Stage 6.6's cross-path tiebreaker (PR 5). Single PageFetcher
+    # instance shared across both stages so the Playwright browser is
+    # only spun up once per run.
     path_a_account_owner_index = dcad_owner_index.build_account_to_owner_name(dcad_tables)
     path_a_account_address_index = legal_resolver._build_account_to_address(dcad_tables)
-    path_a_stats = resolution_paths.run_path_a(
-        all_records,
-        owner_index,
-        path_a_account_address_index,
-        path_a_account_owner_index,
-        always_run=True,
-    )
-    resolution_paths.log_path_a_summary(path_a_stats)
 
-    # 6.5 Legal-description -> DCAD address resolution -----------------------
-    # Publicsearch records lack a street address at canonicalization time;
-    # they carry the property's legal description in raw_excerpt. This stage
-    # parses that description, looks it up in DCAD's ACCOUNT_INFO via
-    # subdivision/lot/block, and stamps address_normalized on matched records.
-    # Stage 7's address-based DCAD enrichment then picks them up. Skips
-    # records that already have an address (foreclosure-PDF source).
-    logger.info("[6.5/12] Legal-description -> DCAD address resolution")
-    legal_stats = legal_resolver.resolve_legal_descriptions(
-        all_records, dcad_tables, always_run=True,
-    )
-    logger.info(
-        "Legal-description resolver: %d/%d resolved (%.1f%%); "
-        "no_parse=%d no_match=%d multi=%d no_snippet=%d",
-        legal_stats.resolved, legal_stats.total, legal_stats.resolution_rate * 100,
-        legal_stats.no_parse, legal_stats.no_match, legal_stats.multi_match,
-        legal_stats.no_snippet,
-    )
+    with page_fetcher.PageFetcher() as shared_fetcher:
+        # 6.45 Path A — NOF grantor → DCAD owner_index -----------------------
+        # NOF records whose grantor (the foreclosed homeowner) is extracted by
+        # OCR but whose address didn't resolve via Stage 7 / Path B / Variant /
+        # APN can often be matched directly via the grantor name. Same machinery
+        # as PB record decedent fan-out; tier ladder + class 19a guard prevent
+        # the wrong-person-called failure mode. See docs/RESOLUTION_PATHS_DESIGN §5.
+        # PR 7.7: when match_decedent_to_dcad returns multiple accounts (e.g.
+        # "Salcedo Erika" maps to 2 properties in DCAD), use the publicsearch
+        # page text as the tiebreaker instead of always-first.
+        logger.info("[6.45/12] Path A: NOF grantor -> DCAD owner_index")
+        path_a_stats = resolution_paths.run_path_a(
+            all_records,
+            owner_index,
+            path_a_account_address_index,
+            path_a_account_owner_index,
+            always_run=True,
+            page_fetcher=shared_fetcher,
+        )
+        resolution_paths.log_path_a_summary(path_a_stats)
 
-    # 6.6 Cross-path agreement audit + page tiebreaker -----------------------
-    # All paths above ran in always_run mode, recording their would-be
-    # picks to signal_metadata.resolution_history without overwriting the
-    # first-stamping path's choice. Stage 6.6 audits that history:
-    #   - Agreement (2+ paths picked the same account): WARN_PATH_AGREEMENT
-    #   - Disagreement (paths picked different accounts): fetches the
-    #     publicsearch.us /doc/ Summary panel's Property Address text and
-    #     uses it as referee via token-overlap scoring. Winner becomes
-    #     primary; losers move to alternate_accounts.
-    # See docs/RESOLUTION_PATHS_DESIGN.md §7 + scraper/stage_6_6_agreement.py.
-    logger.info("[6.6/12] Stage 6.6: cross-path agreement + page tiebreaker")
-    with page_fetcher.PageFetcher() as fetcher:
+        # 6.5 Legal-description -> DCAD address resolution -------------------
+        # Publicsearch records lack a street address at canonicalization time;
+        # they carry the property's legal description in raw_excerpt. This stage
+        # parses that description, looks it up in DCAD's ACCOUNT_INFO via
+        # subdivision/lot/block, and stamps address_normalized on matched records.
+        # Stage 7's address-based DCAD enrichment then picks them up. Skips
+        # records that already have an address (foreclosure-PDF source).
+        logger.info("[6.5/12] Legal-description -> DCAD address resolution")
+        legal_stats = legal_resolver.resolve_legal_descriptions(
+            all_records, dcad_tables, always_run=True,
+        )
+        logger.info(
+            "Legal-description resolver: %d/%d resolved (%.1f%%); "
+            "no_parse=%d no_match=%d multi=%d no_snippet=%d",
+            legal_stats.resolved, legal_stats.total, legal_stats.resolution_rate * 100,
+            legal_stats.no_parse, legal_stats.no_match, legal_stats.multi_match,
+            legal_stats.no_snippet,
+        )
+
+        # 6.6 Cross-path agreement audit + page tiebreaker -------------------
+        # All paths above ran in always_run mode, recording their would-be
+        # picks to signal_metadata.resolution_history without overwriting the
+        # first-stamping path's choice. Stage 6.6 audits that history:
+        #   - Agreement (2+ paths picked the same account): WARN_PATH_AGREEMENT
+        #   - Disagreement (paths picked different accounts): fetches the
+        #     publicsearch.us /doc/ Summary panel's Property Address text and
+        #     uses it as referee via token-overlap scoring. Winner becomes
+        #     primary; losers move to alternate_accounts.
+        # See docs/RESOLUTION_PATHS_DESIGN.md §7 + scraper/stage_6_6_agreement.py.
+        logger.info("[6.6/12] Stage 6.6: cross-path agreement + page tiebreaker")
         stage_6_6_stats = stage_6_6_agreement.run_stage_6_6(
             all_records,
             path_a_account_address_index,   # reuse the acct -> addr map
-            page_fetcher=fetcher,
+            page_fetcher=shared_fetcher,
         )
     stage_6_6_agreement.log_stage_6_6_summary(stage_6_6_stats)
 

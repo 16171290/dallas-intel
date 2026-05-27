@@ -22,8 +22,11 @@ import re
 from dataclasses import dataclass
 from typing import Optional
 
+from typing import Callable
+
 from . import address_variants, normalize
 from .probate_matcher import match_decedent_to_dcad
+from .stage_6_6_agreement import score_address_match
 from .resolution import (
     GRANTOR_BOILERPLATE_BLOCKLIST,
     PATH_A_GRANTOR_OWNER_INDEX,
@@ -47,6 +50,7 @@ from .resolution import (
     WARN_SURNAME_DRIFT,
     WARN_SURNAME_ONLY_TIER,
     WARN_SURNAME_IN_TRUST_FIRST_NAME,
+    WARN_TIEBROKEN_BY_PAGE,
     ResolutionHistoryEntry,
     add_warning,
     append_history,
@@ -555,6 +559,7 @@ class PathAStats:
     candidates:               int = 0
     matched:                  int = 0    # 1 account, clean
     multi_account_matched:    int = 0    # 2+ accounts, first stamped + warned
+    multi_account_picked_by_page: int = 0  # PR 7.7: multi resolved by page text
     guarded:                  int = 0    # match found but Class 19a filter rejected
     no_match:                 int = 0
 
@@ -633,6 +638,40 @@ def _is_trust_first_name_pattern(grantor: str, dcad_owner: str) -> bool:
     return False
 
 
+def _pick_account_by_page_text(
+    accounts: list[str],
+    account_address_index: dict[str, str],
+    page_text: Optional[str],
+    *,
+    min_score: float = 0.30,
+    min_margin: float = 0.15,
+) -> Optional[str]:
+    """PR 7.7: score each candidate account's address against page text;
+    return the winner if confidence is high enough, else None (caller
+    should fall back to default first-account behavior).
+
+    Same mechanism Stage 6.6 uses for cross-path disagreements, applied
+    here to intra-path multi-account ambiguity (e.g. Path A returns 2
+    accounts for "Salcedo Erika" — DCAD has two properties under that
+    name, page text indicates which one the foreclosure document is
+    actually about).
+    """
+    if not page_text or len(accounts) <= 1:
+        return None
+    scored: list[tuple[float, str]] = []
+    for acct in accounts:
+        addr = account_address_index.get(acct, "")
+        scored.append((score_address_match(addr, page_text), acct))
+    scored.sort(reverse=True)
+    top_score = scored[0][0]
+    runner_up = scored[1][0] if len(scored) > 1 else 0.0
+    if top_score < min_score:
+        return None
+    if (top_score - runner_up) < min_margin:
+        return None
+    return scored[0][1]
+
+
 def _surname_of(name: str) -> str:
     """Extract the canonical surname token from a grantor / dcad_owner string.
 
@@ -668,6 +707,7 @@ def run_path_a(
     dcad_account_owner_index: dict[str, str],
     *,
     always_run: bool = False,
+    page_fetcher: Optional[Callable[[str], Optional[str]]] = None,
 ) -> PathAStats:
     """Stage 6.45 — Path A: NOF grantor → DCAD owner_index lookup.
 
@@ -772,16 +812,54 @@ def run_path_a(
                 stats.guarded += 1
                 continue
 
-        # Match passes guards. Compute what we would stamp.
-        primary_acct = match.accounts[0]
-        alternates = list(match.accounts[1:])
+        # Match passes guards. Determine the primary account.
+        # PR 7.7: when match returns multiple accounts AND a page_fetcher
+        # is available, score each candidate's address against the
+        # publicsearch /doc/ page text and pick the one that aligns with
+        # the document. Salcedo case (2026-05-27): owner_index has 2
+        # "SALCEDO ERIKA" accounts; only one is the foreclosure subject
+        # and the page text disambiguates.
+        candidates = list(match.accounts)
+        page_picked = False
+        if (len(candidates) > 1
+                and page_fetcher is not None
+                and not already_resolved):
+            record_id = rec.get("record_id")
+            page_text: Optional[str] = None
+            if record_id:
+                try:
+                    page_text = page_fetcher(record_id)
+                except Exception as e:
+                    logger.warning(
+                        "Path A: page fetch failed for record_id=%s: %s",
+                        record_id, e,
+                    )
+            winner = _pick_account_by_page_text(
+                candidates, account_address_index, page_text,
+            )
+            if winner is not None and winner != candidates[0]:
+                # Reorder so winner is primary; preserve other candidates
+                # in original order (less the winner) as alternates.
+                candidates = [winner] + [a for a in candidates if a != winner]
+                page_picked = True
+                stats.multi_account_picked_by_page += 1
+                logger.info(
+                    "Path A picked-by-page record_id=%s grantor=%r "
+                    "winner=%s (was first=%s)",
+                    record_id, grantor, winner, match.accounts[0],
+                )
+
+        primary_acct = candidates[0]
+        alternates = candidates[1:]
         acct_addr = account_address_index.get(primary_acct)
 
         # Build the history-entry warnings list (this is recorded
         # regardless of stamping mode).
         history_warnings: list[str] = []
-        if len(match.accounts) > 1:
+        if len(candidates) > 1:
             history_warnings.append(WARN_MULTI_ACCOUNT)
+        if page_picked:
+            history_warnings.append(WARN_TIEBROKEN_BY_PAGE)
         if match.tier == TIER_SURNAME_ONLY:
             history_warnings.append(WARN_SURNAME_ONLY_TIER)
         if match.warning == "common_name_pollution":
@@ -806,9 +884,11 @@ def run_path_a(
             rec["dcad_account"] = primary_acct
             if acct_addr:
                 rec["address_normalized"] = acct_addr
-            if len(match.accounts) > 1:
+            if len(candidates) > 1:
                 add_warning(rec, WARN_MULTI_ACCOUNT)
                 set_alternate_accounts(rec, alternates)
+            if page_picked:
+                add_warning(rec, WARN_TIEBROKEN_BY_PAGE)
             if match.tier == TIER_SURNAME_ONLY:
                 add_warning(rec, WARN_SURNAME_ONLY_TIER)
             if match.warning == "common_name_pollution":

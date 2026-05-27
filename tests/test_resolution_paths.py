@@ -949,3 +949,209 @@ class TestPathBDiagnosticMode:
         history = get_history(rec)
         path_b_entries = [h for h in history if h["path"] == PATH_B_RAW_EXCERPT]
         assert any(h["status"] == STATUS_MATCHED for h in path_b_entries)
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# PR 7.7 — Path A multi-account picker uses page text
+# ═══════════════════════════════════════════════════════════════════════════
+#
+# Production audit on 2026-05-27 GHA run found:
+#   grantor='Salcedo, Erika'
+#   match_decedent_to_dcad returned 2 accounts:
+#     - 220955400D03B0000 → 910 GAYNOR AVE, Duncanville (DCAD's first)
+#     - 50029500050290000 → 723 HIGH SCHOOL LN, Seagoville
+#   Pipeline picked the first one. The publicsearch document was for
+#   the Seagoville property. Wrong-person-called risk.
+#
+# PR 7.7: when Path A returns multi-account AND a page_fetcher is
+# available, score each candidate's address against the page text and
+# pick the winner if the margin is decisive.
+
+
+class TestPickAccountByPageText:
+    """Direct unit tests for the picker helper."""
+
+    def _idx(self):
+        return {
+            "acct_seagoville": "723 HIGH SCHOOL LN",
+            "acct_duncanville": "910 GAYNOR AVE",
+            "acct_irving": "2624 EDINBURGH ST",
+            "acct_sanfernando": "8643 SAN FERNANDO WAY",
+        }
+
+    def test_clear_winner_returns_account(self):
+        # Salcedo scenario: page text matches Seagoville address
+        winner = resolution_paths._pick_account_by_page_text(
+            ["acct_duncanville", "acct_seagoville"],
+            self._idx(),
+            "723 HIGH SCHOOL LANE SEAGOVILLE TEXAS 75159",
+        )
+        assert winner == "acct_seagoville"
+
+    def test_walker_linda_e_irving_scenario(self):
+        winner = resolution_paths._pick_account_by_page_text(
+            ["acct_sanfernando", "acct_irving"],
+            self._idx(),
+            "2624 EDINBURGH STREET IRVING TEXAS 75061",
+        )
+        assert winner == "acct_irving"
+
+    def test_no_page_text_returns_none(self):
+        assert resolution_paths._pick_account_by_page_text(
+            ["acct_duncanville", "acct_seagoville"], self._idx(), None,
+        ) is None
+        assert resolution_paths._pick_account_by_page_text(
+            ["acct_duncanville", "acct_seagoville"], self._idx(), "",
+        ) is None
+
+    def test_single_account_returns_none(self):
+        """If only one candidate, no need to tiebreak."""
+        assert resolution_paths._pick_account_by_page_text(
+            ["acct_seagoville"], self._idx(),
+            "723 HIGH SCHOOL LN SEAGOVILLE 75159",
+        ) is None
+
+    def test_top_score_below_threshold_returns_none(self):
+        """Page text doesn't match any candidate well enough."""
+        winner = resolution_paths._pick_account_by_page_text(
+            ["acct_duncanville", "acct_seagoville"],
+            self._idx(),
+            "Random unrelated text about nothing in particular",
+        )
+        assert winner is None
+
+    def test_margin_below_threshold_returns_none(self):
+        """Both candidates score equally — can't decide."""
+        idx = {"a": "100 OAK", "b": "100 OAK"}   # identical addresses
+        winner = resolution_paths._pick_account_by_page_text(
+            ["a", "b"], idx, "100 OAK STREET DALLAS",
+        )
+        assert winner is None  # tied scores
+
+
+class TestPathAMultiAccountPickerByPage:
+    """Integration tests for the Path A page-tiebreaker behavior."""
+
+    def _fixtures(self):
+        # Salcedo Erika: 2 properties in DCAD
+        owner_index = {
+            "SALCEDO ERIKA": ["acct_duncanville", "acct_seagoville"],
+        }
+        account_address_index = {
+            "acct_duncanville": "910 GAYNOR AVE",
+            "acct_seagoville":  "723 HIGH SCHOOL LN",
+        }
+        account_owner_index = {
+            "acct_duncanville": "SALCEDO ERIKA",
+            "acct_seagoville":  "SALCEDO ERIKA",
+        }
+        return owner_index, account_address_index, account_owner_index
+
+    def test_multi_account_page_picks_correct_winner(self):
+        """The Salcedo case: page text indicates Seagoville. Path A
+        should pick Seagoville as primary, Duncanville as alternate."""
+        oi, aai, aoi = self._fixtures()
+        rec = {
+            "record_id": "315551161",
+            "dallas_code": "NOF",
+            "grantor": "Salcedo, Erika",
+        }
+
+        def fetcher(rid):
+            return "723 HIGH SCHOOL LN SEAGOVILLE TEXAS 75159"
+
+        stats = resolution_paths.run_path_a(
+            [rec], oi, aai, aoi, page_fetcher=fetcher,
+        )
+        assert stats.multi_account_matched == 1
+        assert stats.multi_account_picked_by_page == 1
+        assert rec["dcad_account"] == "acct_seagoville"   # winner
+        assert rec["address_normalized"] == "723 HIGH SCHOOL LN"
+        # Duncanville (the loser) moved to alternates
+        from scraper.resolution import get_alternate_accounts
+        assert get_alternate_accounts(rec) == ["acct_duncanville"]
+        # Warning flags this happened
+        warnings = get_warnings(rec)
+        assert "tiebroken_by_page" in warnings
+        assert WARN_MULTI_ACCOUNT in warnings
+
+    def test_multi_account_no_page_fetcher_falls_back(self):
+        """Backwards-compatible: without page_fetcher kwarg, Path A
+        picks the first account exactly as before PR 7.7."""
+        oi, aai, aoi = self._fixtures()
+        rec = {
+            "record_id": "315551161",
+            "dallas_code": "NOF",
+            "grantor": "Salcedo, Erika",
+        }
+        stats = resolution_paths.run_path_a([rec], oi, aai, aoi)
+        assert stats.multi_account_matched == 1
+        assert stats.multi_account_picked_by_page == 0
+        # No page picker → first account wins (Duncanville is first in dict)
+        assert rec["dcad_account"] == "acct_duncanville"
+
+    def test_multi_account_page_inconclusive_falls_back_to_first(self):
+        """Page fetched but text is generic; picker returns None;
+        Path A falls back to first-account behavior."""
+        oi, aai, aoi = self._fixtures()
+        rec = {
+            "record_id": "315551161",
+            "dallas_code": "NOF",
+            "grantor": "Salcedo, Erika",
+        }
+
+        def fetcher(rid):
+            return "Notice of Foreclosure Sale Dallas County"
+
+        stats = resolution_paths.run_path_a(
+            [rec], oi, aai, aoi, page_fetcher=fetcher,
+        )
+        assert stats.multi_account_picked_by_page == 0
+        assert rec["dcad_account"] == "acct_duncanville"   # first
+        assert "tiebroken_by_page" not in get_warnings(rec)
+
+    def test_multi_account_page_fetcher_raises_falls_back(self):
+        """Page fetch crash doesn't crash Path A — falls back to
+        first-account behavior."""
+        oi, aai, aoi = self._fixtures()
+        rec = {
+            "record_id": "315551161",
+            "dallas_code": "NOF",
+            "grantor": "Salcedo, Erika",
+        }
+
+        def crashing_fetcher(rid):
+            raise RuntimeError("simulated network failure")
+
+        # Should not propagate
+        stats = resolution_paths.run_path_a(
+            [rec], oi, aai, aoi, page_fetcher=crashing_fetcher,
+        )
+        assert stats.multi_account_matched == 1
+        assert stats.multi_account_picked_by_page == 0
+        assert rec["dcad_account"] == "acct_duncanville"
+
+    def test_single_account_match_unaffected(self):
+        """Page fetcher provided but match is unambiguous (1 acct) —
+        no page fetch, no tiebreak. Existing single-match path."""
+        oi = {"OUSLEY SKYLER": ["acct_ousley"]}
+        aai = {"acct_ousley": "6840 DART AVE"}
+        aoi = {"acct_ousley": "OUSLEY SKYLER"}
+        rec = {
+            "record_id": "rO",
+            "dallas_code": "NOF",
+            "grantor": "Ousley, Skyler",
+        }
+
+        fetch_called = [False]
+        def fetcher(rid):
+            fetch_called[0] = True
+            return "ignored"
+
+        stats = resolution_paths.run_path_a(
+            [rec], oi, aai, aoi, page_fetcher=fetcher,
+        )
+        assert stats.matched == 1
+        assert stats.multi_account_picked_by_page == 0
+        assert not fetch_called[0], "should not fetch for single-account matches"
+        assert rec["dcad_account"] == "acct_ousley"
