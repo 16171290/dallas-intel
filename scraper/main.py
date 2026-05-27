@@ -70,6 +70,7 @@ from . import (
     page_fetcher,
     probate,
     publicsearch,
+    resolution,
     resolution_paths,
     scorer,
     stage_6_6_agreement,
@@ -134,6 +135,34 @@ def _foreclosure_ocr_enabled() -> bool:
     return os.getenv("FORECLOSURE_OCR_ENABLED", "false").strip().lower() in (
         "true", "1", "yes", "on",
     )
+
+
+def apply_grantor_fallback_from_dcad_owner(records: list[dict]) -> int:
+    """When ``grantor`` is null but ``dcad_owner`` is set, copy
+    dcad_owner into grantor with a ``WARN_GRANTOR_FROM_DCAD`` warning.
+
+    NOF records frequently come out of OCR with grantor=None because the
+    "Unofficial Copy" watermark on publicsearch.us page renders mangles
+    the labeled grantor line. By the time enrich_batch has run, the
+    address-keyed DCAD lookup has populated dcad_owner from ACCOUNT_INFO.
+    For foreclosure records, the DCAD owner IS the foreclosed homeowner
+    — the current recorded owner is the lead the operator wants to dial.
+
+    Surfaces dcad_owner as grantor with WARN_GRANTOR_FROM_DCAD so the
+    operator sees this name came from DCAD ownership records (not the
+    document OCR). Does not overwrite a non-null grantor.
+
+    Returns the number of records mutated.
+    """
+    count = 0
+    for rec in records:
+        if not (rec.get("grantor") or "").strip():
+            owner = (rec.get("dcad_owner") or "").strip()
+            if owner:
+                rec["grantor"] = owner
+                resolution.add_warning(rec, resolution.WARN_GRANTOR_FROM_DCAD)
+                count += 1
+    return count
 
 
 def _run_pipeline() -> int:
@@ -503,6 +532,13 @@ def _run_pipeline() -> int:
     logger.info("[7/12] Enriching with DCAD")
     all_records, enrich_stats = enrichment.enrich_batch(
         all_records, dcad_tables, address_index,
+    )
+
+    # 7.5 Grantor fallback from dcad_owner (PR 7.6) --------------------------
+    grantor_fallback_count = apply_grantor_fallback_from_dcad_owner(all_records)
+    logger.info(
+        "Grantor fallback from dcad_owner: filled %d/%d records",
+        grantor_fallback_count, len(all_records),
     )
 
     # 8. Governmental-grantor suppression (Phase 0.A) ------------------------
