@@ -201,3 +201,43 @@ class TestFetchCaseDetail:
         assert (tmp_path / "dump-case.txt").exists()
         # HTML file written
         assert (tmp_path / "dump-case.html").exists()
+
+    def test_403_forbidden_reported_as_error_not_no_filings(self):
+        """PR 8.2: when Tyler's ALB serves a 403/404/5xx page, status
+        should be 'error' with a diagnostic message — NOT 'no_filings'
+        which would imply the page rendered but had no content. This
+        makes the failure mode obvious so operators don't waste time
+        thinking the case has no inventory."""
+        page = self._make_mock_page("403 Forbidden")
+        result = fetch_case_detail("blocked-case", {"sess": "c"}, page=page)
+        assert result.status == "error"
+        assert "403 forbidden" in (result.error or "").lower()
+        assert "tyler likely blocked" in (result.error or "").lower()
+
+    def test_404_not_found_also_reported_as_error(self):
+        page = self._make_mock_page("404 Not Found")
+        result = fetch_case_detail("missing-case", {}, page=page)
+        assert result.status == "error"
+        assert "404 not found" in (result.error or "").lower()
+
+    def test_real_short_content_not_misclassified_as_error(self):
+        """A genuinely short page should NOT trigger the error path —
+        only short pages that match an HTTP error marker do. Use a
+        fixture with no filing keywords so it cleanly lands in the
+        no_filings bucket."""
+        page = self._make_mock_page("This case is currently under review.")
+        result = fetch_case_detail("review-case", {}, page=page)
+        assert result.status == "no_filings"
+        assert result.error is None
+
+    def test_user_agent_header_set_on_navigation(self):
+        """PR 8.2: User-Agent must be set on the navigation request so
+        Tyler's ALB accepts it. Verified by asserting set_extra_http_headers
+        was called with the canonical UA."""
+        from scraper.probate_auth import USER_AGENT as TYLER_UA
+        page = self._make_mock_page("dummy")
+        fetch_case_detail("c1", {}, page=page)
+        page.set_extra_http_headers.assert_called_once()
+        headers = page.set_extra_http_headers.call_args[0][0]
+        assert headers.get("User-Agent") == TYLER_UA
+        assert "Referer" in headers
