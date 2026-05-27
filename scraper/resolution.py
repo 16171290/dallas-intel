@@ -113,6 +113,7 @@ WARN_PATH_B_USED_ALTERNATE        = "path_b_used_alternate"
 WARN_FUZZY_SUBDIVISION_MATCH      = "fuzzy_subdivision_match"
 WARN_VENUE_OR_TRUSTEE_ADDRESS     = "venue_or_trustee_address"
 WARN_LOOKUP_VARIANT_USED          = "lookup_variant_used"
+WARN_GRANTOR_FROM_DCAD            = "grantor_from_dcad"            # PR 7.6: grantor null after OCR; filled from dcad_owner
 
 CANONICAL_WARNINGS: frozenset[str] = frozenset({
     WARN_MULTI_ACCOUNT,
@@ -129,6 +130,7 @@ CANONICAL_WARNINGS: frozenset[str] = frozenset({
     WARN_FUZZY_SUBDIVISION_MATCH,
     WARN_VENUE_OR_TRUSTEE_ADDRESS,
     WARN_LOOKUP_VARIANT_USED,
+    WARN_GRANTOR_FROM_DCAD,
 })
 
 

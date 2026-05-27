@@ -70,6 +70,7 @@ from . import (
     page_fetcher,
     probate,
     publicsearch,
+    resolution,
     resolution_paths,
     scorer,
     stage_6_6_agreement,
@@ -134,6 +135,34 @@ def _foreclosure_ocr_enabled() -> bool:
     return os.getenv("FORECLOSURE_OCR_ENABLED", "false").strip().lower() in (
         "true", "1", "yes", "on",
     )
+
+
+def apply_grantor_fallback_from_dcad_owner(records: list[dict]) -> int:
+    """When ``grantor`` is null but ``dcad_owner`` is set, copy
+    dcad_owner into grantor with a ``WARN_GRANTOR_FROM_DCAD`` warning.
+
+    NOF records frequently come out of OCR with grantor=None because the
+    "Unofficial Copy" watermark on publicsearch.us page renders mangles
+    the labeled grantor line. By the time enrich_batch has run, the
+    address-keyed DCAD lookup has populated dcad_owner from ACCOUNT_INFO.
+    For foreclosure records, the DCAD owner IS the foreclosed homeowner
+    — the current recorded owner is the lead the operator wants to dial.
+
+    Surfaces dcad_owner as grantor with WARN_GRANTOR_FROM_DCAD so the
+    operator sees this name came from DCAD ownership records (not the
+    document OCR). Does not overwrite a non-null grantor.
+
+    Returns the number of records mutated.
+    """
+    count = 0
+    for rec in records:
+        if not (rec.get("grantor") or "").strip():
+            owner = (rec.get("dcad_owner") or "").strip()
+            if owner:
+                rec["grantor"] = owner
+                resolution.add_warning(rec, resolution.WARN_GRANTOR_FROM_DCAD)
+                count += 1
+    return count
 
 
 def _run_pipeline() -> int:
@@ -443,59 +472,68 @@ def _run_pipeline() -> int:
         apn_stats.no_apn, apn_stats.no_match,
     )
 
-    # 6.45 Path A — NOF grantor → DCAD owner_index ---------------------------
-    # NOF records whose grantor (the foreclosed homeowner) is extracted by
-    # OCR but whose address didn't resolve via Stage 7 / Path B / Variant /
-    # APN can often be matched directly via the grantor name. Same machinery
-    # as PB record decedent fan-out; tier ladder + class 19a guard prevent
-    # the wrong-person-called failure mode. See docs/RESOLUTION_PATHS_DESIGN §5.
-    logger.info("[6.45/12] Path A: NOF grantor -> DCAD owner_index")
+    # Page fetcher — used by Path A's multi-account picker (PR 7.7) AND
+    # Stage 6.6's cross-path tiebreaker (PR 5). Single PageFetcher
+    # instance shared across both stages so the Playwright browser is
+    # only spun up once per run.
     path_a_account_owner_index = dcad_owner_index.build_account_to_owner_name(dcad_tables)
     path_a_account_address_index = legal_resolver._build_account_to_address(dcad_tables)
-    path_a_stats = resolution_paths.run_path_a(
-        all_records,
-        owner_index,
-        path_a_account_address_index,
-        path_a_account_owner_index,
-        always_run=True,
-    )
-    resolution_paths.log_path_a_summary(path_a_stats)
 
-    # 6.5 Legal-description -> DCAD address resolution -----------------------
-    # Publicsearch records lack a street address at canonicalization time;
-    # they carry the property's legal description in raw_excerpt. This stage
-    # parses that description, looks it up in DCAD's ACCOUNT_INFO via
-    # subdivision/lot/block, and stamps address_normalized on matched records.
-    # Stage 7's address-based DCAD enrichment then picks them up. Skips
-    # records that already have an address (foreclosure-PDF source).
-    logger.info("[6.5/12] Legal-description -> DCAD address resolution")
-    legal_stats = legal_resolver.resolve_legal_descriptions(
-        all_records, dcad_tables, always_run=True,
-    )
-    logger.info(
-        "Legal-description resolver: %d/%d resolved (%.1f%%); "
-        "no_parse=%d no_match=%d multi=%d no_snippet=%d",
-        legal_stats.resolved, legal_stats.total, legal_stats.resolution_rate * 100,
-        legal_stats.no_parse, legal_stats.no_match, legal_stats.multi_match,
-        legal_stats.no_snippet,
-    )
+    with page_fetcher.PageFetcher() as shared_fetcher:
+        # 6.45 Path A — NOF grantor → DCAD owner_index -----------------------
+        # NOF records whose grantor (the foreclosed homeowner) is extracted by
+        # OCR but whose address didn't resolve via Stage 7 / Path B / Variant /
+        # APN can often be matched directly via the grantor name. Same machinery
+        # as PB record decedent fan-out; tier ladder + class 19a guard prevent
+        # the wrong-person-called failure mode. See docs/RESOLUTION_PATHS_DESIGN §5.
+        # PR 7.7: when match_decedent_to_dcad returns multiple accounts (e.g.
+        # "Salcedo Erika" maps to 2 properties in DCAD), use the publicsearch
+        # page text as the tiebreaker instead of always-first.
+        logger.info("[6.45/12] Path A: NOF grantor -> DCAD owner_index")
+        path_a_stats = resolution_paths.run_path_a(
+            all_records,
+            owner_index,
+            path_a_account_address_index,
+            path_a_account_owner_index,
+            always_run=True,
+            page_fetcher=shared_fetcher,
+        )
+        resolution_paths.log_path_a_summary(path_a_stats)
 
-    # 6.6 Cross-path agreement audit + page tiebreaker -----------------------
-    # All paths above ran in always_run mode, recording their would-be
-    # picks to signal_metadata.resolution_history without overwriting the
-    # first-stamping path's choice. Stage 6.6 audits that history:
-    #   - Agreement (2+ paths picked the same account): WARN_PATH_AGREEMENT
-    #   - Disagreement (paths picked different accounts): fetches the
-    #     publicsearch.us /doc/ Summary panel's Property Address text and
-    #     uses it as referee via token-overlap scoring. Winner becomes
-    #     primary; losers move to alternate_accounts.
-    # See docs/RESOLUTION_PATHS_DESIGN.md §7 + scraper/stage_6_6_agreement.py.
-    logger.info("[6.6/12] Stage 6.6: cross-path agreement + page tiebreaker")
-    with page_fetcher.PageFetcher() as fetcher:
+        # 6.5 Legal-description -> DCAD address resolution -------------------
+        # Publicsearch records lack a street address at canonicalization time;
+        # they carry the property's legal description in raw_excerpt. This stage
+        # parses that description, looks it up in DCAD's ACCOUNT_INFO via
+        # subdivision/lot/block, and stamps address_normalized on matched records.
+        # Stage 7's address-based DCAD enrichment then picks them up. Skips
+        # records that already have an address (foreclosure-PDF source).
+        logger.info("[6.5/12] Legal-description -> DCAD address resolution")
+        legal_stats = legal_resolver.resolve_legal_descriptions(
+            all_records, dcad_tables, always_run=True,
+        )
+        logger.info(
+            "Legal-description resolver: %d/%d resolved (%.1f%%); "
+            "no_parse=%d no_match=%d multi=%d no_snippet=%d",
+            legal_stats.resolved, legal_stats.total, legal_stats.resolution_rate * 100,
+            legal_stats.no_parse, legal_stats.no_match, legal_stats.multi_match,
+            legal_stats.no_snippet,
+        )
+
+        # 6.6 Cross-path agreement audit + page tiebreaker -------------------
+        # All paths above ran in always_run mode, recording their would-be
+        # picks to signal_metadata.resolution_history without overwriting the
+        # first-stamping path's choice. Stage 6.6 audits that history:
+        #   - Agreement (2+ paths picked the same account): WARN_PATH_AGREEMENT
+        #   - Disagreement (paths picked different accounts): fetches the
+        #     publicsearch.us /doc/ Summary panel's Property Address text and
+        #     uses it as referee via token-overlap scoring. Winner becomes
+        #     primary; losers move to alternate_accounts.
+        # See docs/RESOLUTION_PATHS_DESIGN.md §7 + scraper/stage_6_6_agreement.py.
+        logger.info("[6.6/12] Stage 6.6: cross-path agreement + page tiebreaker")
         stage_6_6_stats = stage_6_6_agreement.run_stage_6_6(
             all_records,
             path_a_account_address_index,   # reuse the acct -> addr map
-            page_fetcher=fetcher,
+            page_fetcher=shared_fetcher,
         )
     stage_6_6_agreement.log_stage_6_6_summary(stage_6_6_stats)
 
@@ -503,6 +541,13 @@ def _run_pipeline() -> int:
     logger.info("[7/12] Enriching with DCAD")
     all_records, enrich_stats = enrichment.enrich_batch(
         all_records, dcad_tables, address_index,
+    )
+
+    # 7.5 Grantor fallback from dcad_owner (PR 7.6) --------------------------
+    grantor_fallback_count = apply_grantor_fallback_from_dcad_owner(all_records)
+    logger.info(
+        "Grantor fallback from dcad_owner: filled %d/%d records",
+        grantor_fallback_count, len(all_records),
     )
 
     # 8. Governmental-grantor suppression (Phase 0.A) ------------------------
