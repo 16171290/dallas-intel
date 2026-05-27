@@ -355,3 +355,91 @@ class TestRunStage66:
         assert stats.tiebroken == 1
         # Verify the tiebreak moved the disagreement record to A1
         assert records[2]["dcad_account"] == "A1"
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Diagnostic logging for disagreements
+# ═══════════════════════════════════════════════════════════════════════════
+
+
+class TestStage66DiagnosticLogging:
+    """Stage 6.6 emits an INFO-level diagnostic line for every disagreement
+    so the operator can see page text + candidate scores + reason."""
+
+    def _acct_to_addr(self):
+        return {
+            "A1": "3031 CREST RIDGE DR",
+            "A2": "706 CORDOVA ST",
+        }
+
+    def _disagreement_records(self):
+        rec = {"record_id": "rDisagree", "dcad_account": "A2"}
+        from scraper.resolution import (
+            PATH_A_GRANTOR_OWNER_INDEX, PATH_B_RAW_EXCERPT,
+        )
+        append_history(rec, _hist(PATH_A_GRANTOR_OWNER_INDEX, "A2"))
+        append_history(rec, _hist(PATH_B_RAW_EXCERPT, "A1"))
+        return [rec]
+
+    def test_tiebroken_logs_record_and_scores(self, caplog):
+        records = self._disagreement_records()
+
+        def fetcher(rid):
+            return "3031 CREST RIDGE DRIVE DALLAS TEXAS 75228"
+
+        with caplog.at_level("INFO", logger="scraper.stage_6_6_agreement"):
+            run_stage_6_6(records, self._acct_to_addr(), page_fetcher=fetcher)
+
+        diag_lines = [m for m in caplog.messages if "disagreement record_id" in m]
+        assert len(diag_lines) == 1
+        log = diag_lines[0]
+        assert "rDisagree" in log
+        assert "CREST RIDGE" in log          # page text echoed
+        assert "A1:" in log and "A2:" in log  # both candidates listed
+        assert "decision=tiebroken" in log
+
+    def test_inconclusive_no_page_text_logs_reason(self, caplog):
+        records = self._disagreement_records()
+
+        def fetcher(rid):
+            return None  # fetch returned no text
+
+        with caplog.at_level("INFO", logger="scraper.stage_6_6_agreement"):
+            run_stage_6_6(records, self._acct_to_addr(), page_fetcher=fetcher)
+
+        diag_lines = [m for m in caplog.messages if "disagreement record_id" in m]
+        assert len(diag_lines) == 1
+        log = diag_lines[0]
+        assert "FETCHER_RETURNED_NONE" in log
+        assert "decision=no_page_text" in log
+
+    def test_inconclusive_below_threshold_logs_reason(self, caplog):
+        records = self._disagreement_records()
+
+        # Page returns text that contains zero tokens from either candidate
+        def fetcher(rid):
+            return "Completely Unrelated Text"
+
+        with caplog.at_level("INFO", logger="scraper.stage_6_6_agreement"):
+            run_stage_6_6(records, self._acct_to_addr(), page_fetcher=fetcher)
+
+        diag_lines = [m for m in caplog.messages if "disagreement record_id" in m]
+        log = diag_lines[0]
+        # Both candidates score 0; top below 0.30 threshold
+        assert "below_threshold" in log or "no_page_text" in log
+
+    def test_fetcher_exception_surfaces_in_log(self, caplog):
+        records = self._disagreement_records()
+
+        def crashing_fetcher(rid):
+            raise RuntimeError("network timeout")
+
+        with caplog.at_level("INFO", logger="scraper.stage_6_6_agreement"):
+            run_stage_6_6(records, self._acct_to_addr(),
+                          page_fetcher=crashing_fetcher)
+
+        diag_lines = [m for m in caplog.messages if "disagreement record_id" in m]
+        log = diag_lines[0]
+        # FETCH_FAILED prefix surfaces the exception class
+        assert "FETCH_FAILED" in log
+        assert "RuntimeError" in log

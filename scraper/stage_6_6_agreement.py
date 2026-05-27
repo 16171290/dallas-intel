@@ -287,13 +287,15 @@ def run_stage_6_6(
             continue
 
         page_text = None
+        fetch_error = None
         try:
             page_text = page_fetcher(record_id)
             stats.pages_fetched += 1
         except Exception as e:
+            fetch_error = f"{type(e).__name__}: {e}"
             logger.warning(
                 "Stage 6.6: page fetch failed for record_id=%s: %s",
-                record_id, e,
+                record_id, fetch_error,
             )
 
         # Score each candidate against the page text
@@ -304,13 +306,55 @@ def run_stage_6_6(
             scored.append((ratio, acct))
         scored.sort(reverse=True)
 
-        # Inconclusive when: no page text, top score below threshold, or
-        # margin between top and runner-up below threshold
+        # Diagnostic log — one INFO-level line per disagreement so the
+        # operator can see exactly what the page fetcher returned, how
+        # each candidate scored, and why a record ended up tiebroken vs.
+        # inconclusive. Indispensable for diagnosing fetcher failures or
+        # threshold-tuning needs.
         top_score = scored[0][0] if scored else 0.0
         runner_up = scored[1][0] if len(scored) > 1 else 0.0
-        if (not page_text
-                or top_score < tiebreak_min_score
-                or (top_score - runner_up) < tiebreak_min_margin):
+        margin    = top_score - runner_up
+        if fetch_error:
+            page_text_display = f"<FETCH_FAILED: {fetch_error}>"
+        elif page_text is None:
+            page_text_display = "<FETCHER_RETURNED_NONE>"
+        elif not page_text.strip():
+            page_text_display = "<EMPTY_STRING>"
+        else:
+            page_text_display = page_text[:200]
+
+        candidates_dump = ", ".join(
+            f"{a}:'{acct_to_addr.get(a, '<no_address>')}'={s:.3f}"
+            for s, a in scored
+        )
+
+        # Decide inconclusive vs. tiebroken
+        is_inconclusive = (
+            not page_text
+            or top_score < tiebreak_min_score
+            or margin < tiebreak_min_margin
+        )
+
+        if is_inconclusive:
+            if not page_text:
+                reason = "no_page_text"
+            elif top_score < tiebreak_min_score:
+                reason = f"top_score_{top_score:.3f}_below_threshold_{tiebreak_min_score}"
+            else:
+                reason = (f"margin_{margin:.3f}_below_threshold_"
+                          f"{tiebreak_min_margin}_(top={top_score:.3f} "
+                          f"runner_up={runner_up:.3f})")
+        else:
+            reason = (f"tiebroken_top={top_score:.3f} "
+                      f"runner_up={runner_up:.3f} margin={margin:.3f}")
+
+        logger.info(
+            "Stage 6.6 disagreement record_id=%s | page=%r | "
+            "candidates=[%s] | decision=%s",
+            record_id, page_text_display, candidates_dump, reason,
+        )
+
+        if is_inconclusive:
             stats.inconclusive += 1
             add_warning(rec, WARN_PAGE_TIEBREAK_INCONCLUSIVE)
             append_history(rec, ResolutionHistoryEntry(
