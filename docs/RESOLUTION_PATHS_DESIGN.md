@@ -851,6 +851,43 @@ These need operator-side decisions before code lands:
 
 ---
 
+## 14. Decisions Resolving Open Questions
+
+All §13 open questions resolved 2026-05-27. These supersede the open-question text above and lock the design for implementation.
+
+| # | Question | Decision | Rationale |
+|---|---|---|---|
+| Q1 | Path C fuzzy subdivision threshold | **0.85** | Catches OCR garbles (BEAR TREK ↔ BEAR CREEK) while keeping false-positive surface small. Recalibratable after first production run. |
+| Q2 | Where `alternate_accounts` surfaces in UI | **Detail panel only (initially)** | Keeps main table uncluttered for the common single-account case. Inline-toggle UI can be added later if operator needs it. |
+| Q3 | CSV/CRM semantics for `low_confidence` records | **Export with badging** (Confidence + Confidence Warnings columns) | Operator filters/prioritizes in their CRM. Holding records back creates a hidden review queue that may never get worked. |
+| Q4 | `resolution_history` retention | **Keep forever in records.json** | ~50 KB/run growth is acceptable. Audit value of full provenance outweighs storage cost. Class 11 amnesia limits accumulation anyway. |
+| Q5 | Backwards-compatibility migration | **Lazy migration** | Next pipeline run touches every active record and stamps the new fields. Legacy records treated as `confidence: none` (no provenance known). No script needed. |
+| Q6 | Class 11 (rolling-window amnesia) coupling | **Defer** — document the coupling but don't special-case retention | Preserving low-confidence records past the window is a patch, not a fix. Class 11 is separate architectural work. Operator reviews and dispositions records within the 7-day window. |
+| Q7 | PB record retrofit to new framework | **Yes, retrofit** | Unifying NOF + PB under `resolution_history` + `confidence` provides consistent dashboard rendering and automatically covers Class 4 (publicsearch-sourced PB records bypass). Modest extra work in the PR series. |
+
+## 15. Implementation Sequence
+
+Based on the decisions above, the implementation order is:
+
+1. **PR 1 — Schema scaffolding**: add `resolution_history`, `confidence`, `confidence_warnings`, `primary_resolution`, `alternate_accounts` to `signal_metadata`. Lazy population. No new resolver logic yet.
+2. **PR 2 — Stage 6.3 (Path B)**: raw_excerpt clean-address fallback with venue/trustee guards.
+3. **PR 3 — Stage 6.4 (Path A for NOFs)**: NOF grantor → owner_index with boilerplate blocklist and Class-19a `surname_in_trust_first_name` guard.
+4. **PR 4 — Stage 6.5 (Path C fix + fuzzy)**: skip-condition fix from `address_normalized` to `dcad_account` + fuzzy subdivision matcher at threshold 0.85.
+5. **PR 5 — Stage 6.6 (Confidence audit + sanity checks)**: cross-path agreement, `low_market_value`, `surname_drift`, `venue_or_trustee_address` warnings.
+6. **PR 6 — PB retrofit**: unify PB resolution into `resolution_history` + `confidence` framework. Covers Class 4 (publicsearch-PB bypass).
+7. **PR 7 — Dashboard surface**: confidence badges, warnings chips, resolution-path indicator, alternates in detail panel. Also move `TRUST` out of `COMMERCIAL_TOKENS` (Class 23 mitigation).
+8. **PR 8 — CSV export schema**: new `Confidence`, `Confidence Warnings`, `Resolution Path`, `Alternate Accounts` columns.
+
+Each PR is independently shippable and auditable. The design intentionally lands schema first (PR 1) so subsequent PRs have somewhere to write provenance from the start.
+
+Out-of-scope (separate work, not this design):
+- Class 11 (rolling-window amnesia)
+- Class 17 (CSV name-split bug)
+- Class 18 (CSV address truncation)
+- Class 21 (Tyler party-role completeness)
+- Class 22 (attorney capture surfacing)
+
 ## CHANGE LOG
 
 - **2026-05-27** — Initial design document. Captures operator decisions: single-path acceptable with confidence-low badging + skip-bug fix + fuzzy subdivision matching.
+- **2026-05-27** — Added §14 (Decisions Resolving Open Questions) + §15 (Implementation Sequence). All §13 open questions resolved; design is locked for implementation.
