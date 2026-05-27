@@ -148,6 +148,10 @@ class TestFetchCaseDetail:
         assert "uuid-abc123/details" in url
 
     def test_cookie_injection(self):
+        """PR 8.3 fallback path: when no full cookies are cached, the
+        fetcher synthesizes Playwright-format cookies from the
+        {name: value} dict. Domain is the more specific
+        .research.txcourts.gov so the SPA's XHR auth check accepts them."""
         page = self._make_mock_page("Sample case page text")
         fetch_case_detail("case-1", {"sess_id": "abc", "csrf_token": "xyz"},
                           page=page)
@@ -155,8 +159,13 @@ class TestFetchCaseDetail:
         cookie_list = page.context.add_cookies.call_args[0][0]
         names = {c["name"] for c in cookie_list}
         assert names == {"sess_id", "csrf_token"}
-        # Domain set so cookies actually attach
-        assert all(c["domain"] == ".txcourts.gov" for c in cookie_list)
+        # Domain set so cookies actually attach to research.txcourts.gov
+        assert all(".research.txcourts.gov" in c["domain"]
+                   or c["domain"] == ".txcourts.gov"
+                   for c in cookie_list)
+        # PR 8.3: synthesized cookies get secure=True so the SPA's
+        # HTTPS-only check accepts them
+        assert all(c.get("secure") is True for c in cookie_list)
 
     def test_goto_failure_returns_error_status(self):
         page = self._make_mock_page("", raise_goto=True)
