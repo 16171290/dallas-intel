@@ -67,17 +67,65 @@ CACHE_FILE = CACHE_DIR / "dcad_address_index.pkl.gz"
 
 
 def find_dcad_zip() -> Optional[Path]:
-    """Locate the most recent DCAD bulk ZIP in data/.
+    """Locate a DCAD bulk ZIP.
 
-    The daily scrape caches dcad-YYYY-weekNNNN.zip files there. We pick the
-    most recently modified one.
+    Resolution order:
+      1. ``data/dcad-*.zip``           — committed-with-repo location (rare)
+      2. ``$DCAD_CACHE_DIR/dcad-*.zip`` — where the daily scrape actually caches
+                                          (~/.dcad_cache by default)
+
+    Returns ``None`` when no ZIP is reachable; caller decides whether to
+    fall back to downloading a fresh copy.
     """
+    # 1. Repo-local data/ dir
     candidates = sorted(
         (REPO_ROOT / "data").glob("dcad-*.zip"),
         key=lambda p: p.stat().st_mtime,
         reverse=True,
     )
-    return candidates[0] if candidates else None
+    if candidates:
+        return candidates[0]
+
+    # 2. The production cache directory (where scraper.dcad_bulk writes)
+    try:
+        from scraper import config
+        cache_dir = config.DCAD_CACHE_DIR
+    except Exception:
+        cache_dir = None
+
+    if cache_dir and cache_dir.exists():
+        candidates = sorted(
+            cache_dir.glob("dcad-*.zip"),
+            key=lambda p: p.stat().st_mtime,
+            reverse=True,
+        )
+        if candidates:
+            return candidates[0]
+
+    return None
+
+
+def fetch_dcad_zip_or_die() -> Path:
+    """Locate a DCAD ZIP; if missing, attempt the canonical download via
+    scraper.dcad_bulk.fetch_dcad_zip(). Exits with a clear message if
+    no ZIP is reachable."""
+    zip_path = find_dcad_zip()
+    if zip_path:
+        logger.info("Found DCAD ZIP: %s", zip_path)
+        return zip_path
+
+    logger.info("No cached DCAD ZIP found; attempting download via scraper.dcad_bulk")
+    try:
+        from scraper import dcad_bulk
+        zip_path = dcad_bulk.fetch_dcad_zip()
+        logger.info("Downloaded DCAD ZIP to %s", zip_path)
+        return zip_path
+    except Exception as e:
+        sys.exit(
+            f"ERROR: could not locate or download DCAD ZIP "
+            f"({type(e).__name__}: {e}). "
+            f"Run main.py once to populate the cache, or set DCAD_ZIP_URL env var."
+        )
 
 
 def build_address_index(zip_path: Path) -> dict[str, str]:
@@ -104,13 +152,7 @@ def load_or_build_address_index(force_rebuild: bool = False) -> dict[str, str]:
         logger.info("Loaded address_index: %d entries in %.1fs", len(index), elapsed)
         return index
 
-    zip_path = find_dcad_zip()
-    if zip_path is None:
-        sys.exit(
-            "ERROR: no DCAD ZIP found in data/. Run main.py once to download "
-            "it, or place a dcad-*.zip there manually."
-        )
-
+    zip_path = fetch_dcad_zip_or_die()
     index = build_address_index(zip_path)
 
     CACHE_DIR.mkdir(parents=True, exist_ok=True)
@@ -124,14 +166,8 @@ def load_or_build_address_index(force_rebuild: bool = False) -> dict[str, str]:
 # Path runners
 # ═══════════════════════════════════════════════════════════════════════════
 
-def run_path_b(records: list[dict], address_index: dict[str, str],
-               verbose: bool = False) -> dict:
-    """Run Stage 6.3 — Path B and return diff stats + per-record changes."""
-    from scraper import resolution_paths
-    from scraper.resolution import get_history, get_warnings
-
-    # Snapshot pre-state for diff
-    before = {
+def _snapshot_before(records):
+    return {
         r.get("record_id"): {
             "dcad_account":       r.get("dcad_account"),
             "address_normalized": r.get("address_normalized"),
@@ -139,9 +175,8 @@ def run_path_b(records: list[dict], address_index: dict[str, str],
         for r in records
     }
 
-    stats = resolution_paths.run_path_b(records, address_index)
 
-    # Diff: which records changed dcad_account / address_normalized?
+def _diff_records(records, before, get_warnings_fn):
     newly_matched = []
     overwrote_address = []
     for r in records:
@@ -149,20 +184,32 @@ def run_path_b(records: list[dict], address_index: dict[str, str],
         b = before.get(rid, {})
         if not b.get("dcad_account") and r.get("dcad_account"):
             newly_matched.append({
-                "record_id":        rid,
-                "grantor":          r.get("grantor"),
-                "before_address":   b.get("address_normalized"),
-                "after_address":    r.get("address_normalized"),
-                "dcad_account":     r.get("dcad_account"),
-                "warnings":         get_warnings(r),
+                "record_id":      rid,
+                "grantor":        r.get("grantor"),
+                "before_address": b.get("address_normalized"),
+                "after_address":  r.get("address_normalized"),
+                "dcad_account":   r.get("dcad_account"),
+                "warnings":       get_warnings_fn(r),
             })
         if (b.get("address_normalized")
                 and r.get("address_normalized") != b.get("address_normalized")):
             overwrote_address.append({
-                "record_id":     rid,
-                "before":        b.get("address_normalized"),
-                "after":         r.get("address_normalized"),
+                "record_id": rid,
+                "before":    b.get("address_normalized"),
+                "after":     r.get("address_normalized"),
             })
+    return newly_matched, overwrote_address
+
+
+def run_path_b(records: list[dict], address_index: dict[str, str],
+               verbose: bool = False) -> dict:
+    """Run Stage 6.3 — Path B and return diff stats + per-record changes."""
+    from scraper import resolution_paths
+    from scraper.resolution import get_history, get_warnings
+
+    before = _snapshot_before(records)
+    stats = resolution_paths.run_path_b(records, address_index)
+    newly_matched, overwrote_address = _diff_records(records, before, get_warnings)
 
     return {
         "stats": {
@@ -187,6 +234,62 @@ def run_path_b(records: list[dict], address_index: dict[str, str],
 # ═══════════════════════════════════════════════════════════════════════════
 # Reporting
 # ═══════════════════════════════════════════════════════════════════════════
+
+def run_variant_lookup(records: list[dict], address_index: dict[str, str],
+                       verbose: bool = False) -> dict:
+    """Run Stage 6.35 — Variant lookup (Class 26 family)."""
+    from scraper import address_variants, resolution_paths
+    from scraper.resolution import get_warnings
+
+    before = _snapshot_before(records)
+    fuzzy_index = address_variants.build_fuzzy_index(address_index)
+    stats = resolution_paths.run_variant_lookup(records, address_index, fuzzy_index)
+    newly_matched, overwrote_address = _diff_records(records, before, get_warnings)
+
+    return {
+        "stats": {
+            "total_records":            stats.total_records,
+            "skipped_already_resolved": stats.skipped_already_resolved,
+            "skipped_suspect_address":  stats.skipped_suspect_address,
+            "skipped_no_address":       stats.skipped_no_address,
+            "candidates":               stats.candidates,
+            "matched":                  stats.matched,
+            "no_match":                 stats.no_match,
+        },
+        "newly_matched":     newly_matched,
+        "overwrote_address": overwrote_address,
+    }
+
+
+def report_variant_lookup(diff: dict, verbose: bool) -> None:
+    """Human-readable summary of Stage 6.35 variant-lookup diff."""
+    s = diff["stats"]
+    print()
+    print("=" * 72)
+    print("STAGE 6.35 — Variant lookup (Class 26 family)")
+    print("=" * 72)
+    print(f"  Total records considered     : {s['total_records']}")
+    print(f"  Skipped: dcad_account set    : {s['skipped_already_resolved']}")
+    print(f"  Skipped: suspect address     : {s['skipped_suspect_address']}")
+    print(f"  Skipped: no address          : {s['skipped_no_address']}")
+    print(f"  Variant-lookup candidates    : {s['candidates']}")
+    print(f"    Matched (newly resolved)   : {s['matched']}")
+    print(f"    No match (lookup failed)   : {s['no_match']}")
+    print()
+
+    if diff["newly_matched"]:
+        print(f"NEWLY RESOLVED — {len(diff['newly_matched'])} records:")
+        print()
+        for m in diff["newly_matched"]:
+            print(f"  record_id={m['record_id']}")
+            print(f"    grantor:         {m['grantor']!r}")
+            print(f"    before:          {m['before_address']!r}")
+            print(f"    after:           {m['after_address']!r}")
+            print(f"    dcad_account:    {m['dcad_account']}")
+            if m['warnings']:
+                print(f"    warnings:        {m['warnings']}")
+            print()
+
 
 def report_path_b(diff: dict, verbose: bool) -> None:
     """Human-readable summary of Path B diff."""
@@ -271,8 +374,11 @@ def main() -> int:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     ap.add_argument(
-        "--path", choices=["B", "all"], default="B",
-        help="Which resolution path to validate (B = Path B raw_excerpt fallback). "
+        "--path", choices=["B", "variant", "all"], default="all",
+        help="Which resolution path(s) to validate. "
+             "B = Path B raw_excerpt fallback (Stage 6.3). "
+             "variant = Class 26 family fuzzy lookup (Stage 6.35). "
+             "all = run both in pipeline order. "
              "Future PRs add A and C.",
     )
     ap.add_argument(
@@ -307,10 +413,15 @@ def main() -> int:
     # Load DCAD address_index (cached)
     address_index = load_or_build_address_index()
 
-    # Run requested path(s)
+    # Run requested path(s) — note: when --path all, B runs first, then
+    # variant lookup runs over remaining unresolved records (pipeline order).
     if args.path in ("B", "all"):
         diff = run_path_b(records, address_index, verbose=args.verbose)
         report_path_b(diff, verbose=args.verbose)
+
+    if args.path in ("variant", "all"):
+        diff = run_variant_lookup(records, address_index, verbose=args.verbose)
+        report_variant_lookup(diff, verbose=args.verbose)
 
     # Write enriched records if requested
     if args.write:

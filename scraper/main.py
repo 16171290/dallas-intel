@@ -53,6 +53,7 @@ from datetime import date
 from pathlib import Path
 
 from . import (
+    address_variants,
     buy_box,
     config,
     dcad_bulk,
@@ -402,6 +403,20 @@ def _run_pipeline() -> int:
     logger.info("[6.3/12] Path B: raw_excerpt clean-address fallback")
     path_b_stats = resolution_paths.run_path_b(all_records, address_index)
     resolution_paths.log_path_b_summary(path_b_stats)
+
+    # 6.35 Variant Lookup (Class 26 family) ----------------------------------
+    # DCAD's web search supports forgiving partial matching that our strict
+    # bulk address_index doesn't. This stage performs a fuzzy lookup keyed
+    # by street number for records where address_normalized looks clean
+    # but Stage 7 + Path B both missed (e.g. '4314 HAMILTON' vs DCAD's
+    # '4314 HAMILTON AVE'; '2828 S LAKEVIEW DR' vs DCAD's '2828 LAKE VIEW DR').
+    # See scraper/address_variants.py for matching strategy.
+    logger.info("[6.35/12] Variant lookup (Class 26 family)")
+    fuzzy_index = address_variants.build_fuzzy_index(address_index)
+    variant_stats = resolution_paths.run_variant_lookup(
+        all_records, address_index, fuzzy_index,
+    )
+    resolution_paths.log_variant_lookup_summary(variant_stats)
 
     # 6.4 APN -> DCAD account resolution -------------------------------------
     # ServiceLink-format NOFs carry APN (DCAD account_num with leading zeros)
