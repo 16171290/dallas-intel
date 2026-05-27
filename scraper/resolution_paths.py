@@ -70,9 +70,18 @@ logger = logging.getLogger(__name__)
 #      in such windows; pure-noise tokens are the garble signal. Catches
 #      "OWE AY TALLY NTY" - style damage from "VANGUARD WAY" gone wrong.
 
-_OCR_STRAY_SYMBOLS_RE = re.compile(r"[{}@#%]")
-_OCR_TINY_CLUSTER_RE  = re.compile(r"\b[A-Z]{1,2}\s+[A-Z]\s+[A-Z]{1,2}\b")
-_OCR_THREE_SHORT_RE   = re.compile(r"\b[A-Z]{2,5}\s+[A-Z]{1,3}\s+[A-Z]{2,5}\b")
+_OCR_STRAY_SYMBOLS_RE   = re.compile(r"[{}@#%&]")               # Cox: trailing "&"
+_OCR_TINY_CLUSTER_RE    = re.compile(r"\b[A-Z]{1,2}\s+[A-Z]\s+[A-Z]{1,2}\b")
+_OCR_THREE_SHORT_RE     = re.compile(r"\b[A-Z]{2,5}\s+[A-Z]{1,3}\s+[A-Z]{2,5}\b")
+# Cox-style: address ends with a single letter (post-name fragment).
+# Examples: "3031 CREST RDG D" (was "3031 CREST RIDGE DR" pre-corruption).
+_OCR_TRAILING_LETTER_RE = re.compile(r"\b[A-Z]\s*$")
+# Montgomery-style: two consecutive short tokens (1-4 chars each) where
+# NEITHER is a recognized street type or directional. Catches "BEA OS"
+# in "2206 BEA OS REEFGRAND PRAIRIE" — clearly fragmented from the
+# real "BEAUMONT". The street-type / directional exclusion prevents
+# false-positives on legit addresses like "S MAIN" or "OAK CIR".
+_OCR_TWO_SHORT_RE       = re.compile(r"\b[A-Z]{1,4}\s+[A-Z]{1,4}\b")
 
 # Tokens that, if present in a 3-short window, indicate the window is a
 # real address fragment rather than OCR garble. Full forms + USPS abbreviations.
@@ -92,16 +101,26 @@ _STREET_TYPE_OR_DIRECTIONAL_TOKENS: frozenset[str] = frozenset({
 
 
 def _is_ocr_garbled(addr_upper: str) -> bool:
-    """True if address looks OCR-corrupted by any of the three signatures."""
+    """True if address looks OCR-corrupted by any garble signature."""
     if _OCR_STRAY_SYMBOLS_RE.search(addr_upper):
         return True
     if _OCR_TINY_CLUSTER_RE.search(addr_upper):
+        return True
+    if _OCR_TRAILING_LETTER_RE.search(addr_upper):
         return True
     # Three consecutive short tokens, none of which is a street type
     for m in _OCR_THREE_SHORT_RE.finditer(addr_upper):
         tokens = m.group(0).split()
         if not any(t in _STREET_TYPE_OR_DIRECTIONAL_TOKENS for t in tokens):
             return True
+    # Two consecutive short tokens, neither street type nor directional.
+    # Guard: require AT LEAST ONE token <= 2 chars so legit multi-word
+    # names like "BIG OAK" or "PARK ROW" don't false-positive.
+    for m in _OCR_TWO_SHORT_RE.finditer(addr_upper):
+        tokens = m.group(0).split()
+        if not any(t in _STREET_TYPE_OR_DIRECTIONAL_TOKENS for t in tokens):
+            if any(len(t) <= 2 for t in tokens):
+                return True
     return False
 
 # Address extractor for raw_excerpt. Pattern from design doc §4:

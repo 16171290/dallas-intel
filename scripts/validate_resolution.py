@@ -67,17 +67,65 @@ CACHE_FILE = CACHE_DIR / "dcad_address_index.pkl.gz"
 
 
 def find_dcad_zip() -> Optional[Path]:
-    """Locate the most recent DCAD bulk ZIP in data/.
+    """Locate a DCAD bulk ZIP.
 
-    The daily scrape caches dcad-YYYY-weekNNNN.zip files there. We pick the
-    most recently modified one.
+    Resolution order:
+      1. ``data/dcad-*.zip``           — committed-with-repo location (rare)
+      2. ``$DCAD_CACHE_DIR/dcad-*.zip`` — where the daily scrape actually caches
+                                          (~/.dcad_cache by default)
+
+    Returns ``None`` when no ZIP is reachable; caller decides whether to
+    fall back to downloading a fresh copy.
     """
+    # 1. Repo-local data/ dir
     candidates = sorted(
         (REPO_ROOT / "data").glob("dcad-*.zip"),
         key=lambda p: p.stat().st_mtime,
         reverse=True,
     )
-    return candidates[0] if candidates else None
+    if candidates:
+        return candidates[0]
+
+    # 2. The production cache directory (where scraper.dcad_bulk writes)
+    try:
+        from scraper import config
+        cache_dir = config.DCAD_CACHE_DIR
+    except Exception:
+        cache_dir = None
+
+    if cache_dir and cache_dir.exists():
+        candidates = sorted(
+            cache_dir.glob("dcad-*.zip"),
+            key=lambda p: p.stat().st_mtime,
+            reverse=True,
+        )
+        if candidates:
+            return candidates[0]
+
+    return None
+
+
+def fetch_dcad_zip_or_die() -> Path:
+    """Locate a DCAD ZIP; if missing, attempt the canonical download via
+    scraper.dcad_bulk.fetch_dcad_zip(). Exits with a clear message if
+    no ZIP is reachable."""
+    zip_path = find_dcad_zip()
+    if zip_path:
+        logger.info("Found DCAD ZIP: %s", zip_path)
+        return zip_path
+
+    logger.info("No cached DCAD ZIP found; attempting download via scraper.dcad_bulk")
+    try:
+        from scraper import dcad_bulk
+        zip_path = dcad_bulk.fetch_dcad_zip()
+        logger.info("Downloaded DCAD ZIP to %s", zip_path)
+        return zip_path
+    except Exception as e:
+        sys.exit(
+            f"ERROR: could not locate or download DCAD ZIP "
+            f"({type(e).__name__}: {e}). "
+            f"Run main.py once to populate the cache, or set DCAD_ZIP_URL env var."
+        )
 
 
 def build_address_index(zip_path: Path) -> dict[str, str]:
@@ -104,13 +152,7 @@ def load_or_build_address_index(force_rebuild: bool = False) -> dict[str, str]:
         logger.info("Loaded address_index: %d entries in %.1fs", len(index), elapsed)
         return index
 
-    zip_path = find_dcad_zip()
-    if zip_path is None:
-        sys.exit(
-            "ERROR: no DCAD ZIP found in data/. Run main.py once to download "
-            "it, or place a dcad-*.zip there manually."
-        )
-
+    zip_path = fetch_dcad_zip_or_die()
     index = build_address_index(zip_path)
 
     CACHE_DIR.mkdir(parents=True, exist_ok=True)

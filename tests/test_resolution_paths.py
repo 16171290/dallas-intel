@@ -146,6 +146,42 @@ class TestSuspectAddressHeuristic:
         ok, reason = resolution_paths._is_suspect_address("9915 LINGO LANE")
         assert ok is False
 
+    def test_ampersand_is_garbled(self):
+        """Cox case: '3031 CREST RDG D &' — ampersand is a garble signal.
+        Restored from PR 2 commit cfcf274 (lost in squash merge)."""
+        ok, reason = resolution_paths._is_suspect_address("3031 CREST RDG D &")
+        assert ok is True and reason == "ocr_garbled"
+
+    def test_trailing_single_letter_is_garbled(self):
+        """Trailing single letter alone (e.g. '3031 CREST RDG D') is a
+        post-name fragment from OCR cutting off mid-word."""
+        ok, reason = resolution_paths._is_suspect_address("3031 CREST RDG D")
+        assert ok is True and reason == "ocr_garbled"
+
+    def test_montgomery_run_together_ocr(self):
+        """Montgomery case: '2206 BEA OS REEFGRAND PRAIRIE' has 'BEA OS'
+        — two short tokens, neither directional nor street-type, one ≤2 chars."""
+        ok, reason = resolution_paths._is_suspect_address(
+            "2206 BEA OS REEFGRAND PRAIRIE")
+        assert ok is True and reason == "ocr_garbled"
+
+    def test_directional_plus_name_not_flagged_as_two_short(self):
+        """'S MAIN' has both ≤4 chars but S is directional — not garbled."""
+        ok, reason = resolution_paths._is_suspect_address("2639 S MAIN ST")
+        assert ok is False
+
+    def test_oak_circle_not_flagged_as_two_short(self):
+        """'OAK CIR' both ≤4 but CIR is a street type — not garbled."""
+        ok, reason = resolution_paths._is_suspect_address("123 OAK CIR")
+        assert ok is False
+
+    def test_big_oak_two_short_no_short_token_not_flagged(self):
+        """'BIG OAK' both ≤4, neither directional nor street type, but
+        BOTH are ≥3 chars (no ≤2 char short-token signature) — not garbled.
+        Prevents FP on legit multi-word names."""
+        ok, reason = resolution_paths._is_suspect_address("123 BIG OAK LN")
+        assert ok is False
+
 
 # ═══════════════════════════════════════════════════════════════════════════
 # run_path_b — end-to-end with fake address_index
