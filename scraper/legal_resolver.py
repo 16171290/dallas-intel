@@ -435,6 +435,7 @@ def resolve_legal_descriptions(
     dcad_tables: dict[str, pd.DataFrame],
     *,
     enable_fuzzy: bool = True,
+    always_run: bool = False,
 ) -> LegalResolverStats:
     """Stamp dcad_account + address_normalized on records via legal-description match.
 
@@ -460,7 +461,9 @@ def resolve_legal_descriptions(
     legal_index  = build_legal_index(dcad_tables)
     acct_to_addr = _build_account_to_address(dcad_tables)
     return resolve_legal_descriptions_with_indexes(
-        records, legal_index, acct_to_addr, enable_fuzzy=enable_fuzzy,
+        records, legal_index, acct_to_addr,
+        enable_fuzzy=enable_fuzzy,
+        always_run=always_run,
     )
 
 
@@ -470,20 +473,28 @@ def resolve_legal_descriptions_with_indexes(
     acct_to_addr: dict[str, str],
     *,
     enable_fuzzy: bool = True,
+    always_run: bool = False,
 ) -> LegalResolverStats:
     """Same as :func:`resolve_legal_descriptions` but takes pre-built indexes.
 
     Used by the validation harness to reuse a cached legal_index across
     multiple invocations without re-parsing dcad_tables (which costs ~30s).
+
+    When ``always_run=True`` (PR 5 diagnostic mode): already-resolved
+    records are not short-circuited; the resolver still attempts and writes
+    a history entry but does NOT modify record-level dcad_account /
+    address_normalized / warnings.
     """
     stats = LegalResolverStats(total=len(records))
 
     for rec in records:
-        # PR 4 fix: skip on dcad_account, not address_normalized. The
-        # address might be set but useless (city-only, OCR garbled).
-        if rec.get("dcad_account"):
+        # PR 4 fix: skip on dcad_account, not address_normalized.
+        # PR 5: in always_run mode, proceed past the skip for diagnostic visibility.
+        already_resolved = bool(rec.get("dcad_account"))
+        if already_resolved:
             stats.skipped_already_resolved += 1
-            continue
+            if not always_run:
+                continue
 
         # Only attempt resolution on records with a snippet to parse
         snippet = rec.get("raw_excerpt") or ""
@@ -551,8 +562,10 @@ def resolve_legal_descriptions_with_indexes(
                     skip_reason="account_has_no_address",
                 ))
                 continue
-            rec["dcad_account"] = account
-            rec["address_normalized"] = addr
+            # Stamp only if this resolver is the first to claim the record.
+            if not already_resolved:
+                rec["dcad_account"] = account
+                rec["address_normalized"] = addr
             stats.matched_exact += 1
             append_history(rec, ResolutionHistoryEntry(
                 path=PATH_C_LEGAL_RESOLVER,
@@ -572,9 +585,10 @@ def resolve_legal_descriptions_with_indexes(
             if fuzzy is not None:
                 addr = acct_to_addr.get(fuzzy.account)
                 if addr:
-                    rec["dcad_account"] = fuzzy.account
-                    rec["address_normalized"] = addr
-                    add_warning(rec, WARN_FUZZY_SUBDIVISION_MATCH)
+                    if not already_resolved:
+                        rec["dcad_account"] = fuzzy.account
+                        rec["address_normalized"] = addr
+                        add_warning(rec, WARN_FUZZY_SUBDIVISION_MATCH)
                     stats.matched_fuzzy += 1
                     append_history(rec, ResolutionHistoryEntry(
                         path=PATH_C_LEGAL_RESOLVER,
@@ -632,6 +646,8 @@ class APNResolverStats:
 def resolve_apn_to_address(
     records: list[CanonicalRecord],
     dcad_tables: dict[str, pd.DataFrame],
+    *,
+    always_run: bool = False,
 ) -> APNResolverStats:
     """Stamp dcad_account + address_normalized on records via APN -> DCAD account match.
 
@@ -656,15 +672,24 @@ def resolve_apn_to_address(
     OCR-garbled / city-only address is already stamped.
     """
     acct_to_addr = _build_account_to_address(dcad_tables)
-    return resolve_apn_to_address_with_indexes(records, acct_to_addr)
+    return resolve_apn_to_address_with_indexes(
+        records, acct_to_addr, always_run=always_run,
+    )
 
 
 def resolve_apn_to_address_with_indexes(
     records: list[CanonicalRecord],
     acct_to_addr: dict[str, str],
+    *,
+    always_run: bool = False,
 ) -> APNResolverStats:
     """Same as :func:`resolve_apn_to_address` but takes a pre-built
-    account-to-address index. Used by the validation harness."""
+    account-to-address index. Used by the validation harness.
+
+    When ``always_run=True`` (PR 5 diagnostic mode): already-resolved
+    records are not short-circuited; the resolver still attempts and writes
+    a history entry but does NOT mutate record-level fields.
+    """
     stats = APNResolverStats(total=len(records))
     if not acct_to_addr:
         logger.warning("APN resolver: account-to-address index empty; skipping")
@@ -675,9 +700,11 @@ def resolve_apn_to_address_with_indexes(
     valid_accts = set(acct_to_addr.keys())
 
     for rec in records:
-        if rec.get("dcad_account"):
+        already_resolved = bool(rec.get("dcad_account"))
+        if already_resolved:
             stats.skipped_already_resolved += 1
-            continue
+            if not always_run:
+                continue
         sm  = rec.get("signal_metadata") or {}
         ocr = sm.get("ocr") or {}
         apn = (ocr.get("apn") or "").strip()
@@ -700,8 +727,10 @@ def resolve_apn_to_address_with_indexes(
             ))
             continue
 
-        rec["dcad_account"] = matched
-        rec["address_normalized"] = acct_to_addr[matched]
+        # Stamp only if this resolver is the first to claim the record.
+        if not already_resolved:
+            rec["dcad_account"] = matched
+            rec["address_normalized"] = acct_to_addr[matched]
         stats.resolved += 1
         append_history(rec, ResolutionHistoryEntry(
             path=PATH_C_APN,

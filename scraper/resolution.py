@@ -45,6 +45,7 @@ PATH_VARIANT_LOOKUP            = "path_variant_lookup"             # PR 2.5
 PATH_A_GRANTOR_OWNER_INDEX     = "path_a_grantor_owner_index"
 PATH_C_LEGAL_RESOLVER          = "path_c_legal_resolver"
 PATH_C_APN                     = "path_c_apn"
+PATH_STAGE_6_6                 = "stage_6_6_agreement"            # PR 5
 PATH_PB_DECEDENT_OWNER_INDEX   = "path_pb_decedent_owner_index"   # PB retrofit (PR 6)
 PATH_PB_APPLICANT_OWNER_INDEX  = "path_pb_applicant_owner_index"  # PB retrofit (PR 6)
 
@@ -55,6 +56,7 @@ VALID_PATHS: frozenset[str] = frozenset({
     PATH_A_GRANTOR_OWNER_INDEX,
     PATH_C_LEGAL_RESOLVER,
     PATH_C_APN,
+    PATH_STAGE_6_6,
     PATH_PB_DECEDENT_OWNER_INDEX,
     PATH_PB_APPLICANT_OWNER_INDEX,
 })
@@ -104,6 +106,9 @@ WARN_SURNAME_DRIFT                = "surname_drift"
 WARN_LOW_MARKET_VALUE             = "low_market_value"
 WARN_SURNAME_IN_TRUST_FIRST_NAME  = "surname_in_trust_first_name"
 WARN_PATH_DISAGREEMENT            = "path_disagreement"
+WARN_PATH_AGREEMENT               = "path_agreement"               # PR 5: 2+ paths agreed on same dcad_account
+WARN_TIEBROKEN_BY_PAGE            = "tiebroken_by_page"            # PR 5: Stage 6.6 used publicsearch page as referee
+WARN_PAGE_TIEBREAK_INCONCLUSIVE   = "page_tiebreak_inconclusive"   # PR 5: page text gave no signal between candidates
 WARN_PATH_B_USED_ALTERNATE        = "path_b_used_alternate"
 WARN_FUZZY_SUBDIVISION_MATCH      = "fuzzy_subdivision_match"
 WARN_VENUE_OR_TRUSTEE_ADDRESS     = "venue_or_trustee_address"
@@ -117,6 +122,9 @@ CANONICAL_WARNINGS: frozenset[str] = frozenset({
     WARN_LOW_MARKET_VALUE,
     WARN_SURNAME_IN_TRUST_FIRST_NAME,
     WARN_PATH_DISAGREEMENT,
+    WARN_PATH_AGREEMENT,
+    WARN_TIEBROKEN_BY_PAGE,
+    WARN_PAGE_TIEBREAK_INCONCLUSIVE,
     WARN_PATH_B_USED_ALTERNATE,
     WARN_FUZZY_SUBDIVISION_MATCH,
     WARN_VENUE_OR_TRUSTEE_ADDRESS,

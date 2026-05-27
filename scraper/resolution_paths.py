@@ -237,6 +237,8 @@ def extract_clean_address_from_raw_excerpt(
 def run_path_b(
     records: list[dict],
     address_index: dict[str, str],
+    *,
+    always_run: bool = False,
 ) -> PathBStats:
     """Stage 6.3 — Path B: raw_excerpt clean-address fallback.
 
@@ -244,7 +246,13 @@ def run_path_b(
     attempts to recover dcad_account via the raw_excerpt extraction
     described in docs/RESOLUTION_PATHS_DESIGN.md §4.
 
-    Mutates records in place:
+    When ``always_run=True`` (PR 5 diagnostic mode):
+      - dcad_account-already-stamped records are NOT short-circuited
+      - Path B still attempts and writes a history entry
+      - Record-level fields (dcad_account, address_normalized, warnings)
+        are NOT modified for already-resolved records
+
+    Mutates records in place (only when path was the first to resolve):
       - Stamps dcad_account + address_normalized on a successful match
       - Adds resolution_history entry for every record considered
         (matched / no_match / skipped — full audit trail per §3)
@@ -256,10 +264,13 @@ def run_path_b(
     stats = PathBStats(total_records=len(records))
 
     for rec in records:
-        # Guard 1: skip if Stage 7 already resolved
-        if rec.get("dcad_account"):
+        already_resolved = bool(rec.get("dcad_account"))
+        # Default behavior: skip-early. always_run mode: proceed for
+        # diagnostic visibility; stats counter still bumps.
+        if already_resolved:
             stats.skipped_already_resolved += 1
-            continue
+            if not always_run:
+                continue
 
         # Trigger check: only run on records with a suspect address_normalized
         addr_norm = rec.get("address_normalized")
@@ -312,15 +323,13 @@ def run_path_b(
         acct = address_index.get(norm_candidate)
 
         if acct:
-            # Match. Stamp dcad_account + replace address_normalized.
+            # Match. Stamp only if Path B is the first to resolve this rec.
             old_addr = rec.get("address_normalized")
-            rec["dcad_account"] = acct
-            rec["address_normalized"] = norm_candidate
-
-            # If we overwrote a non-empty address with a different one,
-            # flag the swap so the operator sees provenance.
-            if old_addr and old_addr.strip() and old_addr != norm_candidate:
-                add_warning(rec, WARN_PATH_B_USED_ALTERNATE)
+            if not already_resolved:
+                rec["dcad_account"] = acct
+                rec["address_normalized"] = norm_candidate
+                if old_addr and old_addr.strip() and old_addr != norm_candidate:
+                    add_warning(rec, WARN_PATH_B_USED_ALTERNATE)
 
             append_history(rec, ResolutionHistoryEntry(
                 path=PATH_B_RAW_EXCERPT,
@@ -415,6 +424,8 @@ def run_variant_lookup(
     records: list[dict],
     address_index: dict[str, str],
     fuzzy_index: dict[str, list[tuple[str, str]]],
+    *,
+    always_run: bool = False,
 ) -> VariantLookupStats:
     """Stage 6.35 — Variant Lookup.
 
@@ -423,7 +434,11 @@ def run_variant_lookup(
     match, stamp dcad_account + replace address_normalized with the
     canonical DCAD form.
 
-    Mutates records in place:
+    When ``always_run=True`` (PR 5 diagnostic mode): already-resolved
+    records are not short-circuited; variant still attempts and records
+    history but does NOT overwrite record-level fields.
+
+    Mutates records in place (only when path was the first to resolve):
       - Stamps dcad_account on match
       - Replaces address_normalized with the matched DCAD form
       - Adds WARN_LOOKUP_VARIANT_USED if the address was changed
@@ -434,10 +449,11 @@ def run_variant_lookup(
     stats = VariantLookupStats(total_records=len(records))
 
     for rec in records:
-        # Guard 1: skip already-resolved records
-        if rec.get("dcad_account"):
+        already_resolved = bool(rec.get("dcad_account"))
+        if already_resolved:
             stats.skipped_already_resolved += 1
-            continue
+            if not always_run:
+                continue
 
         addr_norm = rec.get("address_normalized")
 
@@ -457,11 +473,11 @@ def run_variant_lookup(
 
         if acct and matched_addr:
             old_addr = addr_norm
-            rec["dcad_account"] = acct
-            # Replace address_normalized only if it differs from the matched form
-            if matched_addr != old_addr:
-                rec["address_normalized"] = matched_addr
-                add_warning(rec, WARN_LOOKUP_VARIANT_USED)
+            if not already_resolved:
+                rec["dcad_account"] = acct
+                if matched_addr != old_addr:
+                    rec["address_normalized"] = matched_addr
+                    add_warning(rec, WARN_LOOKUP_VARIANT_USED)
             append_history(rec, ResolutionHistoryEntry(
                 path=PATH_VARIANT_LOOKUP,
                 stage="6.35",
@@ -650,14 +666,25 @@ def run_path_a(
     owner_index: dict[str, list[str]],
     account_address_index: dict[str, dict],
     dcad_account_owner_index: dict[str, str],
+    *,
+    always_run: bool = False,
 ) -> PathAStats:
     """Stage 6.45 — Path A: NOF grantor → DCAD owner_index lookup.
 
-    Fires on NOF records where dcad_account is still None. Uses the
-    same match_decedent_to_dcad machinery that PB records have used
-    since PR 1; for NOFs the 'decedent name' is the foreclosed grantor.
+    Fires on NOF records. By default (``always_run=False``) skips records
+    that already have ``dcad_account`` set; the upstream path's result
+    wins.
 
-    Mutates records in place:
+    When ``always_run=True`` (PR 5: Stage 6.6 diagnostic mode):
+      - Records that already have ``dcad_account`` are NOT short-circuited
+      - Path A still computes its would-be match and writes a full history
+        entry, so Stage 6.6 can audit cross-path agreement / disagreement
+      - dcad_account, address_normalized, alternate_accounts, and
+        confidence_warnings are NOT modified for already-resolved records;
+        the upstream stamp is preserved verbatim
+      - For not-yet-resolved records, behavior is identical to default
+
+    Mutates records in place (only when path was the first to resolve):
       - Stamps dcad_account on match
       - Sets address_normalized from the matched account's property address
       - Sets signal_metadata.alternate_accounts on multi-account matches
@@ -665,6 +692,8 @@ def run_path_a(
         WARN_COMMON_NAME_POLLUTION, WARN_SURNAME_DRIFT,
         WARN_SURNAME_IN_TRUST_FIRST_NAME (latter only when GUARDED)
       - Appends resolution_history entry for every considered record
+        (this happens regardless of always_run, since history is the
+        audit trail Stage 6.6 reads from)
 
     Returns PathAStats for run-level observability.
     """
@@ -677,9 +706,17 @@ def run_path_a(
             stats.skipped_not_nof += 1
             continue
 
-        if rec.get("dcad_account"):
+        already_resolved = bool(rec.get("dcad_account"))
+        # In default mode (always_run=False) skip-early; in always_run mode
+        # we proceed so Stage 6.6 can see what Path A would have picked.
+        if already_resolved and not always_run:
             stats.skipped_already_resolved += 1
             continue
+        # In always_run mode, count the already-resolved diagnostic pass so
+        # the operator can see Path A still ran (and the field mutations
+        # were suppressed).
+        if already_resolved:
+            stats.skipped_already_resolved += 1
 
         grantor = rec.get("grantor")
         if not grantor:
@@ -727,52 +764,62 @@ def run_path_a(
                     tier=match.tier,
                     alternates=list(match.accounts),
                 ))
-                add_warning(rec, WARN_SURNAME_IN_TRUST_FIRST_NAME)
+                # The Class 19a guard's warning is record-level only when
+                # we are actually stamping. Diagnostic-mode runs leave the
+                # upstream record's warnings untouched.
+                if not already_resolved:
+                    add_warning(rec, WARN_SURNAME_IN_TRUST_FIRST_NAME)
                 stats.guarded += 1
                 continue
 
-        # Match passes guards. Stamp it.
+        # Match passes guards. Compute what we would stamp.
         primary_acct = match.accounts[0]
         alternates = list(match.accounts[1:])
-
-        rec["dcad_account"] = primary_acct
-        # Derive address_normalized from the matched account's property.
-        # account_address_index is the flat dict[str, str] produced by
-        # legal_resolver._build_account_to_address.
         acct_addr = account_address_index.get(primary_acct)
-        if acct_addr:
-            rec["address_normalized"] = acct_addr
 
-        # Per-entry warnings — captured on the history entry AND on the
-        # record-level confidence_warnings.
+        # Build the history-entry warnings list (this is recorded
+        # regardless of stamping mode).
         history_warnings: list[str] = []
         if len(match.accounts) > 1:
             history_warnings.append(WARN_MULTI_ACCOUNT)
-            add_warning(rec, WARN_MULTI_ACCOUNT)
-            set_alternate_accounts(rec, alternates)
-            stats.multi_account_matched += 1
-        else:
-            stats.matched += 1
-
         if match.tier == TIER_SURNAME_ONLY:
             history_warnings.append(WARN_SURNAME_ONLY_TIER)
-            add_warning(rec, WARN_SURNAME_ONLY_TIER)
-
         if match.warning == "common_name_pollution":
             history_warnings.append(WARN_COMMON_NAME_POLLUTION)
-            add_warning(rec, WARN_COMMON_NAME_POLLUTION)
 
-        # Surname drift check: post-match, does the grantor surname
-        # actually align with the DCAD owner surname?
+        # Surname-drift check uses the matched account's DCAD owner.
         dcad_owner_str = _account_owner_lookup(primary_acct, dcad_account_owner_index) or ""
         grantor_surname = _surname_of(grantor)
         owner_surname = _surname_of(dcad_owner_str)
-        if (grantor_surname and owner_surname
-                and grantor_surname != owner_surname
-                and grantor_surname not in owner_surname
-                and owner_surname not in grantor_surname):
+        surname_drift = (
+            grantor_surname and owner_surname
+            and grantor_surname != owner_surname
+            and grantor_surname not in owner_surname
+            and owner_surname not in grantor_surname
+        )
+        if surname_drift:
             history_warnings.append(WARN_SURNAME_DRIFT)
-            add_warning(rec, WARN_SURNAME_DRIFT)
+
+        # Stamp record-level fields ONLY when Path A is the first path to
+        # resolve this record. always_run mode preserves upstream stamps.
+        if not already_resolved:
+            rec["dcad_account"] = primary_acct
+            if acct_addr:
+                rec["address_normalized"] = acct_addr
+            if len(match.accounts) > 1:
+                add_warning(rec, WARN_MULTI_ACCOUNT)
+                set_alternate_accounts(rec, alternates)
+            if match.tier == TIER_SURNAME_ONLY:
+                add_warning(rec, WARN_SURNAME_ONLY_TIER)
+            if match.warning == "common_name_pollution":
+                add_warning(rec, WARN_COMMON_NAME_POLLUTION)
+            if surname_drift:
+                add_warning(rec, WARN_SURNAME_DRIFT)
+
+        if len(match.accounts) > 1:
+            stats.multi_account_matched += 1
+        else:
+            stats.matched += 1
 
         status = STATUS_MULTI_MATCH if len(match.accounts) > 1 else STATUS_MATCHED
         append_history(rec, ResolutionHistoryEntry(
