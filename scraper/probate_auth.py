@@ -51,6 +51,7 @@ all returned so downstream Cookie header is complete):
 
 from __future__ import annotations
 
+import contextlib
 import logging
 import os
 import time
@@ -351,6 +352,163 @@ def cookies_to_header(cookies: dict[str, str]) -> str:
     Suitable for direct use as the ``Cookie`` HTTP request header.
     """
     return "; ".join(f"{k}={v}" for k, v in cookies.items())
+
+
+@contextlib.contextmanager
+def live_authenticated_session():
+    """PR 8.4 — same login flow as :func:`acquire_session`, but keeps the
+    Playwright browser alive and yields ``(cookies, page)`` for callers
+    that need to make ADDITIONAL navigations while authenticated.
+
+    Used by the case-detail API discovery probe
+    (``scripts/probe_tyler_case_api_discovery.py``) — re-injecting cookies
+    into a fresh Playwright context proved insufficient for Tyler's SPA
+    (the SPA's ``/api/auth/claims`` bootstrap call needs more than cookies
+    alone). Using the SAME session that just authenticated has all the
+    state the SPA expects.
+
+    Yields:
+        ``(cookies: dict[str, str], page: playwright Page)`` on success.
+        ``(None, None)`` on auth failure.
+
+    Browser closes on context exit regardless of yield value.
+
+    Usage::
+
+        from scraper.probate_auth import live_authenticated_session
+
+        with live_authenticated_session() as (cookies, page):
+            if cookies is None:
+                return
+            page.on("response", my_handler)
+            page.goto("https://research.txcourts.gov/CourtRecordsSearch/ui/...")
+            # do work with the live session
+
+    For server-side API calls that only need cookies (e.g. the search API
+    via probate.fetch_dallas_probate), use the cheaper
+    :func:`acquire_session` which closes the browser before returning.
+    """
+    email_raw = os.environ.get(config.PROBATE_EMAIL_ENV, "")
+    password  = os.environ.get(config.PROBATE_PASSWORD_ENV, "").strip()
+    email = email_raw.strip()
+    for junk in (",", '"', "'", ";", " ", "\t"):
+        email = email.replace(junk, "")
+
+    if not email or not password:
+        logger.warning(
+            "Probate auth: %s / %s env vars not set; cannot log in",
+            config.PROBATE_EMAIL_ENV, config.PROBATE_PASSWORD_ENV,
+        )
+        yield (None, None)
+        return
+
+    try:
+        from playwright.sync_api import sync_playwright, TimeoutError as PWTimeout
+    except ImportError as exc:
+        logger.error("Probate auth: playwright not available: %s", exc)
+        yield (None, None)
+        return
+
+    started = time.time()
+    logger.info("Probate auth (live): launching Playwright Chromium")
+
+    pw_ctx = sync_playwright()
+    p = pw_ctx.__enter__()
+    browser = None
+    try:
+        browser = p.chromium.launch(headless=True)
+        context = browser.new_context(
+            user_agent=USER_AGENT,
+            viewport={"width": 1920, "height": 1080},
+            locale="en-US",
+        )
+        page = context.new_page()
+        page.set_default_navigation_timeout(NAV_TIMEOUT_MS)
+        page.set_default_timeout(NAV_TIMEOUT_MS)
+
+        # Same flow as acquire_session, condensed (selectors unchanged)
+        logger.info("Probate auth (live): navigating to entry URL")
+        page.goto(ENTRY_URL)
+        try:
+            page.wait_for_load_state("networkidle", timeout=NAV_TIMEOUT_MS)
+        except PWTimeout:
+            pass
+
+        signin_clicked = False
+        for candidate in SELECTORS_HOME_SIGNIN:
+            try:
+                page.wait_for_selector(candidate, state="visible", timeout=5_000)
+                page.click(candidate)
+                signin_clicked = True
+                break
+            except PWTimeout:
+                continue
+        if not signin_clicked:
+            logger.error("Probate auth (live): no Sign In selector matched")
+            yield (None, None)
+            return
+
+        try:
+            page.wait_for_url(f"**{LOGIN_URL_FRAGMENT}**", timeout=NAV_TIMEOUT_MS)
+        except PWTimeout:
+            logger.error("Probate auth (live): redirect to IdP didn't happen")
+            yield (None, None)
+            return
+
+        page.wait_for_selector(SELECTOR_EMAIL, state="visible", timeout=NAV_TIMEOUT_MS)
+        page.fill(SELECTOR_EMAIL, email)
+        page.fill(SELECTOR_PASS, password)
+        page.click(SELECTOR_SUBMIT)
+
+        try:
+            page.wait_for_url(
+                lambda url: (
+                    "/CourtRecordsSearch/ui/dashboard" in url
+                    or url.rstrip("/").endswith("/CourtRecordsSearch/ui/Home")
+                ),
+                timeout=LOGIN_TIMEOUT_MS,
+            )
+        except PWTimeout:
+            logger.error(
+                "Probate auth (live): post-login URL not reached: %s",
+                page.url,
+            )
+            yield (None, None)
+            return
+
+        try:
+            page.wait_for_load_state("networkidle", timeout=10_000)
+        except PWTimeout:
+            pass
+
+        all_cookies = context.cookies()
+        cookies = _filter_research_cookies(all_cookies)
+        if not cookies:
+            logger.error("Probate auth (live): no research.txcourts cookies captured")
+            yield (None, None)
+            return
+
+        elapsed = time.time() - started
+        logger.info(
+            "Probate auth (live): success in %.1fs (%d cookies). "
+            "Yielding live page; close via context exit.",
+            elapsed, len(cookies),
+        )
+        yield (cookies, page)
+
+    except Exception as exc:
+        logger.exception("Probate auth (live): Playwright crashed: %s", exc)
+        yield (None, None)
+    finally:
+        try:
+            if browser is not None:
+                browser.close()
+        except Exception:
+            pass
+        try:
+            pw_ctx.__exit__(None, None, None)
+        except Exception:
+            pass
 
 
 # ============================================================================
