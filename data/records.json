@@ -1,138 +1,7 @@
 {
   "generated_at": "2026-05-27",
-  "record_count": 92,
+  "record_count": 95,
   "records": [
-    {
-      "record_id": "pro-f6656be4b93948e79217268b1678aa84",
-      "source": "probate.txcourts.gov",
-      "dallas_code": "PB",
-      "category": "PROB",
-      "filing_date": "2026-05-19",
-      "instrument_num": "PR-26-01613-2",
-      "grantor": "Hawkins, Cynthia Ann",
-      "grantee": "Burke, Cathy",
-      "address": null,
-      "address_normalized": "2126 KESSLER CT",
-      "dcad_account": "00000298611850000",
-      "dcad_owner": "Hawkins, Cynthia",
-      "dcad_market_value": 339170.0,
-      "dcad_homestead": true,
-      "dcad_over65": true,
-      "dcad_disabled": false,
-      "dcad_tax_deferred": false,
-      "dcad_mailing_address": "COGGINS CONSTANCE\n2126 KESSLER CT",
-      "dcad_mailing_city": "DALLAS",
-      "dcad_mailing_state": "TEXAS",
-      "dcad_mailing_zip": "752082951",
-      "amount": null,
-      "trustee": null,
-      "sale_date": null,
-      "raw_excerpt": null,
-      "active": true,
-      "release_record_id": null,
-      "signal_metadata": {
-        "case_type": "Independent Administration",
-        "case_status": "OPEN",
-        "judge": "INGRID WARREN",
-        "attorneys": [
-          "HOBBS, ZACKARY"
-        ],
-        "jurisdiction": "Dallas County - County Clerk",
-        "additional_applicants": [],
-        "decedent_owned_properties": [
-          {
-            "account_num": "00000298611850000",
-            "address_normalized": "2126 KESSLER CT",
-            "address_city": "DALLAS",
-            "address_state": "TX",
-            "address_zip": "752082951"
-          }
-        ],
-        "dcad_match_tier": "no_middle",
-        "dcad_match_warning": null,
-        "applicant_mailing": null,
-        "resolution_history": [
-          {
-            "path": "path_pb_decedent_owner_index",
-            "stage": "canonicalize",
-            "input": "HAWKINS, CYNTHIA ANN",
-            "status": "matched",
-            "skip_reason": null,
-            "tier": "no_middle",
-            "dcad_account": "00000298611850000",
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "path_pb_applicant_owner_index",
-            "stage": "canonicalize",
-            "input": "BURKE , CATHY",
-            "status": "no_match",
-            "skip_reason": null,
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "path_variant_lookup",
-            "stage": "6.35",
-            "input": "2126 KESSLER CT",
-            "status": "matched",
-            "skip_reason": null,
-            "tier": null,
-            "dcad_account": "00000298611850000",
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "path_c_legal_resolver",
-            "stage": "6.5",
-            "input": null,
-            "status": "skipped",
-            "skip_reason": "no_snippet",
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "stage_6_6_agreement",
-            "stage": "6.6",
-            "input": "path_pb_decedent_owner_index|path_variant_lookup",
-            "status": "matched",
-            "skip_reason": null,
-            "tier": null,
-            "dcad_account": "00000298611850000",
-            "alternates": [],
-            "warnings": []
-          }
-        ],
-        "confidence_warnings": [
-          "path_agreement"
-        ]
-      },
-      "address_city": null,
-      "address_state": null,
-      "address_zip": null,
-      "source_url": null,
-      "score": 65,
-      "score_breakdown": {
-        "base": 30,
-        "category_flag": 10,
-        "value_100k": 15,
-        "new_this_week": 5,
-        "has_address": 5
-      },
-      "parse_warnings": [],
-      "first_seen": "2026-05-23",
-      "last_seen": "2026-05-27",
-      "in_buy_box": true,
-      "buy_box_reasons": [],
-      "grantor_raw": "HAWKINS, CYNTHIA ANN",
-      "grantee_raw": "BURKE , CATHY",
-      "dcad_owner_raw": "HAWKINS CYNTHIA"
-    },
     {
       "record_id": "pro-feefac8844e74af1924c92ba4485611a",
       "source": "probate.txcourts.gov",
@@ -263,6 +132,137 @@
       "grantor_raw": "BRYAN, MICHAEL SANFORD",
       "grantee_raw": "BRYAN, HOLLY CELESTE",
       "dcad_owner_raw": "BRYAN MICHAEL SANFORD"
+    },
+    {
+      "record_id": "pro-f6656be4b93948e79217268b1678aa84",
+      "source": "probate.txcourts.gov",
+      "dallas_code": "PB",
+      "category": "PROB",
+      "filing_date": "2026-05-19",
+      "instrument_num": "PR-26-01613-2",
+      "grantor": "Hawkins, Cynthia Ann",
+      "grantee": "Burke, Cathy",
+      "address": null,
+      "address_normalized": "2126 KESSLER CT",
+      "dcad_account": "00000298611850000",
+      "dcad_owner": "Hawkins, Cynthia",
+      "dcad_market_value": 339170.0,
+      "dcad_homestead": true,
+      "dcad_over65": true,
+      "dcad_disabled": false,
+      "dcad_tax_deferred": false,
+      "dcad_mailing_address": "COGGINS CONSTANCE\n2126 KESSLER CT",
+      "dcad_mailing_city": "DALLAS",
+      "dcad_mailing_state": "TEXAS",
+      "dcad_mailing_zip": "752082951",
+      "amount": null,
+      "trustee": null,
+      "sale_date": null,
+      "raw_excerpt": null,
+      "active": true,
+      "release_record_id": null,
+      "signal_metadata": {
+        "case_type": "Independent Administration",
+        "case_status": "OPEN",
+        "judge": "INGRID WARREN",
+        "attorneys": [
+          "HOBBS, ZACKARY"
+        ],
+        "jurisdiction": "Dallas County - County Clerk",
+        "additional_applicants": [],
+        "decedent_owned_properties": [
+          {
+            "account_num": "00000298611850000",
+            "address_normalized": "2126 KESSLER CT",
+            "address_city": "DALLAS",
+            "address_state": "TX",
+            "address_zip": "752082951"
+          }
+        ],
+        "dcad_match_tier": "no_middle",
+        "dcad_match_warning": null,
+        "applicant_mailing": null,
+        "resolution_history": [
+          {
+            "path": "path_pb_decedent_owner_index",
+            "stage": "canonicalize",
+            "input": "HAWKINS, CYNTHIA ANN",
+            "status": "matched",
+            "skip_reason": null,
+            "tier": "no_middle",
+            "dcad_account": "00000298611850000",
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_pb_applicant_owner_index",
+            "stage": "canonicalize",
+            "input": "BURKE , CATHY",
+            "status": "no_match",
+            "skip_reason": null,
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_variant_lookup",
+            "stage": "6.35",
+            "input": "2126 KESSLER CT",
+            "status": "matched",
+            "skip_reason": null,
+            "tier": null,
+            "dcad_account": "00000298611850000",
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_c_legal_resolver",
+            "stage": "6.5",
+            "input": null,
+            "status": "skipped",
+            "skip_reason": "no_snippet",
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "stage_6_6_agreement",
+            "stage": "6.6",
+            "input": "path_pb_decedent_owner_index|path_variant_lookup",
+            "status": "matched",
+            "skip_reason": null,
+            "tier": null,
+            "dcad_account": "00000298611850000",
+            "alternates": [],
+            "warnings": []
+          }
+        ],
+        "confidence_warnings": [
+          "path_agreement"
+        ]
+      },
+      "address_city": null,
+      "address_state": null,
+      "address_zip": null,
+      "source_url": null,
+      "score": 65,
+      "score_breakdown": {
+        "base": 30,
+        "category_flag": 10,
+        "value_100k": 15,
+        "new_this_week": 5,
+        "has_address": 5
+      },
+      "parse_warnings": [],
+      "first_seen": "2026-05-23",
+      "last_seen": "2026-05-27",
+      "in_buy_box": true,
+      "buy_box_reasons": [],
+      "grantor_raw": "HAWKINS, CYNTHIA ANN",
+      "grantee_raw": "BURKE , CATHY",
+      "dcad_owner_raw": "HAWKINS CYNTHIA"
     },
     {
       "record_id": "pro-3f6c161a7fcc43208e96ea194600ce78",
@@ -410,23 +410,19 @@
           {
             "path": "stage_6_6_agreement",
             "stage": "6.6",
-            "input": null,
-            "status": "skipped",
-            "skip_reason": "tiebreak_inconclusive",
+            "input": "path_pb_decedent_owner_index|path_variant_lookup",
+            "status": "matched",
+            "skip_reason": null,
             "tier": null,
-            "dcad_account": null,
-            "alternates": [
-              "28034500010020000",
-              "38065500040020000"
-            ],
+            "dcad_account": "28034500010020000",
+            "alternates": [],
             "warnings": []
           }
         ],
         "confidence_warnings": [
           "multi_account",
           "common_name_pollution",
-          "path_disagreement",
-          "page_tiebreak_inconclusive"
+          "path_agreement"
         ],
         "alternate_accounts": [
           "38210500060180000",
@@ -530,7 +526,8 @@
               "221367500C0020000",
               "00000820753140000",
               "008682000N0030000",
-              "00C46200000001809"
+              "00C46200000001809",
+              "00000529816000000"
             ],
             "warnings": [
               "common_name_pollution",
@@ -562,21 +559,17 @@
           {
             "path": "stage_6_6_agreement",
             "stage": "6.6",
-            "input": null,
-            "status": "skipped",
-            "skip_reason": "tiebreak_inconclusive",
+            "input": "path_pb_decedent_owner_index|path_variant_lookup",
+            "status": "matched",
+            "skip_reason": null,
             "tier": null,
-            "dcad_account": null,
-            "alternates": [
-              "322553200A0490000",
-              "180052400F0250000"
-            ],
+            "dcad_account": "322553200A0490000",
+            "alternates": [],
             "warnings": []
           }
         ],
         "confidence_warnings": [
-          "path_disagreement",
-          "page_tiebreak_inconclusive"
+          "path_agreement"
         ]
       },
       "address_city": null,
@@ -963,6 +956,20 @@
             "address_city": "HUTCHINS",
             "address_state": "TX",
             "address_zip": "75141"
+          },
+          {
+            "account_num": "00000207283000000",
+            "address_normalized": "2018 KIDWELL ST",
+            "address_city": "DALLAS",
+            "address_state": "TX",
+            "address_zip": "752143928"
+          },
+          {
+            "account_num": "00000207280000000",
+            "address_normalized": "2016 KIDWELL ST",
+            "address_city": "DALLAS",
+            "address_state": "TX",
+            "address_zip": "752143928"
           }
         ],
         "dcad_match_tier": "exact",
@@ -984,7 +991,9 @@
               "20244020160170000",
               "140170200D0350000",
               "26086500030010000",
-              "30021500030330000"
+              "30021500030330000",
+              "00000207283000000",
+              "00000207280000000"
             ],
             "warnings": [
               "multi_account",
@@ -1048,7 +1057,9 @@
           "20244020160170000",
           "140170200D0350000",
           "26086500030010000",
-          "30021500030330000"
+          "30021500030330000",
+          "00000207283000000",
+          "00000207280000000"
         ]
       },
       "address_city": null,
@@ -1309,21 +1320,17 @@
           {
             "path": "stage_6_6_agreement",
             "stage": "6.6",
-            "input": null,
-            "status": "skipped",
-            "skip_reason": "tiebreak_inconclusive",
+            "input": "path_pb_decedent_owner_index|path_variant_lookup",
+            "status": "matched",
+            "skip_reason": null,
             "tier": null,
-            "dcad_account": null,
-            "alternates": [
-              "120316000A0340000",
-              "75000LAW124363400"
-            ],
+            "dcad_account": "120316000A0340000",
+            "alternates": [],
             "warnings": []
           }
         ],
         "confidence_warnings": [
-          "path_disagreement",
-          "page_tiebreak_inconclusive"
+          "path_agreement"
         ]
       },
       "address_city": null,
@@ -1540,10 +1547,12 @@
             "dcad_account": "00000368764000000",
             "alternates": [
               "00000417316000000",
+              "38238750050320000",
               "00000564001000000"
             ],
             "warnings": [
               "multi_account",
+              "common_name_pollution",
               "surname_drift"
             ]
           },
@@ -1561,10 +1570,12 @@
         ],
         "confidence_warnings": [
           "multi_account",
+          "common_name_pollution",
           "surname_drift"
         ],
         "alternate_accounts": [
           "00000417316000000",
+          "38238750050320000",
           "00000564001000000"
         ]
       },
@@ -1696,7 +1707,7 @@
       "category": "NOTICE",
       "filing_date": "2026-05-21",
       "instrument_num": "202600001079",
-      "grantor": null,
+      "grantor": "Reginald, Grant & Laprensa",
       "grantee": null,
       "address": "DALLAS",
       "address_normalized": "10414 BLACK WALNUT DR",
@@ -1778,7 +1789,8 @@
           }
         ],
         "confidence_warnings": [
-          "path_agreement"
+          "path_agreement",
+          "grantor_from_dcad"
         ]
       },
       "address_city": null,
@@ -1800,6 +1812,7 @@
       "last_seen": "2026-05-27",
       "in_buy_box": true,
       "buy_box_reasons": [],
+      "grantor_raw": "GRANT REGINALD & LAPRENSA",
       "dcad_owner_raw": "GRANT REGINALD & LAPRENSA"
     },
     {
@@ -1907,7 +1920,7 @@
       "category": "NOTICE",
       "filing_date": "2026-05-21",
       "instrument_num": "202600001080",
-      "grantor": null,
+      "grantor": "Steven, Meeking & Gina",
       "grantee": null,
       "address": "1236 CEDARCREST DRIVE, MESQUITE, TX 75149",
       "address_normalized": "1236 CEDARCREST DR",
@@ -1963,6 +1976,9 @@
             "alternates": [],
             "warnings": []
           }
+        ],
+        "confidence_warnings": [
+          "grantor_from_dcad"
         ]
       },
       "address_city": null,
@@ -1984,6 +2000,7 @@
       "last_seen": "2026-05-27",
       "in_buy_box": true,
       "buy_box_reasons": [],
+      "grantor_raw": "MEEKING STEVEN & GINA",
       "dcad_owner_raw": "MEEKING STEVEN & GINA"
     },
     {
@@ -2189,7 +2206,7 @@
       "category": "NOTICE",
       "filing_date": "2026-05-21",
       "instrument_num": "202600001070",
-      "grantor": null,
+      "grantor": "E, Bravo Francisco Omar",
       "grantee": null,
       "address": "1817 Millwick St., Garland, TX 75044",
       "address_normalized": "1817 MILLWICK ST",
@@ -2220,9 +2237,7 @@
           "apn_pattern": null,
           "apn": null,
           "pages_captured": 4,
-          "capture_warnings": [
-            "recovered_on_attempt_2"
-          ]
+          "capture_warnings": []
         },
         "resolution_history": [
           {
@@ -2247,6 +2262,9 @@
             "alternates": [],
             "warnings": []
           }
+        ],
+        "confidence_warnings": [
+          "grantor_from_dcad"
         ]
       },
       "address_city": null,
@@ -2268,6 +2286,7 @@
       "last_seen": "2026-05-27",
       "in_buy_box": true,
       "buy_box_reasons": [],
+      "grantor_raw": "BRAVO FRANCISCO OMAR E",
       "dcad_owner_raw": "BRAVO FRANCISCO OMAR E"
     },
     {
@@ -2277,7 +2296,7 @@
       "category": "NOTICE",
       "filing_date": "2026-05-21",
       "instrument_num": "202600001072",
-      "grantor": null,
+      "grantor": "Lozano, Amador Darwin Josue",
       "grantee": null,
       "address": "7821 Larchridge Dr., Dallas, TX 75232",
       "address_normalized": "7821 LARCHRIDGE DR",
@@ -2333,6 +2352,9 @@
             "alternates": [],
             "warnings": []
           }
+        ],
+        "confidence_warnings": [
+          "grantor_from_dcad"
         ]
       },
       "address_city": null,
@@ -2355,6 +2377,7 @@
       "last_seen": "2026-05-27",
       "in_buy_box": true,
       "buy_box_reasons": [],
+      "grantor_raw": "AMADOR DARWIN JOSUE LOZANO",
       "dcad_owner_raw": "AMADOR DARWIN JOSUE LOZANO"
     },
     {
@@ -2364,7 +2387,7 @@
       "category": "NOTICE",
       "filing_date": "2026-05-21",
       "instrument_num": "202600001067",
-      "grantor": null,
+      "grantor": "Of, Bell Angela B Est",
       "grantee": null,
       "address": "611 Matthew Place, Richardson, 75081",
       "address_normalized": "611 MATTHEW PL",
@@ -2420,6 +2443,9 @@
             "alternates": [],
             "warnings": []
           }
+        ],
+        "confidence_warnings": [
+          "grantor_from_dcad"
         ]
       },
       "address_city": null,
@@ -2441,6 +2467,7 @@
       "last_seen": "2026-05-27",
       "in_buy_box": true,
       "buy_box_reasons": [],
+      "grantor_raw": "BELL ANGELA B EST OF",
       "dcad_owner_raw": "BELL ANGELA B EST OF"
     },
     {
@@ -2450,7 +2477,7 @@
       "category": "NOTICE",
       "filing_date": "2026-05-21",
       "instrument_num": "202600001068",
-      "grantor": null,
+      "grantor": "Claudia, Delacruz",
       "grantee": null,
       "address": "2019 Reagan Blvd, Carrollton, 75006",
       "address_normalized": "2019 REAGAN BLVD",
@@ -2508,6 +2535,9 @@
             "alternates": [],
             "warnings": []
           }
+        ],
+        "confidence_warnings": [
+          "grantor_from_dcad"
         ]
       },
       "address_city": null,
@@ -2529,6 +2559,7 @@
       "last_seen": "2026-05-27",
       "in_buy_box": true,
       "buy_box_reasons": [],
+      "grantor_raw": "DELACRUZ CLAUDIA",
       "dcad_owner_raw": "DELACRUZ CLAUDIA"
     },
     {
@@ -2538,7 +2569,7 @@
       "category": "NOTICE",
       "filing_date": "2026-05-21",
       "instrument_num": "202600001081",
-      "grantor": "Acuna, Luis Carlos",
+      "grantor": "Carlos, Acuna Luis",
       "grantee": null,
       "address": "309 BILLY WICKLIFFE, WILMER, TEXAS, 75172",
       "address_normalized": "309 BILLY WICKLIFFE DR",
@@ -2553,28 +2584,16 @@
       "dcad_mailing_city": "WILMER",
       "dcad_mailing_state": "TEXAS",
       "dcad_mailing_zip": "751723369",
-      "amount": "206,097.00",
+      "amount": null,
       "trustee": null,
       "sale_date": "2026-07-07",
       "raw_excerpt": "NOTICE OF FORECLOSURE | 309 BILLY WICKLIFFE, WILMER, TEXAS, 75172",
       "active": true,
       "release_record_id": null,
       "signal_metadata": {
-        "ocr": {
-          "grantor_pattern": "labeled-grantor",
-          "sale_date_pattern": "bare-date-numeric",
-          "address_pattern": null,
-          "loan_amount_pattern": "labeled-original-principal",
-          "legal_desc_pattern": null,
-          "apn_pattern": null,
-          "apn": null,
-          "pages_captured": 3,
-          "capture_warnings": []
-        },
         "confidence_warnings": [
           "lookup_variant_used",
-          "path_disagreement",
-          "tiebroken_by_page"
+          "grantor_from_dcad"
         ],
         "resolution_history": [
           {
@@ -2589,19 +2608,6 @@
             "warnings": []
           },
           {
-            "path": "path_a_grantor_owner_index",
-            "stage": "6.45",
-            "input": "LUIS CARLOS ACUNA, A SINGLE MAN",
-            "status": "matched",
-            "skip_reason": null,
-            "tier": "surname_only",
-            "dcad_account": "00000414682580000",
-            "alternates": [],
-            "warnings": [
-              "surname_only_tier"
-            ]
-          },
-          {
             "path": "path_c_legal_resolver",
             "stage": "6.5",
             "input": "NOTICE OF FORECLOSURE | 309 BILLY WICKLIFFE, WILMER, TEXAS, 75172",
@@ -2611,25 +2617,7 @@
             "dcad_account": null,
             "alternates": [],
             "warnings": []
-          },
-          {
-            "path": "stage_6_6_agreement",
-            "stage": "6.6",
-            "input": "309 BILLY WICKLIFFE WILMER TEXAS 75172",
-            "status": "matched",
-            "skip_reason": null,
-            "tier": null,
-            "dcad_account": "540127700F0200000",
-            "alternates": [
-              "00000414682580000"
-            ],
-            "warnings": [
-              "tiebroken_by_page"
-            ]
           }
-        ],
-        "alternate_accounts": [
-          "00000414682580000"
         ]
       },
       "address_city": null,
@@ -2645,100 +2633,14 @@
         "has_address": 5
       },
       "parse_warnings": [
-        "no_address_or_legal_description"
+        "ocr_no_images"
       ],
       "first_seen": "2026-05-22",
       "last_seen": "2026-05-27",
       "in_buy_box": true,
       "buy_box_reasons": [],
-      "grantor_raw": "LUIS CARLOS ACUNA, A SINGLE MAN",
+      "grantor_raw": "ACUNA LUIS CARLOS",
       "dcad_owner_raw": "ACUNA LUIS CARLOS"
-    },
-    {
-      "record_id": "315562550",
-      "source": "publicsearch.us",
-      "dallas_code": "NOF",
-      "category": "NOTICE",
-      "filing_date": "2026-05-21",
-      "instrument_num": "202600001066",
-      "grantor": null,
-      "grantee": null,
-      "address": "2106 Holland St, Grand Prairie, 75051",
-      "address_normalized": "2106 HOLLAND ST",
-      "dcad_account": "28212500070190000",
-      "dcad_owner": "Rodriguez, Miguel",
-      "dcad_market_value": 201040.0,
-      "dcad_homestead": true,
-      "dcad_over65": false,
-      "dcad_disabled": false,
-      "dcad_tax_deferred": false,
-      "dcad_mailing_address": "2106 HOLLAND ST",
-      "dcad_mailing_city": "GRAND PRAIRIE",
-      "dcad_mailing_state": "TEXAS",
-      "dcad_mailing_zip": "750511203",
-      "amount": null,
-      "trustee": null,
-      "sale_date": "2026-08-04",
-      "raw_excerpt": "NOTICE OF FORECLOSURE | GRAND PRAIRIE",
-      "active": true,
-      "release_record_id": null,
-      "signal_metadata": {
-        "ocr": {
-          "grantor_pattern": null,
-          "sale_date_pattern": "numeric-section1-date",
-          "address_pattern": "mixed-case-one-line",
-          "loan_amount_pattern": null,
-          "legal_desc_pattern": null,
-          "apn_pattern": null,
-          "apn": null,
-          "pages_captured": 4,
-          "capture_warnings": []
-        },
-        "resolution_history": [
-          {
-            "path": "path_variant_lookup",
-            "stage": "6.35",
-            "input": "2106 HOLLAND ST",
-            "status": "matched",
-            "skip_reason": null,
-            "tier": null,
-            "dcad_account": "28212500070190000",
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "path_c_legal_resolver",
-            "stage": "6.5",
-            "input": "NOTICE OF FORECLOSURE | GRAND PRAIRIE",
-            "status": "skipped",
-            "skip_reason": "no_subdivision_parsed",
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          }
-        ]
-      },
-      "address_city": null,
-      "address_state": null,
-      "address_zip": null,
-      "source_url": "https://dallas.tx.publicsearch.us/doc/315562550",
-      "score": 65,
-      "score_breakdown": {
-        "base": 30,
-        "category_flag": 10,
-        "value_100k": 15,
-        "new_this_week": 5,
-        "has_address": 5
-      },
-      "parse_warnings": [
-        "no_grantor_extracted"
-      ],
-      "first_seen": "2026-05-22",
-      "last_seen": "2026-05-27",
-      "in_buy_box": true,
-      "buy_box_reasons": [],
-      "dcad_owner_raw": "RODRIGUEZ MIGUEL"
     },
     {
       "record_id": "315561571",
@@ -2747,7 +2649,7 @@
       "category": "NOTICE",
       "filing_date": "2026-05-21",
       "instrument_num": "202600001046",
-      "grantor": null,
+      "grantor": "Edmund, Barron",
       "grantee": null,
       "address": "2002 BERKLEY AVENUE, DALLAS, 75224",
       "address_normalized": "2002 BERKLEY AVE",
@@ -2778,7 +2680,10 @@
           "apn_pattern": null,
           "apn": null,
           "pages_captured": 4,
-          "capture_warnings": []
+          "capture_warnings": [
+            "initial_load_hung_reloading",
+            "recovered_on_attempt_2"
+          ]
         },
         "resolution_history": [
           {
@@ -2803,6 +2708,9 @@
             "alternates": [],
             "warnings": []
           }
+        ],
+        "confidence_warnings": [
+          "grantor_from_dcad"
         ]
       },
       "address_city": null,
@@ -2824,6 +2732,7 @@
       "last_seen": "2026-05-27",
       "in_buy_box": true,
       "buy_box_reasons": [],
+      "grantor_raw": "BARRON EDMUND",
       "dcad_owner_raw": "BARRON EDMUND"
     },
     {
@@ -2833,7 +2742,7 @@
       "category": "NOTICE",
       "filing_date": "2026-05-21",
       "instrument_num": "202600001049",
-      "grantor": null,
+      "grantor": "Gilberto, Arguello",
       "grantee": null,
       "address": "5605 SADDLEBACK ROAD, GARLAND, 75043",
       "address_normalized": "5605 SADDLEBACK RD",
@@ -2889,6 +2798,9 @@
             "alternates": [],
             "warnings": []
           }
+        ],
+        "confidence_warnings": [
+          "grantor_from_dcad"
         ]
       },
       "address_city": null,
@@ -2910,6 +2822,7 @@
       "last_seen": "2026-05-27",
       "in_buy_box": true,
       "buy_box_reasons": [],
+      "grantor_raw": "ARGUELLO GILBERTO",
       "dcad_owner_raw": "ARGUELLO GILBERTO"
     },
     {
@@ -2950,9 +2863,7 @@
           "apn_pattern": null,
           "apn": null,
           "pages_captured": 2,
-          "capture_warnings": [
-            "initial_load_hung_reloading"
-          ]
+          "capture_warnings": []
         },
         "resolution_history": [
           {
@@ -3372,9 +3283,9 @@
       "category": "NOTICE",
       "filing_date": "2026-05-21",
       "instrument_num": "202600001064",
-      "grantor": "Montgomery, Cole A.",
+      "grantor": "A, Montgomery Nicole",
       "grantee": null,
-      "address": "2206 BEA OS REEFGRAND PRAIRIE, TX 75051",
+      "address": "2206 BEAUMONT STREET, GRAND PRAIRIE, TEXAS, 75051",
       "address_normalized": "2206 BEAUMONT ST",
       "dcad_account": "28052501230110000",
       "dcad_owner": "Montgomery, Nicole A",
@@ -3387,40 +3298,14 @@
       "dcad_mailing_city": "GRAND PRAIRIE",
       "dcad_mailing_state": "TEXAS",
       "dcad_mailing_zip": "750511226",
-      "amount": "349,551.00",
+      "amount": null,
       "trustee": null,
       "sale_date": "2026-07-07",
-      "raw_excerpt": "NOTICE OF FORECLOSURE | 2206 BEAUMONT STREET, GRAND PRAIRIE, TEXAS, 75051 | BEING LOT 11, IN BL@6K _J28, DALWORTH PARK, AN ADDITION TO THE CITY OF GRAND PRAIRIE, DALLAS COUNTY, ‘e ASLACCORDING TO THE MAP THEREOF RECORDED IN VOLUME I, PAGE 546, OF THE MAP RECORDS ve ATBAS COUNTY, TEXAS",
+      "raw_excerpt": "NOTICE OF FORECLOSURE | 2206 BEAUMONT STREET, GRAND PRAIRIE, TEXAS, 75051",
       "active": true,
       "release_record_id": null,
       "signal_metadata": {
-        "ocr": {
-          "grantor_pattern": "labeled-grantor",
-          "sale_date_pattern": "numeric-section1-date",
-          "address_pattern": "commonly-known-as-one-line",
-          "loan_amount_pattern": "principal-amount-of",
-          "legal_desc_pattern": "being-lot",
-          "apn_pattern": null,
-          "apn": null,
-          "pages_captured": 3,
-          "capture_warnings": []
-        },
-        "confidence_warnings": [
-          "path_b_used_alternate",
-          "path_agreement"
-        ],
         "resolution_history": [
-          {
-            "path": "path_b_raw_excerpt",
-            "stage": "6.3",
-            "input": "2206 BEAUMONT STREET, GRAND PRAIRIE, TEXAS, 75051",
-            "status": "matched",
-            "skip_reason": null,
-            "tier": null,
-            "dcad_account": "28052501230110000",
-            "alternates": [],
-            "warnings": []
-          },
           {
             "path": "path_variant_lookup",
             "stage": "6.35",
@@ -3433,38 +3318,19 @@
             "warnings": []
           },
           {
-            "path": "path_a_grantor_owner_index",
-            "stage": "6.45",
-            "input": "COLE A. MONTGOMERY, SINGLE WOMAN",
-            "status": "no_match",
-            "skip_reason": null,
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          },
-          {
             "path": "path_c_legal_resolver",
             "stage": "6.5",
-            "input": "NOTICE OF FORECLOSURE | 2206 BEAUMONT STREET, GRAND PRAIRIE, TEXAS, 75051 | BEING LOT 11, IN BL@6K _J28, DALWORTH PARK, ",
+            "input": "NOTICE OF FORECLOSURE | 2206 BEAUMONT STREET, GRAND PRAIRIE, TEXAS, 75051",
             "status": "skipped",
             "skip_reason": "no_subdivision_parsed",
             "tier": null,
             "dcad_account": null,
             "alternates": [],
             "warnings": []
-          },
-          {
-            "path": "stage_6_6_agreement",
-            "stage": "6.6",
-            "input": "path_b_raw_excerpt|path_variant_lookup",
-            "status": "matched",
-            "skip_reason": null,
-            "tier": null,
-            "dcad_account": "28052501230110000",
-            "alternates": [],
-            "warnings": []
           }
+        ],
+        "confidence_warnings": [
+          "grantor_from_dcad"
         ]
       },
       "address_city": null,
@@ -3479,12 +3345,14 @@
         "new_this_week": 5,
         "has_address": 5
       },
-      "parse_warnings": [],
+      "parse_warnings": [
+        "ocr_no_images"
+      ],
       "first_seen": "2026-05-22",
       "last_seen": "2026-05-27",
       "in_buy_box": true,
       "buy_box_reasons": [],
-      "grantor_raw": "COLE A. MONTGOMERY, SINGLE WOMAN",
+      "grantor_raw": "MONTGOMERY NICOLE A",
       "dcad_owner_raw": "MONTGOMERY NICOLE A"
     },
     {
@@ -3494,7 +3362,7 @@
       "category": "NOTICE",
       "filing_date": "2026-05-21",
       "instrument_num": "202600001052",
-      "grantor": null,
+      "grantor": "Frank, Canales David",
       "grantee": null,
       "address": "509 BLANCO DRIVE, DESOTO, TEXAS, 75115",
       "address_normalized": "509 BLANCO DR",
@@ -3516,17 +3384,6 @@
       "active": true,
       "release_record_id": null,
       "signal_metadata": {
-        "ocr": {
-          "grantor_pattern": null,
-          "sale_date_pattern": "numeric-section1-date",
-          "address_pattern": null,
-          "loan_amount_pattern": null,
-          "legal_desc_pattern": null,
-          "apn_pattern": null,
-          "apn": null,
-          "pages_captured": 4,
-          "capture_warnings": []
-        },
         "resolution_history": [
           {
             "path": "path_variant_lookup",
@@ -3550,6 +3407,9 @@
             "alternates": [],
             "warnings": []
           }
+        ],
+        "confidence_warnings": [
+          "grantor_from_dcad"
         ]
       },
       "address_city": null,
@@ -3565,140 +3425,14 @@
         "has_address": 5
       },
       "parse_warnings": [
-        "no_grantor_extracted",
-        "no_address_or_legal_description"
+        "ocr_no_images"
       ],
       "first_seen": "2026-05-22",
       "last_seen": "2026-05-27",
       "in_buy_box": true,
       "buy_box_reasons": [],
+      "grantor_raw": "CANALES DAVID FRANK",
       "dcad_owner_raw": "CANALES DAVID FRANK"
-    },
-    {
-      "record_id": "315561574",
-      "source": "publicsearch.us",
-      "dallas_code": "NOF",
-      "category": "NOTICE",
-      "filing_date": "2026-05-21",
-      "instrument_num": "202600001060",
-      "grantor": "Betancourt, Jesus J.",
-      "grantee": null,
-      "address": "43 Vanguard owe AY Tally nty, Texas 75243",
-      "address_normalized": "43 VANGUARD WAY",
-      "dcad_account": "00750900100110000",
-      "dcad_owner": "Betancourt, Jesus J",
-      "dcad_market_value": 783700.0,
-      "dcad_homestead": true,
-      "dcad_over65": false,
-      "dcad_disabled": false,
-      "dcad_tax_deferred": false,
-      "dcad_mailing_address": "43 VANGUARD WAY",
-      "dcad_mailing_city": "DALLAS",
-      "dcad_mailing_state": "TEXAS",
-      "dcad_mailing_zip": "752436500",
-      "amount": "400,000.00",
-      "trustee": null,
-      "sale_date": "2026-07-07",
-      "raw_excerpt": "NOTICE OF FORECLOSURE | 43 VANGUARD WAY, DALLAS, TEXAS, 75243",
-      "active": true,
-      "release_record_id": null,
-      "signal_metadata": {
-        "ocr": {
-          "grantor_pattern": "deed-executed-by-secures",
-          "sale_date_pattern": "bare-date-word",
-          "address_pattern": "commonly-known-as-one-line",
-          "loan_amount_pattern": "original-amount-space-tolerant",
-          "legal_desc_pattern": null,
-          "apn_pattern": null,
-          "apn": null,
-          "pages_captured": 4,
-          "capture_warnings": [
-            "recovered_on_attempt_2"
-          ]
-        },
-        "confidence_warnings": [
-          "path_b_used_alternate",
-          "path_agreement"
-        ],
-        "resolution_history": [
-          {
-            "path": "path_b_raw_excerpt",
-            "stage": "6.3",
-            "input": "43 VANGUARD WAY, DALLAS, TEXAS, 75243",
-            "status": "matched",
-            "skip_reason": null,
-            "tier": null,
-            "dcad_account": "00750900100110000",
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "path_variant_lookup",
-            "stage": "6.35",
-            "input": "43 VANGUARD WAY",
-            "status": "matched",
-            "skip_reason": null,
-            "tier": null,
-            "dcad_account": "00750900100110000",
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "path_a_grantor_owner_index",
-            "stage": "6.45",
-            "input": "JESUS J. BETANCOURT",
-            "status": "matched",
-            "skip_reason": null,
-            "tier": "exact",
-            "dcad_account": "00750900100110000",
-            "alternates": [],
-            "warnings": [
-              "surname_drift"
-            ]
-          },
-          {
-            "path": "path_c_legal_resolver",
-            "stage": "6.5",
-            "input": "NOTICE OF FORECLOSURE | 43 VANGUARD WAY, DALLAS, TEXAS, 75243",
-            "status": "skipped",
-            "skip_reason": "no_subdivision_parsed",
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "stage_6_6_agreement",
-            "stage": "6.6",
-            "input": "path_a_grantor_owner_index|path_b_raw_excerpt|path_variant_lookup",
-            "status": "matched",
-            "skip_reason": null,
-            "tier": null,
-            "dcad_account": "00750900100110000",
-            "alternates": [],
-            "warnings": []
-          }
-        ]
-      },
-      "address_city": null,
-      "address_state": null,
-      "address_zip": null,
-      "source_url": "https://dallas.tx.publicsearch.us/doc/315561574",
-      "score": 65,
-      "score_breakdown": {
-        "base": 30,
-        "category_flag": 10,
-        "value_100k": 15,
-        "new_this_week": 5,
-        "has_address": 5
-      },
-      "parse_warnings": [],
-      "first_seen": "2026-05-22",
-      "last_seen": "2026-05-27",
-      "in_buy_box": true,
-      "buy_box_reasons": [],
-      "grantor_raw": "JESUS J. BETANCOURT",
-      "dcad_owner_raw": "BETANCOURT JESUS J"
     },
     {
       "record_id": "315561580",
@@ -3707,7 +3441,7 @@
       "category": "NOTICE",
       "filing_date": "2026-05-21",
       "instrument_num": "202600001053",
-      "grantor": "Adama, Favour & Adama, Bernard",
+      "grantor": "Favour, Adama & Bernard",
       "grantee": null,
       "address": "2828 SOUTH LAKEVIEW DRIVE, CEDAR HILL, TEXAS, 75104",
       "address_normalized": "2828 LAKE VW DR",
@@ -3722,29 +3456,16 @@
       "dcad_mailing_city": "CEDAR HILL",
       "dcad_mailing_state": "TEXAS",
       "dcad_mailing_zip": "751048233",
-      "amount": "457,875.00",
+      "amount": null,
       "trustee": null,
       "sale_date": "2026-08-04",
       "raw_excerpt": "NOTICE OF FORECLOSURE | 2828 SOUTH LAKEVIEW DRIVE, CEDAR HILL, TEXAS, 75104",
       "active": true,
       "release_record_id": null,
       "signal_metadata": {
-        "ocr": {
-          "grantor_pattern": "executed-by-status",
-          "sale_date_pattern": "numeric-section1-date",
-          "address_pattern": null,
-          "loan_amount_pattern": "original-amount-space-tolerant",
-          "legal_desc_pattern": null,
-          "apn_pattern": null,
-          "apn": null,
-          "pages_captured": 4,
-          "capture_warnings": [
-            "initial_load_hung_reloading"
-          ]
-        },
         "confidence_warnings": [
           "lookup_variant_used",
-          "path_agreement"
+          "grantor_from_dcad"
         ],
         "resolution_history": [
           {
@@ -3759,19 +3480,6 @@
             "warnings": []
           },
           {
-            "path": "path_a_grantor_owner_index",
-            "stage": "6.45",
-            "input": "Favour Adama and Bernard Adama",
-            "status": "matched",
-            "skip_reason": null,
-            "tier": "no_middle",
-            "dcad_account": "16027900001760000",
-            "alternates": [],
-            "warnings": [
-              "surname_drift"
-            ]
-          },
-          {
             "path": "path_c_legal_resolver",
             "stage": "6.5",
             "input": "NOTICE OF FORECLOSURE | 2828 SOUTH LAKEVIEW DRIVE, CEDAR HILL, TEXAS, 75104",
@@ -3779,17 +3487,6 @@
             "skip_reason": "no_subdivision_parsed",
             "tier": null,
             "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "stage_6_6_agreement",
-            "stage": "6.6",
-            "input": "path_a_grantor_owner_index|path_variant_lookup",
-            "status": "matched",
-            "skip_reason": null,
-            "tier": null,
-            "dcad_account": "16027900001760000",
             "alternates": [],
             "warnings": []
           }
@@ -3808,13 +3505,13 @@
         "has_address": 5
       },
       "parse_warnings": [
-        "no_address_or_legal_description"
+        "ocr_no_images"
       ],
       "first_seen": "2026-05-22",
       "last_seen": "2026-05-27",
       "in_buy_box": true,
       "buy_box_reasons": [],
-      "grantor_raw": "Favour Adama and Bernard Adama",
+      "grantor_raw": "ADAMA FAVOUR & BERNARD",
       "dcad_owner_raw": "ADAMA FAVOUR & BERNARD"
     },
     {
@@ -3824,9 +3521,9 @@
       "category": "NOTICE",
       "filing_date": "2026-05-21",
       "instrument_num": "202600001051",
-      "grantor": null,
+      "grantor": "Gilad, Rubinsky & Ortal",
       "grantee": null,
-      "address": "15150 WILDVINE DR, DALLAS, 75248",
+      "address": "15150 WILDVINE DRIVE, DALLAS, TEXAS, 75248",
       "address_normalized": "15150 WILDVINE DR",
       "dcad_account": "00000796536000000",
       "dcad_owner": "Rubinsky, Gilad & Rubinsky, Ortal",
@@ -3839,24 +3536,13 @@
       "dcad_mailing_city": "DALLAS",
       "dcad_mailing_state": "TEXAS",
       "dcad_mailing_zip": "752485508",
-      "amount": "1,488,200.00",
+      "amount": null,
       "trustee": null,
       "sale_date": "2026-07-07",
       "raw_excerpt": "NOTICE OF FORECLOSURE | 15150 WILDVINE DRIVE, DALLAS, TEXAS, 75248",
       "active": true,
       "release_record_id": null,
       "signal_metadata": {
-        "ocr": {
-          "grantor_pattern": null,
-          "sale_date_pattern": "word-section1-date",
-          "address_pattern": "mixed-case-two-line",
-          "loan_amount_pattern": "original-amount-space-tolerant",
-          "legal_desc_pattern": null,
-          "apn_pattern": null,
-          "apn": null,
-          "pages_captured": 4,
-          "capture_warnings": []
-        },
         "resolution_history": [
           {
             "path": "path_variant_lookup",
@@ -3880,6 +3566,9 @@
             "alternates": [],
             "warnings": []
           }
+        ],
+        "confidence_warnings": [
+          "grantor_from_dcad"
         ]
       },
       "address_city": null,
@@ -3895,12 +3584,13 @@
         "has_address": 5
       },
       "parse_warnings": [
-        "no_grantor_extracted"
+        "ocr_no_images"
       ],
       "first_seen": "2026-05-22",
       "last_seen": "2026-05-27",
       "in_buy_box": true,
       "buy_box_reasons": [],
+      "grantor_raw": "RUBINSKY GILAD & ORTAL",
       "dcad_owner_raw": "RUBINSKY GILAD & ORTAL"
     },
     {
@@ -3941,7 +3631,9 @@
           "apn_pattern": null,
           "apn": null,
           "pages_captured": 4,
-          "capture_warnings": []
+          "capture_warnings": [
+            "initial_load_hung_reloading"
+          ]
         },
         "resolution_history": [
           {
@@ -4032,7 +3724,7 @@
       "category": "NOTICE",
       "filing_date": "2026-05-21",
       "instrument_num": "202600001061",
-      "grantor": null,
+      "grantor": "Mark, Owinyo & Elline",
       "grantee": null,
       "address": "5308 FREESTONE DR, GRAND PRAIRIE, 75052",
       "address_normalized": "5308 FREESTONE DR",
@@ -4063,9 +3755,7 @@
           "apn_pattern": null,
           "apn": null,
           "pages_captured": 3,
-          "capture_warnings": [
-            "initial_load_hung_reloading"
-          ]
+          "capture_warnings": []
         },
         "resolution_history": [
           {
@@ -4090,6 +3780,9 @@
             "alternates": [],
             "warnings": []
           }
+        ],
+        "confidence_warnings": [
+          "grantor_from_dcad"
         ]
       },
       "address_city": null,
@@ -4112,146 +3805,8 @@
       "last_seen": "2026-05-27",
       "in_buy_box": true,
       "buy_box_reasons": [],
+      "grantor_raw": "OWINYO MARK & ELLINE",
       "dcad_owner_raw": "OWINYO MARK & ELLINE"
-    },
-    {
-      "record_id": "pro-bbc427602d3e4e84bfbbfc69e2967c6f",
-      "source": "probate.txcourts.gov",
-      "dallas_code": "PB",
-      "category": "PROB",
-      "filing_date": "2026-05-21",
-      "instrument_num": "PR-26-01630-1",
-      "grantor": "Darcangelo, Kathie Parks",
-      "grantee": "Darcangelo, Gary Lawrence",
-      "address": null,
-      "address_normalized": "3421 LOCUST ST",
-      "dcad_account": "44001580010110000",
-      "dcad_owner": "Darcangelo, Gary & Darcangelo, Kathie",
-      "dcad_market_value": 416680.0,
-      "dcad_homestead": true,
-      "dcad_over65": false,
-      "dcad_disabled": true,
-      "dcad_tax_deferred": false,
-      "dcad_mailing_address": "3421 LOCUST ST",
-      "dcad_mailing_city": "ROWLETT",
-      "dcad_mailing_state": "TEXAS",
-      "dcad_mailing_zip": "750897083",
-      "amount": null,
-      "trustee": null,
-      "sale_date": null,
-      "raw_excerpt": null,
-      "active": true,
-      "release_record_id": null,
-      "signal_metadata": {
-        "case_type": "Independent Administration",
-        "case_status": "Open",
-        "judge": "MALVEAUX, JULIA R.",
-        "attorneys": [
-          "MATTHEW B GRIFFETH"
-        ],
-        "jurisdiction": "Dallas County - County Clerk",
-        "additional_applicants": [],
-        "decedent_owned_properties": [
-          {
-            "account_num": "44001580010110000",
-            "address_normalized": "3421 LOCUST ST",
-            "address_city": "ROWLETT (DALLAS CO)",
-            "address_state": "TX",
-            "address_zip": "750897083"
-          }
-        ],
-        "dcad_match_tier": "no_middle",
-        "dcad_match_warning": null,
-        "applicant_mailing": {
-          "tier": "no_middle",
-          "matched_name": "DARCANGELO GARY",
-          "account_num": "44001580010110000",
-          "address": "3421 LOCUST ST",
-          "city": "ROWLETT",
-          "state": "TEXAS",
-          "zip": "750897083"
-        },
-        "resolution_history": [
-          {
-            "path": "path_pb_decedent_owner_index",
-            "stage": "canonicalize",
-            "input": "KATHIE PARKS DARCANGELO",
-            "status": "matched",
-            "skip_reason": null,
-            "tier": "no_middle",
-            "dcad_account": "44001580010110000",
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "path_pb_applicant_owner_index",
-            "stage": "canonicalize",
-            "input": "GARY LAWRENCE DARCANGELO",
-            "status": "matched",
-            "skip_reason": null,
-            "tier": "no_middle",
-            "dcad_account": "44001580010110000",
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "path_variant_lookup",
-            "stage": "6.35",
-            "input": "3421 LOCUST ST",
-            "status": "matched",
-            "skip_reason": null,
-            "tier": null,
-            "dcad_account": "44001580010110000",
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "path_c_legal_resolver",
-            "stage": "6.5",
-            "input": null,
-            "status": "skipped",
-            "skip_reason": "no_snippet",
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "stage_6_6_agreement",
-            "stage": "6.6",
-            "input": "path_pb_applicant_owner_index|path_pb_decedent_owner_index|path_variant_lookup",
-            "status": "matched",
-            "skip_reason": null,
-            "tier": null,
-            "dcad_account": "44001580010110000",
-            "alternates": [],
-            "warnings": []
-          }
-        ],
-        "confidence_warnings": [
-          "path_agreement"
-        ]
-      },
-      "address_city": null,
-      "address_state": null,
-      "address_zip": null,
-      "source_url": null,
-      "score": 65,
-      "score_breakdown": {
-        "base": 30,
-        "category_flag": 10,
-        "value_100k": 15,
-        "new_this_week": 5,
-        "has_address": 5
-      },
-      "parse_warnings": [],
-      "first_seen": "2026-05-23",
-      "last_seen": "2026-05-27",
-      "in_buy_box": true,
-      "buy_box_reasons": [],
-      "grantor_raw": "KATHIE PARKS DARCANGELO",
-      "grantee_raw": "GARY LAWRENCE DARCANGELO",
-      "dcad_owner_raw": "DARCANGELO GARY & KATHIE"
     },
     {
       "record_id": "pro-f063d0a6b0d844af82701682f45603bb",
@@ -4492,21 +4047,17 @@
           {
             "path": "stage_6_6_agreement",
             "stage": "6.6",
-            "input": null,
-            "status": "skipped",
-            "skip_reason": "tiebreak_inconclusive",
+            "input": "path_pb_decedent_owner_index|path_variant_lookup",
+            "status": "matched",
+            "skip_reason": null,
             "tier": null,
-            "dcad_account": null,
-            "alternates": [
-              "00000734692450000",
-              "280436300E0080000"
-            ],
+            "dcad_account": "00000734692450000",
+            "alternates": [],
             "warnings": []
           }
         ],
         "confidence_warnings": [
-          "path_disagreement",
-          "page_tiebreak_inconclusive"
+          "path_agreement"
         ]
       },
       "address_city": null,
@@ -4529,6 +4080,145 @@
       "grantor_raw": "WYLL, JANICE D",
       "grantee_raw": "HALL, WENDY E.",
       "dcad_owner_raw": "WYLL JANICE D"
+    },
+    {
+      "record_id": "pro-bbc427602d3e4e84bfbbfc69e2967c6f",
+      "source": "probate.txcourts.gov",
+      "dallas_code": "PB",
+      "category": "PROB",
+      "filing_date": "2026-05-21",
+      "instrument_num": "PR-26-01630-1",
+      "grantor": "Darcangelo, Kathie Parks",
+      "grantee": "Darcangelo, Gary Lawrence",
+      "address": null,
+      "address_normalized": "3421 LOCUST ST",
+      "dcad_account": "44001580010110000",
+      "dcad_owner": "Darcangelo, Gary & Darcangelo, Kathie",
+      "dcad_market_value": 416680.0,
+      "dcad_homestead": true,
+      "dcad_over65": false,
+      "dcad_disabled": true,
+      "dcad_tax_deferred": false,
+      "dcad_mailing_address": "3421 LOCUST ST",
+      "dcad_mailing_city": "ROWLETT",
+      "dcad_mailing_state": "TEXAS",
+      "dcad_mailing_zip": "750897083",
+      "amount": null,
+      "trustee": null,
+      "sale_date": null,
+      "raw_excerpt": null,
+      "active": true,
+      "release_record_id": null,
+      "signal_metadata": {
+        "case_type": "Independent Administration",
+        "case_status": "OPEN",
+        "judge": "JULIA MALVEAUX",
+        "attorneys": [
+          "GRIFFETH, MATTHEW B"
+        ],
+        "jurisdiction": "Dallas County - County Clerk",
+        "additional_applicants": [],
+        "decedent_owned_properties": [
+          {
+            "account_num": "44001580010110000",
+            "address_normalized": "3421 LOCUST ST",
+            "address_city": "ROWLETT (DALLAS CO)",
+            "address_state": "TX",
+            "address_zip": "750897083"
+          }
+        ],
+        "dcad_match_tier": "no_middle",
+        "dcad_match_warning": null,
+        "applicant_mailing": {
+          "tier": "no_middle",
+          "matched_name": "DARCANGELO GARY",
+          "account_num": "44001580010110000",
+          "address": "3421 LOCUST ST",
+          "city": "ROWLETT",
+          "state": "TEXAS",
+          "zip": "750897083"
+        },
+        "resolution_history": [
+          {
+            "path": "path_pb_decedent_owner_index",
+            "stage": "canonicalize",
+            "input": "DARCANGELO, KATHIE PARKS",
+            "status": "matched",
+            "skip_reason": null,
+            "tier": "no_middle",
+            "dcad_account": "44001580010110000",
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_pb_applicant_owner_index",
+            "stage": "canonicalize",
+            "input": "DARCANGELO, GARY LAWRENCE",
+            "status": "matched",
+            "skip_reason": null,
+            "tier": "no_middle",
+            "dcad_account": "44001580010110000",
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_variant_lookup",
+            "stage": "6.35",
+            "input": "3421 LOCUST ST",
+            "status": "matched",
+            "skip_reason": null,
+            "tier": null,
+            "dcad_account": "44001580010110000",
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_c_legal_resolver",
+            "stage": "6.5",
+            "input": null,
+            "status": "skipped",
+            "skip_reason": "no_snippet",
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "stage_6_6_agreement",
+            "stage": "6.6",
+            "input": "path_pb_decedent_owner_index|path_variant_lookup",
+            "status": "matched",
+            "skip_reason": null,
+            "tier": null,
+            "dcad_account": "44001580010110000",
+            "alternates": [],
+            "warnings": []
+          }
+        ],
+        "confidence_warnings": [
+          "path_agreement"
+        ]
+      },
+      "address_city": null,
+      "address_state": null,
+      "address_zip": null,
+      "source_url": null,
+      "score": 65,
+      "score_breakdown": {
+        "base": 30,
+        "category_flag": 10,
+        "value_100k": 15,
+        "new_this_week": 5,
+        "has_address": 5
+      },
+      "parse_warnings": [],
+      "first_seen": "2026-05-23",
+      "last_seen": "2026-05-27",
+      "in_buy_box": true,
+      "buy_box_reasons": [],
+      "grantor_raw": "DARCANGELO, KATHIE PARKS",
+      "grantee_raw": "DARCANGELO, GARY LAWRENCE",
+      "dcad_owner_raw": "DARCANGELO GARY & KATHIE"
     },
     {
       "record_id": "pro-097c0c0dd073407f95a1c4d09e035079",
@@ -4665,6 +4355,159 @@
       "dcad_owner_raw": "BASS JEFFERY & HEATHER REVOCABLE TRUST THE"
     },
     {
+      "record_id": "pro-274f546f68e14dcabb41c9bd6261d984",
+      "source": "probate.txcourts.gov",
+      "dallas_code": "PB",
+      "category": "PROB",
+      "filing_date": "2026-05-21",
+      "instrument_num": "PR-26-01633-1",
+      "grantor": "Rhodes, Margaret",
+      "grantee": "Rhodes Moilan, Amanda",
+      "address": null,
+      "address_normalized": "6215 ROYAL LN",
+      "dcad_account": "00000412960000000",
+      "dcad_owner": "Rhodes Family Trust",
+      "dcad_market_value": 852360.0,
+      "dcad_homestead": true,
+      "dcad_over65": true,
+      "dcad_disabled": false,
+      "dcad_tax_deferred": false,
+      "dcad_mailing_address": "6215 ROYAL LN",
+      "dcad_mailing_city": "DALLAS",
+      "dcad_mailing_state": "TEXAS",
+      "dcad_mailing_zip": "752303821",
+      "amount": null,
+      "trustee": null,
+      "sale_date": null,
+      "raw_excerpt": null,
+      "active": true,
+      "release_record_id": null,
+      "signal_metadata": {
+        "case_type": "Muniment of Title",
+        "case_status": "OPEN",
+        "judge": "JULIA MALVEAUX",
+        "attorneys": [
+          "NAYLOR, PATRICK O."
+        ],
+        "jurisdiction": "Dallas County - County Clerk",
+        "additional_applicants": [],
+        "decedent_owned_properties": [
+          {
+            "account_num": "00000412960000000",
+            "address_normalized": "6215 ROYAL LN",
+            "address_city": "DALLAS",
+            "address_state": "TX",
+            "address_zip": "752303821"
+          },
+          {
+            "account_num": "00000356506000000",
+            "address_normalized": "6615 LOCKHEED AVE",
+            "address_city": "DALLAS",
+            "address_state": "TX",
+            "address_zip": "752095215"
+          }
+        ],
+        "dcad_match_tier": "surname_only",
+        "dcad_match_warning": null,
+        "applicant_mailing": null,
+        "resolution_history": [
+          {
+            "path": "path_pb_decedent_owner_index",
+            "stage": "canonicalize",
+            "input": "RHODES , MARGARET",
+            "status": "multi_match",
+            "skip_reason": null,
+            "tier": "surname_only",
+            "dcad_account": "00000412960000000",
+            "alternates": [
+              "00000356506000000"
+            ],
+            "warnings": [
+              "multi_account",
+              "surname_only_tier"
+            ]
+          },
+          {
+            "path": "path_pb_applicant_owner_index",
+            "stage": "canonicalize",
+            "input": "RHODES MOILAN, AMANDA",
+            "status": "multi_match",
+            "skip_reason": "applicant_match_too_loose",
+            "tier": "surname_only",
+            "dcad_account": "00000412960000000",
+            "alternates": [
+              "00000356506000000"
+            ],
+            "warnings": [
+              "surname_only_tier",
+              "multi_account"
+            ]
+          },
+          {
+            "path": "path_variant_lookup",
+            "stage": "6.35",
+            "input": "6215 ROYAL LN",
+            "status": "matched",
+            "skip_reason": null,
+            "tier": null,
+            "dcad_account": "00000412960000000",
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_c_legal_resolver",
+            "stage": "6.5",
+            "input": null,
+            "status": "skipped",
+            "skip_reason": "no_snippet",
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "stage_6_6_agreement",
+            "stage": "6.6",
+            "input": "path_pb_decedent_owner_index|path_variant_lookup",
+            "status": "matched",
+            "skip_reason": null,
+            "tier": null,
+            "dcad_account": "00000412960000000",
+            "alternates": [],
+            "warnings": []
+          }
+        ],
+        "confidence_warnings": [
+          "multi_account",
+          "surname_only_tier",
+          "path_agreement"
+        ],
+        "alternate_accounts": [
+          "00000356506000000"
+        ]
+      },
+      "address_city": null,
+      "address_state": null,
+      "address_zip": null,
+      "source_url": null,
+      "score": 65,
+      "score_breakdown": {
+        "base": 30,
+        "category_flag": 10,
+        "value_100k": 15,
+        "new_this_week": 5,
+        "has_address": 5
+      },
+      "parse_warnings": [],
+      "first_seen": "2026-05-23",
+      "last_seen": "2026-05-27",
+      "in_buy_box": true,
+      "buy_box_reasons": [],
+      "grantor_raw": "RHODES , MARGARET",
+      "grantee_raw": "RHODES MOILAN, AMANDA",
+      "dcad_owner_raw": "RHODES FAMILY TRUST"
+    },
+    {
       "record_id": "pro-14cd6faedcbe484f829a1a5a43a93c20",
       "source": "probate.txcourts.gov",
       "dallas_code": "PB",
@@ -4796,166 +4639,27 @@
       "dcad_owner_raw": "SIMPSON JOHN"
     },
     {
-      "record_id": "pro-0ec3e92d974f47159b9bde3e0bd675c5",
+      "record_id": "pro-9937105f96ab46ed961668c0b5b50780",
       "source": "probate.txcourts.gov",
       "dallas_code": "PB",
       "category": "PROB",
       "filing_date": "2026-05-21",
-      "instrument_num": "PR-26-01631-1",
-      "grantor": "Stewart, Marlon Dwayne",
-      "grantee": "Stewart, Darla Joyce",
+      "instrument_num": "PR-26-01634-1",
+      "grantor": "Thompson, Shirley Mayhugh",
+      "grantee": "Thompson, Braxton Carter",
       "address": null,
-      "address_normalized": "911 SAM HILL ST",
-      "dcad_account": "32197500010120000",
-      "dcad_owner": "Stewart, Marlon & Stewart, Darla",
-      "dcad_market_value": 341620.0,
+      "address_normalized": "11117 WEBB CHAPEL RD",
+      "dcad_account": "00000607987000000",
+      "dcad_owner": "Thompson, Shirley",
+      "dcad_market_value": 360900.0,
       "dcad_homestead": true,
-      "dcad_over65": true,
+      "dcad_over65": false,
       "dcad_disabled": false,
       "dcad_tax_deferred": false,
-      "dcad_mailing_address": "911 SAM HILL ST",
-      "dcad_mailing_city": "IRVING",
-      "dcad_mailing_state": "TEXAS",
-      "dcad_mailing_zip": "750623623",
-      "amount": null,
-      "trustee": null,
-      "sale_date": null,
-      "raw_excerpt": null,
-      "active": true,
-      "release_record_id": null,
-      "signal_metadata": {
-        "case_type": "Muniment of Title",
-        "case_status": "Open",
-        "judge": "MALVEAUX, JULIA R.",
-        "attorneys": [
-          "Mr JOE ROLAND JETER"
-        ],
-        "jurisdiction": "Dallas County - County Clerk",
-        "additional_applicants": [],
-        "decedent_owned_properties": [
-          {
-            "account_num": "32197500010120000",
-            "address_normalized": "911 SAM HILL ST",
-            "address_city": "IRVING",
-            "address_state": "TX",
-            "address_zip": "750623623"
-          }
-        ],
-        "dcad_match_tier": "no_middle",
-        "dcad_match_warning": null,
-        "applicant_mailing": {
-          "tier": "no_middle",
-          "matched_name": "STEWART DARLA",
-          "account_num": "32197500010120000",
-          "address": "911 SAM HILL ST",
-          "city": "IRVING",
-          "state": "TEXAS",
-          "zip": "750623623"
-        },
-        "resolution_history": [
-          {
-            "path": "path_pb_decedent_owner_index",
-            "stage": "canonicalize",
-            "input": "MARLON DWAYNE STEWART",
-            "status": "matched",
-            "skip_reason": null,
-            "tier": "no_middle",
-            "dcad_account": "32197500010120000",
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "path_pb_applicant_owner_index",
-            "stage": "canonicalize",
-            "input": "DARLA JOYCE STEWART",
-            "status": "matched",
-            "skip_reason": null,
-            "tier": "no_middle",
-            "dcad_account": "32197500010120000",
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "path_variant_lookup",
-            "stage": "6.35",
-            "input": "911 SAM HILL ST",
-            "status": "matched",
-            "skip_reason": null,
-            "tier": null,
-            "dcad_account": "32197500010120000",
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "path_c_legal_resolver",
-            "stage": "6.5",
-            "input": null,
-            "status": "skipped",
-            "skip_reason": "no_snippet",
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "stage_6_6_agreement",
-            "stage": "6.6",
-            "input": "path_pb_applicant_owner_index|path_pb_decedent_owner_index|path_variant_lookup",
-            "status": "matched",
-            "skip_reason": null,
-            "tier": null,
-            "dcad_account": "32197500010120000",
-            "alternates": [],
-            "warnings": []
-          }
-        ],
-        "confidence_warnings": [
-          "path_agreement"
-        ]
-      },
-      "address_city": null,
-      "address_state": null,
-      "address_zip": null,
-      "source_url": null,
-      "score": 65,
-      "score_breakdown": {
-        "base": 30,
-        "category_flag": 10,
-        "value_100k": 15,
-        "new_this_week": 5,
-        "has_address": 5
-      },
-      "parse_warnings": [],
-      "first_seen": "2026-05-23",
-      "last_seen": "2026-05-27",
-      "in_buy_box": true,
-      "buy_box_reasons": [],
-      "grantor_raw": "MARLON DWAYNE STEWART",
-      "grantee_raw": "DARLA JOYCE STEWART",
-      "dcad_owner_raw": "STEWART MARLON & DARLA"
-    },
-    {
-      "record_id": "pro-274f546f68e14dcabb41c9bd6261d984",
-      "source": "probate.txcourts.gov",
-      "dallas_code": "PB",
-      "category": "PROB",
-      "filing_date": "2026-05-21",
-      "instrument_num": "PR-26-01633-1",
-      "grantor": "Rhodes, Margaret",
-      "grantee": "Rhodes Moilan, Amanda",
-      "address": null,
-      "address_normalized": "6215 ROYAL LN",
-      "dcad_account": "00000412960000000",
-      "dcad_owner": "Rhodes Family Trust",
-      "dcad_market_value": 852360.0,
-      "dcad_homestead": true,
-      "dcad_over65": true,
-      "dcad_disabled": false,
-      "dcad_tax_deferred": false,
-      "dcad_mailing_address": "6215 ROYAL LN",
+      "dcad_mailing_address": "11117 WEBB CHAPEL RD",
       "dcad_mailing_city": "DALLAS",
       "dcad_mailing_state": "TEXAS",
-      "dcad_mailing_zip": "752303821",
+      "dcad_mailing_zip": "752293743",
       "amount": null,
       "trustee": null,
       "sale_date": null,
@@ -4967,70 +4671,80 @@
         "case_status": "OPEN",
         "judge": "JULIA MALVEAUX",
         "attorneys": [
-          "NAYLOR, PATRICK O."
+          "STILLMAN, KENNETH M."
         ],
         "jurisdiction": "Dallas County - County Clerk",
         "additional_applicants": [],
         "decedent_owned_properties": [
           {
-            "account_num": "00000412960000000",
-            "address_normalized": "6215 ROYAL LN",
+            "account_num": "00000607987000000",
+            "address_normalized": "11117 WEBB CHAPEL RD",
             "address_city": "DALLAS",
             "address_state": "TX",
-            "address_zip": "752303821"
+            "address_zip": "752293743"
           },
           {
-            "account_num": "00000356506000000",
-            "address_normalized": "6615 LOCKHEED AVE",
-            "address_city": "DALLAS",
+            "account_num": "32080500110140000",
+            "address_normalized": "2612 PEACH TREE LN",
+            "address_city": "IRVING",
             "address_state": "TX",
-            "address_zip": "752095215"
+            "address_zip": "750628711"
+          },
+          {
+            "account_num": "322565500C0690000",
+            "address_normalized": "6427 LAS COLINAS BLVD",
+            "address_city": "IRVING",
+            "address_state": "TX",
+            "address_zip": "750392901"
           }
         ],
-        "dcad_match_tier": "surname_only",
+        "dcad_match_tier": "no_middle",
         "dcad_match_warning": null,
-        "applicant_mailing": null,
+        "applicant_mailing": {
+          "tier": "exact",
+          "matched_name": "THOMPSON BRAXTON CARTER",
+          "account_num": "32249500020650000",
+          "address": "SHIRLEY M 4304 VILLAGE GREEN DR",
+          "city": "IRVING",
+          "state": "TEXAS",
+          "zip": "750385633"
+        },
         "resolution_history": [
           {
             "path": "path_pb_decedent_owner_index",
             "stage": "canonicalize",
-            "input": "RHODES , MARGARET",
+            "input": "THOMPSON, SHIRLEY MAYHUGH",
             "status": "multi_match",
             "skip_reason": null,
-            "tier": "surname_only",
-            "dcad_account": "00000412960000000",
+            "tier": "no_middle",
+            "dcad_account": "00000607987000000",
             "alternates": [
-              "00000356506000000"
+              "32080500110140000",
+              "322565500C0690000"
             ],
             "warnings": [
-              "multi_account",
-              "surname_only_tier"
+              "multi_account"
             ]
           },
           {
             "path": "path_pb_applicant_owner_index",
             "stage": "canonicalize",
-            "input": "RHODES MOILAN, AMANDA",
-            "status": "multi_match",
-            "skip_reason": "applicant_match_too_loose",
-            "tier": "surname_only",
-            "dcad_account": "00000412960000000",
-            "alternates": [
-              "00000356506000000"
-            ],
-            "warnings": [
-              "surname_only_tier",
-              "multi_account"
-            ]
+            "input": "THOMPSON, BRAXTON CARTER",
+            "status": "matched",
+            "skip_reason": null,
+            "tier": "exact",
+            "dcad_account": "32249500020650000",
+            "alternates": [],
+            "warnings": []
           },
           {
             "path": "path_variant_lookup",
             "stage": "6.35",
-            "input": "6215 ROYAL LN",
+            "input": "11117 WEBB CHAPEL RD",
             "status": "matched",
             "skip_reason": null,
             "tier": null,
-            "dcad_account": "00000412960000000",
+            "dcad_account": "00000607987000000",
             "alternates": [],
             "warnings": []
           },
@@ -5048,22 +4762,22 @@
           {
             "path": "stage_6_6_agreement",
             "stage": "6.6",
-            "input": "path_pb_applicant_owner_index|path_pb_decedent_owner_index|path_variant_lookup",
+            "input": "path_pb_decedent_owner_index|path_variant_lookup",
             "status": "matched",
             "skip_reason": null,
             "tier": null,
-            "dcad_account": "00000412960000000",
+            "dcad_account": "00000607987000000",
             "alternates": [],
             "warnings": []
           }
         ],
         "confidence_warnings": [
           "multi_account",
-          "surname_only_tier",
           "path_agreement"
         ],
         "alternate_accounts": [
-          "00000356506000000"
+          "32080500110140000",
+          "322565500C0690000"
         ]
       },
       "address_city": null,
@@ -5079,13 +4793,13 @@
         "has_address": 5
       },
       "parse_warnings": [],
-      "first_seen": "2026-05-23",
+      "first_seen": "2026-05-27",
       "last_seen": "2026-05-27",
       "in_buy_box": true,
       "buy_box_reasons": [],
-      "grantor_raw": "RHODES , MARGARET",
-      "grantee_raw": "RHODES MOILAN, AMANDA",
-      "dcad_owner_raw": "RHODES FAMILY TRUST"
+      "grantor_raw": "THOMPSON, SHIRLEY MAYHUGH",
+      "grantee_raw": "THOMPSON, BRAXTON CARTER",
+      "dcad_owner_raw": "THOMPSON SHIRLEY"
     },
     {
       "record_id": "pro-936d2523073d452aa81f6d1376ad834f",
@@ -5201,7 +4915,7 @@
           {
             "path": "stage_6_6_agreement",
             "stage": "6.6",
-            "input": "path_pb_applicant_owner_index|path_pb_decedent_owner_index|path_variant_lookup",
+            "input": "path_pb_decedent_owner_index|path_variant_lookup",
             "status": "matched",
             "skip_reason": null,
             "tier": null,
@@ -5341,7 +5055,7 @@
           {
             "path": "stage_6_6_agreement",
             "stage": "6.6",
-            "input": "path_pb_applicant_owner_index|path_pb_decedent_owner_index|path_variant_lookup",
+            "input": "path_pb_decedent_owner_index|path_variant_lookup",
             "status": "matched",
             "skip_reason": null,
             "tier": null,
@@ -5383,7 +5097,7 @@
       "category": "NOTICE",
       "filing_date": "2026-05-22",
       "instrument_num": "202600001088",
-      "grantor": null,
+      "grantor": "Jennifer, Ross",
       "grantee": null,
       "address": "2639 Lenway Street, Dallas, 75215",
       "address_normalized": "2639 LENWAY ST",
@@ -5439,6 +5153,9 @@
             "alternates": [],
             "warnings": []
           }
+        ],
+        "confidence_warnings": [
+          "grantor_from_dcad"
         ]
       },
       "address_city": null,
@@ -5460,284 +5177,8 @@
       "last_seen": "2026-05-27",
       "in_buy_box": true,
       "buy_box_reasons": [],
+      "grantor_raw": "ROSS JENNIFER",
       "dcad_owner_raw": "ROSS JENNIFER"
-    },
-    {
-      "record_id": "pro-10019f6ceb3541a1887d1a993f279fd7",
-      "source": "probate.txcourts.gov",
-      "dallas_code": "PB",
-      "category": "PROB",
-      "filing_date": "2026-05-22",
-      "instrument_num": "PR-26-01646-1",
-      "grantor": "Stafford, Sharon M.",
-      "grantee": "Stafford, Allen Cole",
-      "address": null,
-      "address_normalized": "4518 AMANDA CT",
-      "dcad_account": "440168000A0110000",
-      "dcad_owner": "Stafford, Charles & Stafford, Sharon",
-      "dcad_market_value": 444470.0,
-      "dcad_homestead": true,
-      "dcad_over65": true,
-      "dcad_disabled": false,
-      "dcad_tax_deferred": false,
-      "dcad_mailing_address": "4518 AMANDA CT",
-      "dcad_mailing_city": "ROWLETT",
-      "dcad_mailing_state": "TEXAS",
-      "dcad_mailing_zip": "750882848",
-      "amount": null,
-      "trustee": null,
-      "sale_date": null,
-      "raw_excerpt": null,
-      "active": true,
-      "release_record_id": null,
-      "signal_metadata": {
-        "case_type": "Independent Administration",
-        "case_status": "OPEN",
-        "judge": "JULIA MALVEAUX",
-        "attorneys": [
-          "MITCHELL, NICKOLAS DERRICK"
-        ],
-        "jurisdiction": "Dallas County - County Clerk",
-        "additional_applicants": [],
-        "decedent_owned_properties": [
-          {
-            "account_num": "440168000A0110000",
-            "address_normalized": "4518 AMANDA CT",
-            "address_city": "ROWLETT (DALLAS CO)",
-            "address_state": "TX",
-            "address_zip": "750882848"
-          },
-          {
-            "account_num": "28220900100230000",
-            "address_normalized": "4709 CHALK CT",
-            "address_city": "GRAND PRAIRIE (DALLAS CO)",
-            "address_state": "TX",
-            "address_zip": "750521716"
-          }
-        ],
-        "dcad_match_tier": "no_middle",
-        "dcad_match_warning": null,
-        "applicant_mailing": null,
-        "resolution_history": [
-          {
-            "path": "path_pb_decedent_owner_index",
-            "stage": "canonicalize",
-            "input": "STAFFORD , SHARON  M.",
-            "status": "multi_match",
-            "skip_reason": null,
-            "tier": "no_middle",
-            "dcad_account": "440168000A0110000",
-            "alternates": [
-              "28220900100230000"
-            ],
-            "warnings": [
-              "multi_account"
-            ]
-          },
-          {
-            "path": "path_pb_applicant_owner_index",
-            "stage": "canonicalize",
-            "input": "STAFFORD , ALLEN  COLE",
-            "status": "no_match",
-            "skip_reason": null,
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "path_variant_lookup",
-            "stage": "6.35",
-            "input": "4518 AMANDA CT",
-            "status": "matched",
-            "skip_reason": null,
-            "tier": null,
-            "dcad_account": "440168000A0110000",
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "path_c_legal_resolver",
-            "stage": "6.5",
-            "input": null,
-            "status": "skipped",
-            "skip_reason": "no_snippet",
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "stage_6_6_agreement",
-            "stage": "6.6",
-            "input": "path_pb_decedent_owner_index|path_variant_lookup",
-            "status": "matched",
-            "skip_reason": null,
-            "tier": null,
-            "dcad_account": "440168000A0110000",
-            "alternates": [],
-            "warnings": []
-          }
-        ],
-        "confidence_warnings": [
-          "multi_account",
-          "path_agreement"
-        ],
-        "alternate_accounts": [
-          "28220900100230000"
-        ]
-      },
-      "address_city": null,
-      "address_state": null,
-      "address_zip": null,
-      "source_url": null,
-      "score": 65,
-      "score_breakdown": {
-        "base": 30,
-        "category_flag": 10,
-        "value_100k": 15,
-        "new_this_week": 5,
-        "has_address": 5
-      },
-      "parse_warnings": [],
-      "first_seen": "2026-05-23",
-      "last_seen": "2026-05-27",
-      "in_buy_box": true,
-      "buy_box_reasons": [],
-      "grantor_raw": "STAFFORD , SHARON  M.",
-      "grantee_raw": "STAFFORD , ALLEN  COLE",
-      "dcad_owner_raw": "STAFFORD CHARLES & SHARON"
-    },
-    {
-      "record_id": "pro-c8bf835fe6dd4fcc86d6ceb811bdfaa2",
-      "source": "probate.txcourts.gov",
-      "dallas_code": "PB",
-      "category": "PROB",
-      "filing_date": "2026-05-22",
-      "instrument_num": "PR-26-01650-2",
-      "grantor": "Crow, John W.",
-      "grantee": "Fort, Cynthia Diane Crow",
-      "address": null,
-      "address_normalized": "9054 MAPLE GLEN DR",
-      "dcad_account": "00000794078660000",
-      "dcad_owner": "Crow, John W",
-      "dcad_market_value": 677150.0,
-      "dcad_homestead": true,
-      "dcad_over65": true,
-      "dcad_disabled": false,
-      "dcad_tax_deferred": false,
-      "dcad_mailing_address": "9054 MAPLE GLEN DR",
-      "dcad_mailing_city": "DALLAS",
-      "dcad_mailing_state": "TEXAS",
-      "dcad_mailing_zip": "752314846",
-      "amount": null,
-      "trustee": null,
-      "sale_date": null,
-      "raw_excerpt": null,
-      "active": true,
-      "release_record_id": null,
-      "signal_metadata": {
-        "case_type": "Independent Administration",
-        "case_status": "OPEN",
-        "judge": "INGRID WARREN",
-        "attorneys": [
-          "CRESSWELL, RONALD ROY"
-        ],
-        "jurisdiction": "Dallas County - County Clerk",
-        "additional_applicants": [],
-        "decedent_owned_properties": [
-          {
-            "account_num": "00000794078660000",
-            "address_normalized": "9054 MAPLE GLEN DR",
-            "address_city": "DALLAS",
-            "address_state": "TX",
-            "address_zip": "752314846"
-          }
-        ],
-        "dcad_match_tier": "exact",
-        "dcad_match_warning": null,
-        "applicant_mailing": null,
-        "resolution_history": [
-          {
-            "path": "path_pb_decedent_owner_index",
-            "stage": "canonicalize",
-            "input": "CROW, JOHN  W.",
-            "status": "matched",
-            "skip_reason": null,
-            "tier": "exact",
-            "dcad_account": "00000794078660000",
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "path_pb_applicant_owner_index",
-            "stage": "canonicalize",
-            "input": "FORT , CYNTHIA  DIANE CROW",
-            "status": "no_match",
-            "skip_reason": null,
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "path_variant_lookup",
-            "stage": "6.35",
-            "input": "9054 MAPLE GLEN DR",
-            "status": "matched",
-            "skip_reason": null,
-            "tier": null,
-            "dcad_account": "00000794078660000",
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "path_c_legal_resolver",
-            "stage": "6.5",
-            "input": null,
-            "status": "skipped",
-            "skip_reason": "no_snippet",
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "stage_6_6_agreement",
-            "stage": "6.6",
-            "input": "path_pb_decedent_owner_index|path_variant_lookup",
-            "status": "matched",
-            "skip_reason": null,
-            "tier": null,
-            "dcad_account": "00000794078660000",
-            "alternates": [],
-            "warnings": []
-          }
-        ],
-        "confidence_warnings": [
-          "path_agreement"
-        ]
-      },
-      "address_city": null,
-      "address_state": null,
-      "address_zip": null,
-      "source_url": null,
-      "score": 65,
-      "score_breakdown": {
-        "base": 30,
-        "category_flag": 10,
-        "value_100k": 15,
-        "new_this_week": 5,
-        "has_address": 5
-      },
-      "parse_warnings": [],
-      "first_seen": "2026-05-23",
-      "last_seen": "2026-05-27",
-      "in_buy_box": true,
-      "buy_box_reasons": [],
-      "grantor_raw": "CROW, JOHN  W.",
-      "grantee_raw": "FORT , CYNTHIA  DIANE CROW",
-      "dcad_owner_raw": "CROW JOHN W"
     },
     {
       "record_id": "pro-2ffe41ed7cae4133a482a0cedf80bbfe",
@@ -5886,6 +5327,152 @@
       "grantor_raw": "JENSEN , JOHN  TERENCE, Jr",
       "grantee_raw": "MOKRY , AMBER  JENSEN",
       "dcad_owner_raw": "JENSEN FAMILY TRUST"
+    },
+    {
+      "record_id": "pro-10019f6ceb3541a1887d1a993f279fd7",
+      "source": "probate.txcourts.gov",
+      "dallas_code": "PB",
+      "category": "PROB",
+      "filing_date": "2026-05-22",
+      "instrument_num": "PR-26-01646-1",
+      "grantor": "Stafford, Sharon M.",
+      "grantee": "Stafford, Allen Cole",
+      "address": null,
+      "address_normalized": "4518 AMANDA CT",
+      "dcad_account": "440168000A0110000",
+      "dcad_owner": "Stafford, Charles & Stafford, Sharon",
+      "dcad_market_value": 444470.0,
+      "dcad_homestead": true,
+      "dcad_over65": true,
+      "dcad_disabled": false,
+      "dcad_tax_deferred": false,
+      "dcad_mailing_address": "4518 AMANDA CT",
+      "dcad_mailing_city": "ROWLETT",
+      "dcad_mailing_state": "TEXAS",
+      "dcad_mailing_zip": "750882848",
+      "amount": null,
+      "trustee": null,
+      "sale_date": null,
+      "raw_excerpt": null,
+      "active": true,
+      "release_record_id": null,
+      "signal_metadata": {
+        "case_type": "Independent Administration",
+        "case_status": "OPEN",
+        "judge": "JULIA MALVEAUX",
+        "attorneys": [
+          "MITCHELL, NICKOLAS DERRICK"
+        ],
+        "jurisdiction": "Dallas County - County Clerk",
+        "additional_applicants": [],
+        "decedent_owned_properties": [
+          {
+            "account_num": "440168000A0110000",
+            "address_normalized": "4518 AMANDA CT",
+            "address_city": "ROWLETT (DALLAS CO)",
+            "address_state": "TX",
+            "address_zip": "750882848"
+          },
+          {
+            "account_num": "28220900100230000",
+            "address_normalized": "4709 CHALK CT",
+            "address_city": "GRAND PRAIRIE (DALLAS CO)",
+            "address_state": "TX",
+            "address_zip": "750521716"
+          }
+        ],
+        "dcad_match_tier": "no_middle",
+        "dcad_match_warning": null,
+        "applicant_mailing": null,
+        "resolution_history": [
+          {
+            "path": "path_pb_decedent_owner_index",
+            "stage": "canonicalize",
+            "input": "STAFFORD , SHARON  M.",
+            "status": "multi_match",
+            "skip_reason": null,
+            "tier": "no_middle",
+            "dcad_account": "440168000A0110000",
+            "alternates": [
+              "28220900100230000"
+            ],
+            "warnings": [
+              "multi_account"
+            ]
+          },
+          {
+            "path": "path_pb_applicant_owner_index",
+            "stage": "canonicalize",
+            "input": "STAFFORD , ALLEN  COLE",
+            "status": "no_match",
+            "skip_reason": null,
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_variant_lookup",
+            "stage": "6.35",
+            "input": "4518 AMANDA CT",
+            "status": "matched",
+            "skip_reason": null,
+            "tier": null,
+            "dcad_account": "440168000A0110000",
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_c_legal_resolver",
+            "stage": "6.5",
+            "input": null,
+            "status": "skipped",
+            "skip_reason": "no_snippet",
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "stage_6_6_agreement",
+            "stage": "6.6",
+            "input": "path_pb_decedent_owner_index|path_variant_lookup",
+            "status": "matched",
+            "skip_reason": null,
+            "tier": null,
+            "dcad_account": "440168000A0110000",
+            "alternates": [],
+            "warnings": []
+          }
+        ],
+        "confidence_warnings": [
+          "multi_account",
+          "path_agreement"
+        ],
+        "alternate_accounts": [
+          "28220900100230000"
+        ]
+      },
+      "address_city": null,
+      "address_state": null,
+      "address_zip": null,
+      "source_url": null,
+      "score": 65,
+      "score_breakdown": {
+        "base": 30,
+        "category_flag": 10,
+        "value_100k": 15,
+        "new_this_week": 5,
+        "has_address": 5
+      },
+      "parse_warnings": [],
+      "first_seen": "2026-05-23",
+      "last_seen": "2026-05-27",
+      "in_buy_box": true,
+      "buy_box_reasons": [],
+      "grantor_raw": "STAFFORD , SHARON  M.",
+      "grantee_raw": "STAFFORD , ALLEN  COLE",
+      "dcad_owner_raw": "STAFFORD CHARLES & SHARON"
     },
     {
       "record_id": "pro-e496c8ba9819462ba70a6fac042e4934",
@@ -6150,22 +5737,18 @@
           {
             "path": "stage_6_6_agreement",
             "stage": "6.6",
-            "input": null,
-            "status": "skipped",
-            "skip_reason": "tiebreak_inconclusive",
+            "input": "path_pb_decedent_owner_index|path_variant_lookup",
+            "status": "matched",
+            "skip_reason": null,
             "tier": null,
-            "dcad_account": null,
-            "alternates": [
-              "00000320125000000",
-              "00000173680000000"
-            ],
+            "dcad_account": "00000320125000000",
+            "alternates": [],
             "warnings": []
           }
         ],
         "confidence_warnings": [
           "multi_account",
-          "path_disagreement",
-          "page_tiebreak_inconclusive"
+          "path_agreement"
         ],
         "alternate_accounts": [
           "00000498864440000"
@@ -6191,6 +5774,137 @@
       "grantor_raw": "MOORE, ALBERT, Jr",
       "grantee_raw": "MOORE, DETRICK",
       "dcad_owner_raw": "MOORE ALBERT & SUSIE MAE"
+    },
+    {
+      "record_id": "pro-c8bf835fe6dd4fcc86d6ceb811bdfaa2",
+      "source": "probate.txcourts.gov",
+      "dallas_code": "PB",
+      "category": "PROB",
+      "filing_date": "2026-05-22",
+      "instrument_num": "PR-26-01650-2",
+      "grantor": "Crow, John W.",
+      "grantee": "Fort, Cynthia Diane Crow",
+      "address": null,
+      "address_normalized": "9054 MAPLE GLEN DR",
+      "dcad_account": "00000794078660000",
+      "dcad_owner": "Crow, John W",
+      "dcad_market_value": 677150.0,
+      "dcad_homestead": true,
+      "dcad_over65": true,
+      "dcad_disabled": false,
+      "dcad_tax_deferred": false,
+      "dcad_mailing_address": "9054 MAPLE GLEN DR",
+      "dcad_mailing_city": "DALLAS",
+      "dcad_mailing_state": "TEXAS",
+      "dcad_mailing_zip": "752314846",
+      "amount": null,
+      "trustee": null,
+      "sale_date": null,
+      "raw_excerpt": null,
+      "active": true,
+      "release_record_id": null,
+      "signal_metadata": {
+        "case_type": "Independent Administration",
+        "case_status": "OPEN",
+        "judge": "INGRID WARREN",
+        "attorneys": [
+          "CRESSWELL, RONALD ROY"
+        ],
+        "jurisdiction": "Dallas County - County Clerk",
+        "additional_applicants": [],
+        "decedent_owned_properties": [
+          {
+            "account_num": "00000794078660000",
+            "address_normalized": "9054 MAPLE GLEN DR",
+            "address_city": "DALLAS",
+            "address_state": "TX",
+            "address_zip": "752314846"
+          }
+        ],
+        "dcad_match_tier": "exact",
+        "dcad_match_warning": null,
+        "applicant_mailing": null,
+        "resolution_history": [
+          {
+            "path": "path_pb_decedent_owner_index",
+            "stage": "canonicalize",
+            "input": "CROW, JOHN  W.",
+            "status": "matched",
+            "skip_reason": null,
+            "tier": "exact",
+            "dcad_account": "00000794078660000",
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_pb_applicant_owner_index",
+            "stage": "canonicalize",
+            "input": "FORT , CYNTHIA  DIANE CROW",
+            "status": "no_match",
+            "skip_reason": null,
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_variant_lookup",
+            "stage": "6.35",
+            "input": "9054 MAPLE GLEN DR",
+            "status": "matched",
+            "skip_reason": null,
+            "tier": null,
+            "dcad_account": "00000794078660000",
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_c_legal_resolver",
+            "stage": "6.5",
+            "input": null,
+            "status": "skipped",
+            "skip_reason": "no_snippet",
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "stage_6_6_agreement",
+            "stage": "6.6",
+            "input": "path_pb_decedent_owner_index|path_variant_lookup",
+            "status": "matched",
+            "skip_reason": null,
+            "tier": null,
+            "dcad_account": "00000794078660000",
+            "alternates": [],
+            "warnings": []
+          }
+        ],
+        "confidence_warnings": [
+          "path_agreement"
+        ]
+      },
+      "address_city": null,
+      "address_state": null,
+      "address_zip": null,
+      "source_url": null,
+      "score": 65,
+      "score_breakdown": {
+        "base": 30,
+        "category_flag": 10,
+        "value_100k": 15,
+        "new_this_week": 5,
+        "has_address": 5
+      },
+      "parse_warnings": [],
+      "first_seen": "2026-05-23",
+      "last_seen": "2026-05-27",
+      "in_buy_box": true,
+      "buy_box_reasons": [],
+      "grantor_raw": "CROW, JOHN  W.",
+      "grantee_raw": "FORT , CYNTHIA  DIANE CROW",
+      "dcad_owner_raw": "CROW JOHN W"
     },
     {
       "record_id": "pro-59e0f2de44884bddb6583e1717786cb3",
@@ -6300,22 +6014,18 @@
           {
             "path": "stage_6_6_agreement",
             "stage": "6.6",
-            "input": null,
-            "status": "skipped",
-            "skip_reason": "tiebreak_inconclusive",
+            "input": "path_pb_decedent_owner_index|path_variant_lookup",
+            "status": "matched",
+            "skip_reason": null,
             "tier": null,
-            "dcad_account": null,
-            "alternates": [
-              "380539300V0080000",
-              "008770000D0120000"
-            ],
+            "dcad_account": "380539300V0080000",
+            "alternates": [],
             "warnings": []
           }
         ],
         "confidence_warnings": [
           "surname_only_tier",
-          "path_disagreement",
-          "page_tiebreak_inconclusive"
+          "path_agreement"
         ]
       },
       "address_city": null,
@@ -6471,150 +6181,6 @@
       "dcad_owner_raw": "ROBINSON JOHN TRUMAN"
     },
     {
-      "record_id": "pro-0d489fd3ba7841c5885ba3fb18a28686",
-      "source": "probate.txcourts.gov",
-      "dallas_code": "PB",
-      "category": "PROB",
-      "filing_date": "2026-05-26",
-      "instrument_num": "PR-26-01667-2",
-      "grantor": "Brooks, Christine K.",
-      "grantee": "Brooks, Gary A.",
-      "address": null,
-      "address_normalized": "3022 ANDREA LN",
-      "dcad_account": "26239060130090000",
-      "dcad_owner": "Brooks, Christine",
-      "dcad_market_value": 308470.0,
-      "dcad_homestead": true,
-      "dcad_over65": false,
-      "dcad_disabled": false,
-      "dcad_tax_deferred": false,
-      "dcad_mailing_address": "3022 ANDREA LN",
-      "dcad_mailing_city": "GARLAND",
-      "dcad_mailing_state": "TEXAS",
-      "dcad_mailing_zip": "750408790",
-      "amount": null,
-      "trustee": null,
-      "sale_date": null,
-      "raw_excerpt": null,
-      "active": true,
-      "release_record_id": null,
-      "signal_metadata": {
-        "case_type": "Independent Administration",
-        "case_status": "OPEN",
-        "judge": "INGRID WARREN",
-        "attorneys": [
-          "KOCUREK, KELLY CHRISTOPHER",
-          "KOCUREK, KELLY CHRISTOPHER"
-        ],
-        "jurisdiction": "Dallas County - County Clerk",
-        "additional_applicants": [],
-        "decedent_owned_properties": [
-          {
-            "account_num": "26239060130090000",
-            "address_normalized": "3022 ANDREA LN",
-            "address_city": "GARLAND (DALLAS CO)",
-            "address_state": "TX",
-            "address_zip": "750408790"
-          }
-        ],
-        "dcad_match_tier": "no_middle",
-        "dcad_match_warning": null,
-        "applicant_mailing": {
-          "tier": "no_middle",
-          "matched_name": "BROOKS GARY",
-          "account_num": "00000343135000000",
-          "address": "5311 W UNIVERSITY BLVD",
-          "city": "DALLAS",
-          "state": "TEXAS",
-          "zip": "752095013"
-        },
-        "resolution_history": [
-          {
-            "path": "path_pb_decedent_owner_index",
-            "stage": "canonicalize",
-            "input": "BROOKS, CHRISTINE K.",
-            "status": "matched",
-            "skip_reason": null,
-            "tier": "no_middle",
-            "dcad_account": "26239060130090000",
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "path_pb_applicant_owner_index",
-            "stage": "canonicalize",
-            "input": "BROOKS, GARY A.",
-            "status": "matched",
-            "skip_reason": null,
-            "tier": "no_middle",
-            "dcad_account": "00000343135000000",
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "path_variant_lookup",
-            "stage": "6.35",
-            "input": "3022 ANDREA LN",
-            "status": "matched",
-            "skip_reason": null,
-            "tier": null,
-            "dcad_account": "26239060130090000",
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "path_c_legal_resolver",
-            "stage": "6.5",
-            "input": null,
-            "status": "skipped",
-            "skip_reason": "no_snippet",
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "stage_6_6_agreement",
-            "stage": "6.6",
-            "input": null,
-            "status": "skipped",
-            "skip_reason": "tiebreak_inconclusive",
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [
-              "26239060130090000",
-              "00000343135000000"
-            ],
-            "warnings": []
-          }
-        ],
-        "confidence_warnings": [
-          "path_disagreement",
-          "page_tiebreak_inconclusive"
-        ]
-      },
-      "address_city": null,
-      "address_state": null,
-      "address_zip": null,
-      "source_url": null,
-      "score": 65,
-      "score_breakdown": {
-        "base": 30,
-        "category_flag": 10,
-        "value_100k": 15,
-        "new_this_week": 5,
-        "has_address": 5
-      },
-      "parse_warnings": [],
-      "first_seen": "2026-05-27",
-      "last_seen": "2026-05-27",
-      "in_buy_box": true,
-      "buy_box_reasons": [],
-      "grantor_raw": "BROOKS, CHRISTINE K.",
-      "grantee_raw": "BROOKS, GARY A.",
-      "dcad_owner_raw": "BROOKS CHRISTINE"
-    },
-    {
       "record_id": "pro-3676c9fed0b44602a0045f5bf7ea2dc2",
       "source": "probate.txcourts.gov",
       "dallas_code": "PB",
@@ -6719,21 +6285,17 @@
           {
             "path": "stage_6_6_agreement",
             "stage": "6.6",
-            "input": null,
-            "status": "skipped",
-            "skip_reason": "tiebreak_inconclusive",
+            "input": "path_pb_decedent_owner_index|path_variant_lookup",
+            "status": "matched",
+            "skip_reason": null,
             "tier": null,
-            "dcad_account": null,
-            "alternates": [
-              "60247500030040000",
-              "36078500000360000"
-            ],
+            "dcad_account": "60247500030040000",
+            "alternates": [],
             "warnings": []
           }
         ],
         "confidence_warnings": [
-          "path_disagreement",
-          "page_tiebreak_inconclusive"
+          "path_agreement"
         ]
       },
       "address_city": null,
@@ -6864,22 +6426,18 @@
           {
             "path": "stage_6_6_agreement",
             "stage": "6.6",
-            "input": null,
-            "status": "skipped",
-            "skip_reason": "tiebreak_inconclusive",
+            "input": "path_pb_decedent_owner_index|path_variant_lookup",
+            "status": "matched",
+            "skip_reason": null,
             "tier": null,
-            "dcad_account": null,
-            "alternates": [
-              "180058000C0060000",
-              "26512620110080000"
-            ],
+            "dcad_account": "180058000C0060000",
+            "alternates": [],
             "warnings": []
           }
         ],
         "confidence_warnings": [
           "surname_only_tier",
-          "path_disagreement",
-          "page_tiebreak_inconclusive"
+          "path_agreement"
         ]
       },
       "address_city": null,
@@ -6902,6 +6460,146 @@
       "grantor_raw": "ARTHUR LEE JONES, Jr",
       "grantee_raw": "EVELYN MCNEIL",
       "dcad_owner_raw": "ARTHUR REVOCABLE TRUST THE"
+    },
+    {
+      "record_id": "pro-0d489fd3ba7841c5885ba3fb18a28686",
+      "source": "probate.txcourts.gov",
+      "dallas_code": "PB",
+      "category": "PROB",
+      "filing_date": "2026-05-26",
+      "instrument_num": "PR-26-01667-2",
+      "grantor": "Brooks, Christine K.",
+      "grantee": "Brooks, Gary A.",
+      "address": null,
+      "address_normalized": "3022 ANDREA LN",
+      "dcad_account": "26239060130090000",
+      "dcad_owner": "Brooks, Christine",
+      "dcad_market_value": 308470.0,
+      "dcad_homestead": true,
+      "dcad_over65": false,
+      "dcad_disabled": false,
+      "dcad_tax_deferred": false,
+      "dcad_mailing_address": "3022 ANDREA LN",
+      "dcad_mailing_city": "GARLAND",
+      "dcad_mailing_state": "TEXAS",
+      "dcad_mailing_zip": "750408790",
+      "amount": null,
+      "trustee": null,
+      "sale_date": null,
+      "raw_excerpt": null,
+      "active": true,
+      "release_record_id": null,
+      "signal_metadata": {
+        "case_type": "Independent Administration",
+        "case_status": "OPEN",
+        "judge": "INGRID WARREN",
+        "attorneys": [
+          "KOCUREK, KELLY CHRISTOPHER",
+          "KOCUREK, KELLY CHRISTOPHER"
+        ],
+        "jurisdiction": "Dallas County - County Clerk",
+        "additional_applicants": [],
+        "decedent_owned_properties": [
+          {
+            "account_num": "26239060130090000",
+            "address_normalized": "3022 ANDREA LN",
+            "address_city": "GARLAND (DALLAS CO)",
+            "address_state": "TX",
+            "address_zip": "750408790"
+          }
+        ],
+        "dcad_match_tier": "no_middle",
+        "dcad_match_warning": null,
+        "applicant_mailing": {
+          "tier": "no_middle",
+          "matched_name": "BROOKS GARY",
+          "account_num": "00000343135000000",
+          "address": "5311 W UNIVERSITY BLVD",
+          "city": "DALLAS",
+          "state": "TEXAS",
+          "zip": "752095013"
+        },
+        "resolution_history": [
+          {
+            "path": "path_pb_decedent_owner_index",
+            "stage": "canonicalize",
+            "input": "BROOKS, CHRISTINE K.",
+            "status": "matched",
+            "skip_reason": null,
+            "tier": "no_middle",
+            "dcad_account": "26239060130090000",
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_pb_applicant_owner_index",
+            "stage": "canonicalize",
+            "input": "BROOKS, GARY A.",
+            "status": "matched",
+            "skip_reason": null,
+            "tier": "no_middle",
+            "dcad_account": "00000343135000000",
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_variant_lookup",
+            "stage": "6.35",
+            "input": "3022 ANDREA LN",
+            "status": "matched",
+            "skip_reason": null,
+            "tier": null,
+            "dcad_account": "26239060130090000",
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_c_legal_resolver",
+            "stage": "6.5",
+            "input": null,
+            "status": "skipped",
+            "skip_reason": "no_snippet",
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "stage_6_6_agreement",
+            "stage": "6.6",
+            "input": "path_pb_decedent_owner_index|path_variant_lookup",
+            "status": "matched",
+            "skip_reason": null,
+            "tier": null,
+            "dcad_account": "26239060130090000",
+            "alternates": [],
+            "warnings": []
+          }
+        ],
+        "confidence_warnings": [
+          "path_agreement"
+        ]
+      },
+      "address_city": null,
+      "address_state": null,
+      "address_zip": null,
+      "source_url": null,
+      "score": 65,
+      "score_breakdown": {
+        "base": 30,
+        "category_flag": 10,
+        "value_100k": 15,
+        "new_this_week": 5,
+        "has_address": 5
+      },
+      "parse_warnings": [],
+      "first_seen": "2026-05-27",
+      "last_seen": "2026-05-27",
+      "in_buy_box": true,
+      "buy_box_reasons": [],
+      "grantor_raw": "BROOKS, CHRISTINE K.",
+      "grantee_raw": "BROOKS, GARY A.",
+      "dcad_owner_raw": "BROOKS CHRISTINE"
     },
     {
       "record_id": "pro-49dc22dddc4346ccb888c75ba723c40c",
@@ -6947,6 +6645,20 @@
             "address_city": "DALLAS",
             "address_state": "TX",
             "address_zip": "752163933"
+          },
+          {
+            "account_num": "321497300A0020000",
+            "address_normalized": "102 E GRAUWYLER RD",
+            "address_city": "IRVING",
+            "address_state": "TX",
+            "address_zip": "750612641"
+          },
+          {
+            "account_num": "321497300A0010000",
+            "address_normalized": "102 W GRAUWYLER RD",
+            "address_city": "IRVING",
+            "address_state": "TX",
+            "address_zip": "75061"
           }
         ],
         "dcad_match_tier": "no_middle",
@@ -6965,12 +6677,17 @@
             "path": "path_pb_decedent_owner_index",
             "stage": "canonicalize",
             "input": "SILVA, LUIS ALARCON",
-            "status": "matched",
+            "status": "multi_match",
             "skip_reason": null,
             "tier": "no_middle",
             "dcad_account": "00000511594000000",
-            "alternates": [],
-            "warnings": []
+            "alternates": [
+              "321497300A0020000",
+              "321497300A0010000"
+            ],
+            "warnings": [
+              "multi_account"
+            ]
           },
           {
             "path": "path_pb_applicant_owner_index",
@@ -7008,21 +6725,22 @@
           {
             "path": "stage_6_6_agreement",
             "stage": "6.6",
-            "input": null,
-            "status": "skipped",
-            "skip_reason": "tiebreak_inconclusive",
+            "input": "path_pb_decedent_owner_index|path_variant_lookup",
+            "status": "matched",
+            "skip_reason": null,
             "tier": null,
-            "dcad_account": null,
-            "alternates": [
-              "00000511594000000",
-              "00000754735000000"
-            ],
+            "dcad_account": "00000511594000000",
+            "alternates": [],
             "warnings": []
           }
         ],
         "confidence_warnings": [
-          "path_disagreement",
-          "page_tiebreak_inconclusive"
+          "multi_account",
+          "path_agreement"
+        ],
+        "alternate_accounts": [
+          "321497300A0020000",
+          "321497300A0010000"
         ]
       },
       "address_city": null,
@@ -7178,13 +6896,114 @@
       "dcad_owner_raw": "JONES BERTI REVOCABLE TRUST"
     },
     {
+      "record_id": "316712316",
+      "source": "publicsearch.us",
+      "dallas_code": "NOF",
+      "category": "NOTICE",
+      "filing_date": "2026-05-27",
+      "instrument_num": "202600001103",
+      "grantor": "\\, Ronald Green",
+      "grantee": null,
+      "address": "3030 O'BANNON DRIVE, DALLAS, TEXAS, 75224",
+      "address_normalized": "3030 OBANNON DR",
+      "dcad_account": "00000471214000000",
+      "dcad_owner": "Green, Ronald",
+      "dcad_market_value": 201590.0,
+      "dcad_homestead": false,
+      "dcad_over65": false,
+      "dcad_disabled": false,
+      "dcad_tax_deferred": false,
+      "dcad_mailing_address": "2626 DUNCANVILLE RD APT 1008",
+      "dcad_mailing_city": "DALLAS",
+      "dcad_mailing_state": "TEXAS",
+      "dcad_mailing_zip": "752117423",
+      "amount": null,
+      "trustee": null,
+      "sale_date": "2026-07-07",
+      "raw_excerpt": "NOTICE OF FORECLOSURE | 3030 O'BANNON DRIVE, DALLAS, TEXAS, 75224",
+      "active": true,
+      "release_record_id": null,
+      "signal_metadata": {
+        "ocr": {
+          "grantor_pattern": "labeled-grantor",
+          "sale_date_pattern": "bare-date-word",
+          "address_pattern": null,
+          "loan_amount_pattern": null,
+          "legal_desc_pattern": null,
+          "apn_pattern": null,
+          "apn": null,
+          "pages_captured": 3,
+          "capture_warnings": []
+        },
+        "confidence_warnings": [
+          "lookup_variant_used"
+        ],
+        "resolution_history": [
+          {
+            "path": "path_variant_lookup",
+            "stage": "6.35",
+            "input": "3030 O'BANNON DR",
+            "status": "matched",
+            "skip_reason": null,
+            "tier": null,
+            "dcad_account": "00000471214000000",
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_a_grantor_owner_index",
+            "stage": "6.45",
+            "input": "Ronald Green \\",
+            "status": "no_match",
+            "skip_reason": null,
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_c_legal_resolver",
+            "stage": "6.5",
+            "input": "NOTICE OF FORECLOSURE | 3030 O'BANNON DRIVE, DALLAS, TEXAS, 75224",
+            "status": "skipped",
+            "skip_reason": "no_subdivision_parsed",
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          }
+        ]
+      },
+      "address_city": null,
+      "address_state": null,
+      "address_zip": null,
+      "source_url": "https://dallas.tx.publicsearch.us/doc/316712316",
+      "score": 65,
+      "score_breakdown": {
+        "base": 30,
+        "category_flag": 10,
+        "value_100k": 15,
+        "new_this_week": 5,
+        "has_address": 5
+      },
+      "parse_warnings": [
+        "no_address_or_legal_description"
+      ],
+      "first_seen": "2026-05-27",
+      "last_seen": "2026-05-27",
+      "in_buy_box": true,
+      "buy_box_reasons": [],
+      "grantor_raw": "Ronald Green \\",
+      "dcad_owner_raw": "GREEN RONALD"
+    },
+    {
       "record_id": "316708051",
       "source": "publicsearch.us",
       "dallas_code": "NOF",
       "category": "NOTICE",
       "filing_date": "2026-05-27",
       "instrument_num": "202600001101",
-      "grantor": null,
+      "grantor": "E, Savannah Ogie & L, Linda",
       "grantee": null,
       "address": "845 WEAVERS) R L, TX 75104",
       "address_normalized": "845 WEAVER ST",
@@ -7219,7 +7038,8 @@
         },
         "confidence_warnings": [
           "path_b_used_alternate",
-          "path_agreement"
+          "path_agreement",
+          "grantor_from_dcad"
         ],
         "resolution_history": [
           {
@@ -7288,6 +7108,7 @@
       "last_seen": "2026-05-27",
       "in_buy_box": true,
       "buy_box_reasons": [],
+      "grantor_raw": "SAVANNAH OGIE E & LINDA L",
       "dcad_owner_raw": "SAVANNAH OGIE E & LINDA L"
     },
     {
@@ -7387,6 +7208,159 @@
       "buy_box_reasons": [],
       "grantor_raw": "GERARDO SOLIS, A MARRIED PERSON, AND MARIA SO ING",
       "dcad_owner_raw": "SOLIS GERARDO"
+    },
+    {
+      "record_id": "pro-00436186cd0a4f9fb21dc59ffa7bbf44",
+      "source": "probate.txcourts.gov",
+      "dallas_code": "PB",
+      "category": "PROB",
+      "filing_date": "2026-05-27",
+      "instrument_num": "PR-26-01680-3",
+      "grantor": "Amaya Galvez, Jose Mauricio",
+      "grantee": "Amaya, Susana M.",
+      "address": null,
+      "address_normalized": "1827 RIVERWAY PL",
+      "dcad_account": "00000563572000000",
+      "dcad_owner": "Amaya, Jose Milton",
+      "dcad_market_value": 241930.0,
+      "dcad_homestead": false,
+      "dcad_over65": false,
+      "dcad_disabled": false,
+      "dcad_tax_deferred": false,
+      "dcad_mailing_address": "ET AL\n3325 ROCK BLUFF DR",
+      "dcad_mailing_city": "DALLAS",
+      "dcad_mailing_state": "TEXAS",
+      "dcad_mailing_zip": "752275652",
+      "amount": null,
+      "trustee": null,
+      "sale_date": null,
+      "raw_excerpt": null,
+      "active": true,
+      "release_record_id": null,
+      "signal_metadata": {
+        "case_type": "Independent Administration",
+        "case_status": "OPEN",
+        "judge": "MARGARET JOHNSON",
+        "attorneys": [
+          "HERNANDEZ- PACE, ANA MARIA"
+        ],
+        "jurisdiction": "Dallas County - County Clerk",
+        "additional_applicants": [],
+        "decedent_owned_properties": [
+          {
+            "account_num": "00000563572000000",
+            "address_normalized": "1827 RIVERWAY PL",
+            "address_city": "DALLAS",
+            "address_state": "TX",
+            "address_zip": "752172532"
+          },
+          {
+            "account_num": "32132500010100000",
+            "address_normalized": "2805 SEABEACH ST",
+            "address_city": "IRVING",
+            "address_state": "TX",
+            "address_zip": "750625266"
+          }
+        ],
+        "dcad_match_tier": "surname_only",
+        "dcad_match_warning": null,
+        "applicant_mailing": null,
+        "resolution_history": [
+          {
+            "path": "path_pb_decedent_owner_index",
+            "stage": "canonicalize",
+            "input": "AMAYA GALVEZ, JOSE MAURICIO",
+            "status": "multi_match",
+            "skip_reason": null,
+            "tier": "surname_only",
+            "dcad_account": "00000563572000000",
+            "alternates": [
+              "32132500010100000"
+            ],
+            "warnings": [
+              "multi_account",
+              "surname_only_tier"
+            ]
+          },
+          {
+            "path": "path_pb_applicant_owner_index",
+            "stage": "canonicalize",
+            "input": "AMAYA, SUSANA M.",
+            "status": "multi_match",
+            "skip_reason": "applicant_match_too_loose",
+            "tier": "surname_only",
+            "dcad_account": "00000563572000000",
+            "alternates": [
+              "32132500010100000"
+            ],
+            "warnings": [
+              "surname_only_tier",
+              "multi_account"
+            ]
+          },
+          {
+            "path": "path_variant_lookup",
+            "stage": "6.35",
+            "input": "1827 RIVERWAY PL",
+            "status": "matched",
+            "skip_reason": null,
+            "tier": null,
+            "dcad_account": "00000563572000000",
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_c_legal_resolver",
+            "stage": "6.5",
+            "input": null,
+            "status": "skipped",
+            "skip_reason": "no_snippet",
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "stage_6_6_agreement",
+            "stage": "6.6",
+            "input": "path_pb_decedent_owner_index|path_variant_lookup",
+            "status": "matched",
+            "skip_reason": null,
+            "tier": null,
+            "dcad_account": "00000563572000000",
+            "alternates": [],
+            "warnings": []
+          }
+        ],
+        "confidence_warnings": [
+          "multi_account",
+          "surname_only_tier",
+          "path_agreement"
+        ],
+        "alternate_accounts": [
+          "32132500010100000"
+        ]
+      },
+      "address_city": null,
+      "address_state": null,
+      "address_zip": null,
+      "source_url": null,
+      "score": 65,
+      "score_breakdown": {
+        "base": 30,
+        "category_flag": 10,
+        "value_100k": 15,
+        "new_this_week": 5,
+        "has_address": 5
+      },
+      "parse_warnings": [],
+      "first_seen": "2026-05-27",
+      "last_seen": "2026-05-27",
+      "in_buy_box": true,
+      "buy_box_reasons": [],
+      "grantor_raw": "AMAYA GALVEZ, JOSE MAURICIO",
+      "grantee_raw": "AMAYA, SUSANA M.",
+      "dcad_owner_raw": "AMAYA JOSE MILTON"
     },
     {
       "record_id": "315542810",
@@ -8396,9 +8370,7 @@
           "apn_pattern": null,
           "apn": null,
           "pages_captured": 4,
-          "capture_warnings": [
-            "initial_load_hung_reloading"
-          ]
+          "capture_warnings": []
         },
         "resolution_history": [
           {
@@ -8481,7 +8453,9 @@
           "apn_pattern": null,
           "apn": null,
           "pages_captured": 4,
-          "capture_warnings": []
+          "capture_warnings": [
+            "initial_load_hung_reloading"
+          ]
         },
         "resolution_history": [
           {
@@ -8565,9 +8539,7 @@
           "apn_pattern": null,
           "apn": null,
           "pages_captured": 3,
-          "capture_warnings": [
-            "initial_load_hung_reloading"
-          ]
+          "capture_warnings": []
         },
         "resolution_history": [
           {
@@ -8789,6 +8761,294 @@
       "grantor_raw": "SKYLER OUSLEY, AN UNMARRIED WOMA"
     },
     {
+      "record_id": "315562559",
+      "source": "publicsearch.us",
+      "dallas_code": "NOF",
+      "category": "NOTICE",
+      "filing_date": "2026-05-21",
+      "instrument_num": "202600001084",
+      "grantor": null,
+      "grantee": null,
+      "address": "9000 SLEEP HOLLOW DRIVE, CEDAR HILL, TEXAS, 75104",
+      "address_normalized": "9000 SLEEP HOLLOW DR",
+      "dcad_account": null,
+      "dcad_owner": null,
+      "dcad_market_value": null,
+      "dcad_homestead": null,
+      "dcad_over65": null,
+      "dcad_disabled": null,
+      "dcad_tax_deferred": null,
+      "dcad_mailing_address": null,
+      "dcad_mailing_city": null,
+      "dcad_mailing_state": null,
+      "dcad_mailing_zip": null,
+      "amount": null,
+      "trustee": null,
+      "sale_date": "2026-07-07",
+      "raw_excerpt": "NOTICE OF FORECLOSURE | 9000 SLEEP HOLLOW DRIVE, CEDAR HILL, TEXAS, 75104",
+      "active": true,
+      "release_record_id": null,
+      "signal_metadata": {
+        "resolution_history": [
+          {
+            "path": "path_variant_lookup",
+            "stage": "6.35",
+            "input": "9000 SLEEP HOLLOW DR",
+            "status": "no_match",
+            "skip_reason": null,
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_c_legal_resolver",
+            "stage": "6.5",
+            "input": "NOTICE OF FORECLOSURE | 9000 SLEEP HOLLOW DRIVE, CEDAR HILL, TEXAS, 75104",
+            "status": "skipped",
+            "skip_reason": "no_subdivision_parsed",
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          }
+        ]
+      },
+      "address_city": null,
+      "address_state": null,
+      "address_zip": null,
+      "source_url": "https://dallas.tx.publicsearch.us/doc/315562559",
+      "score": 45,
+      "score_breakdown": {
+        "base": 30,
+        "category_flag": 10,
+        "new_this_week": 5
+      },
+      "parse_warnings": [
+        "ocr_no_images"
+      ],
+      "first_seen": "2026-05-27",
+      "last_seen": "2026-05-27",
+      "in_buy_box": true,
+      "buy_box_reasons": []
+    },
+    {
+      "record_id": "315562550",
+      "source": "publicsearch.us",
+      "dallas_code": "NOF",
+      "category": "NOTICE",
+      "filing_date": "2026-05-21",
+      "instrument_num": "202600001066",
+      "grantor": null,
+      "grantee": null,
+      "address": "GRAND PRAIRIE",
+      "address_normalized": "GRAND PRAIRIE",
+      "dcad_account": null,
+      "dcad_owner": null,
+      "dcad_market_value": null,
+      "dcad_homestead": null,
+      "dcad_over65": null,
+      "dcad_disabled": null,
+      "dcad_tax_deferred": null,
+      "dcad_mailing_address": null,
+      "dcad_mailing_city": null,
+      "dcad_mailing_state": null,
+      "dcad_mailing_zip": null,
+      "amount": null,
+      "trustee": null,
+      "sale_date": "2026-08-04",
+      "raw_excerpt": "NOTICE OF FORECLOSURE | GRAND PRAIRIE",
+      "active": true,
+      "release_record_id": null,
+      "signal_metadata": {
+        "resolution_history": [
+          {
+            "path": "path_b_raw_excerpt",
+            "stage": "6.3",
+            "input": null,
+            "status": "skipped",
+            "skip_reason": "no_clean_address_in_raw_excerpt",
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_c_legal_resolver",
+            "stage": "6.5",
+            "input": "NOTICE OF FORECLOSURE | GRAND PRAIRIE",
+            "status": "skipped",
+            "skip_reason": "no_subdivision_parsed",
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          }
+        ]
+      },
+      "address_city": null,
+      "address_state": null,
+      "address_zip": null,
+      "source_url": "https://dallas.tx.publicsearch.us/doc/315562550",
+      "score": 45,
+      "score_breakdown": {
+        "base": 30,
+        "category_flag": 10,
+        "new_this_week": 5
+      },
+      "parse_warnings": [
+        "ocr_no_images"
+      ],
+      "first_seen": "2026-05-22",
+      "last_seen": "2026-05-27",
+      "in_buy_box": true,
+      "buy_box_reasons": []
+    },
+    {
+      "record_id": "315562556",
+      "source": "publicsearch.us",
+      "dallas_code": "NOF",
+      "category": "NOTICE",
+      "filing_date": "2026-05-21",
+      "instrument_num": "202600001074",
+      "grantor": null,
+      "grantee": null,
+      "address": "DESOTO",
+      "address_normalized": "DESOTO",
+      "dcad_account": null,
+      "dcad_owner": null,
+      "dcad_market_value": null,
+      "dcad_homestead": null,
+      "dcad_over65": null,
+      "dcad_disabled": null,
+      "dcad_tax_deferred": null,
+      "dcad_mailing_address": null,
+      "dcad_mailing_city": null,
+      "dcad_mailing_state": null,
+      "dcad_mailing_zip": null,
+      "amount": null,
+      "trustee": null,
+      "sale_date": "2026-07-07",
+      "raw_excerpt": "NOTICE OF FORECLOSURE | DESOTO",
+      "active": true,
+      "release_record_id": null,
+      "signal_metadata": {
+        "resolution_history": [
+          {
+            "path": "path_b_raw_excerpt",
+            "stage": "6.3",
+            "input": null,
+            "status": "skipped",
+            "skip_reason": "no_clean_address_in_raw_excerpt",
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_c_legal_resolver",
+            "stage": "6.5",
+            "input": "NOTICE OF FORECLOSURE | DESOTO",
+            "status": "skipped",
+            "skip_reason": "no_subdivision_parsed",
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          }
+        ]
+      },
+      "address_city": null,
+      "address_state": null,
+      "address_zip": null,
+      "source_url": "https://dallas.tx.publicsearch.us/doc/315562556",
+      "score": 45,
+      "score_breakdown": {
+        "base": 30,
+        "category_flag": 10,
+        "new_this_week": 5
+      },
+      "parse_warnings": [
+        "ocr_no_images"
+      ],
+      "first_seen": "2026-05-27",
+      "last_seen": "2026-05-27",
+      "in_buy_box": true,
+      "buy_box_reasons": []
+    },
+    {
+      "record_id": "315561582",
+      "source": "publicsearch.us",
+      "dallas_code": "NOF",
+      "category": "NOTICE",
+      "filing_date": "2026-05-21",
+      "instrument_num": "202600001059",
+      "grantor": null,
+      "grantee": null,
+      "address": "SACHES",
+      "address_normalized": "SACHES",
+      "dcad_account": null,
+      "dcad_owner": null,
+      "dcad_market_value": null,
+      "dcad_homestead": null,
+      "dcad_over65": null,
+      "dcad_disabled": null,
+      "dcad_tax_deferred": null,
+      "dcad_mailing_address": null,
+      "dcad_mailing_city": null,
+      "dcad_mailing_state": null,
+      "dcad_mailing_zip": null,
+      "amount": null,
+      "trustee": null,
+      "sale_date": "2026-08-04",
+      "raw_excerpt": "NOTICE OF FORECLOSURE | SACHES",
+      "active": true,
+      "release_record_id": null,
+      "signal_metadata": {
+        "resolution_history": [
+          {
+            "path": "path_b_raw_excerpt",
+            "stage": "6.3",
+            "input": null,
+            "status": "skipped",
+            "skip_reason": "no_clean_address_in_raw_excerpt",
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_c_legal_resolver",
+            "stage": "6.5",
+            "input": "NOTICE OF FORECLOSURE | SACHES",
+            "status": "skipped",
+            "skip_reason": "no_subdivision_parsed",
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          }
+        ]
+      },
+      "address_city": null,
+      "address_state": null,
+      "address_zip": null,
+      "source_url": "https://dallas.tx.publicsearch.us/doc/315561582",
+      "score": 45,
+      "score_breakdown": {
+        "base": 30,
+        "category_flag": 10,
+        "new_this_week": 5
+      },
+      "parse_warnings": [
+        "ocr_no_images"
+      ],
+      "first_seen": "2026-05-27",
+      "last_seen": "2026-05-27",
+      "in_buy_box": true,
+      "buy_box_reasons": []
+    },
+    {
       "record_id": "pro-719bcc267ff94bc092ce3f9ae6168c7d",
       "source": "probate.txcourts.gov",
       "dallas_code": "PB",
@@ -8902,6 +9162,120 @@
       "buy_box_reasons": [],
       "grantor_raw": "GRAGE, CONSTANCE KIHNEMAN",
       "grantee_raw": "FLEMING, ALISON GRAGE"
+    },
+    {
+      "record_id": "pro-a334ae76fc1945fdb73b96c32a597885",
+      "source": "probate.txcourts.gov",
+      "dallas_code": "PB",
+      "category": "PROB",
+      "filing_date": "2026-05-21",
+      "instrument_num": "PR-26-01626-2",
+      "grantor": "Johnson, Jeremy",
+      "grantee": "Johnson, Latricia",
+      "address": null,
+      "address_normalized": null,
+      "dcad_account": null,
+      "dcad_owner": null,
+      "dcad_market_value": null,
+      "dcad_homestead": null,
+      "dcad_over65": null,
+      "dcad_disabled": null,
+      "dcad_tax_deferred": null,
+      "dcad_mailing_address": null,
+      "dcad_mailing_city": null,
+      "dcad_mailing_state": null,
+      "dcad_mailing_zip": null,
+      "amount": null,
+      "trustee": null,
+      "sale_date": null,
+      "raw_excerpt": null,
+      "active": true,
+      "release_record_id": null,
+      "signal_metadata": {
+        "case_type": "Independent Administration",
+        "case_status": "OPEN",
+        "judge": "INGRID WARREN",
+        "attorneys": [
+          "HUBBARD, STEPHEN LEE"
+        ],
+        "jurisdiction": "Dallas County - County Clerk",
+        "additional_applicants": [],
+        "decedent_owned_properties": [],
+        "dcad_match_tier": null,
+        "dcad_match_warning": null,
+        "applicant_mailing": {
+          "tier": "exact",
+          "matched_name": "JOHNSON LATRICIA",
+          "account_num": "20114500020020000",
+          "address": "1512 WYNDMERE DR",
+          "city": "DESOTO",
+          "state": "TEXAS",
+          "zip": "751157808"
+        },
+        "resolution_history": [
+          {
+            "path": "path_pb_decedent_owner_index",
+            "stage": "canonicalize",
+            "input": "JOHNSON , JEREMY",
+            "status": "no_match",
+            "skip_reason": null,
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_pb_applicant_owner_index",
+            "stage": "canonicalize",
+            "input": "JOHNSON , LATRICIA",
+            "status": "matched",
+            "skip_reason": null,
+            "tier": "exact",
+            "dcad_account": "20114500020020000",
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_b_raw_excerpt",
+            "stage": "6.3",
+            "input": null,
+            "status": "skipped",
+            "skip_reason": "no_raw_excerpt",
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_c_legal_resolver",
+            "stage": "6.5",
+            "input": null,
+            "status": "skipped",
+            "skip_reason": "no_snippet",
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          }
+        ]
+      },
+      "address_city": null,
+      "address_state": null,
+      "address_zip": null,
+      "source_url": null,
+      "score": 45,
+      "score_breakdown": {
+        "base": 30,
+        "category_flag": 10,
+        "new_this_week": 5
+      },
+      "parse_warnings": [],
+      "first_seen": "2026-05-23",
+      "last_seen": "2026-05-27",
+      "in_buy_box": true,
+      "buy_box_reasons": [],
+      "grantor_raw": "JOHNSON , JEREMY",
+      "grantee_raw": "JOHNSON , LATRICIA"
     },
     {
       "record_id": "pro-b6909f40f59a49259e8b11878a5f7e70",
@@ -9124,14 +9498,14 @@
       "grantee_raw": "CHAVEZ-AGUIRRE, FELICIA"
     },
     {
-      "record_id": "pro-a334ae76fc1945fdb73b96c32a597885",
+      "record_id": "pro-72d9dac0551941fdbf2130fcedfbbbfb",
       "source": "probate.txcourts.gov",
       "dallas_code": "PB",
       "category": "PROB",
-      "filing_date": "2026-05-21",
-      "instrument_num": "PR-26-01626-2",
-      "grantor": "Johnson, Jeremy",
-      "grantee": "Johnson, Latricia",
+      "filing_date": "2026-05-22",
+      "instrument_num": "PR-26-01656-3",
+      "grantor": "Coleman, Minerva Ann",
+      "grantee": "Raynor, Dariest",
       "address": null,
       "address_normalized": null,
       "dcad_account": null,
@@ -9152,31 +9526,24 @@
       "active": true,
       "release_record_id": null,
       "signal_metadata": {
-        "case_type": "Independent Administration",
+        "case_type": "Muniment of Title",
         "case_status": "OPEN",
-        "judge": "INGRID WARREN",
+        "judge": "MARGARET JOHNSON",
         "attorneys": [
-          "HUBBARD, STEPHEN LEE"
+          "BLAKEMORE, CHEVERA ANNETTE",
+          "BLAKEMORE, CHEVERA ANNETTE"
         ],
         "jurisdiction": "Dallas County - County Clerk",
         "additional_applicants": [],
         "decedent_owned_properties": [],
         "dcad_match_tier": null,
         "dcad_match_warning": null,
-        "applicant_mailing": {
-          "tier": "exact",
-          "matched_name": "JOHNSON LATRICIA",
-          "account_num": "20114500020020000",
-          "address": "1512 WYNDMERE DR",
-          "city": "DESOTO",
-          "state": "TEXAS",
-          "zip": "751157808"
-        },
+        "applicant_mailing": null,
         "resolution_history": [
           {
             "path": "path_pb_decedent_owner_index",
             "stage": "canonicalize",
-            "input": "JOHNSON , JEREMY",
+            "input": "COLEMAN, MINERVA ANN",
             "status": "no_match",
             "skip_reason": null,
             "tier": null,
@@ -9187,13 +9554,15 @@
           {
             "path": "path_pb_applicant_owner_index",
             "stage": "canonicalize",
-            "input": "JOHNSON , LATRICIA",
+            "input": "RAYNOR, DARIEST",
             "status": "matched",
-            "skip_reason": null,
-            "tier": "exact",
-            "dcad_account": "20114500020020000",
+            "skip_reason": "applicant_match_too_loose",
+            "tier": "surname_only",
+            "dcad_account": "360638500B0030000",
             "alternates": [],
-            "warnings": []
+            "warnings": [
+              "surname_only_tier"
+            ]
           },
           {
             "path": "path_b_raw_excerpt",
@@ -9230,12 +9599,12 @@
         "new_this_week": 5
       },
       "parse_warnings": [],
-      "first_seen": "2026-05-23",
+      "first_seen": "2026-05-27",
       "last_seen": "2026-05-27",
       "in_buy_box": true,
       "buy_box_reasons": [],
-      "grantor_raw": "JOHNSON , JEREMY",
-      "grantee_raw": "JOHNSON , LATRICIA"
+      "grantor_raw": "COLEMAN, MINERVA ANN",
+      "grantee_raw": "RAYNOR, DARIEST"
     },
     {
       "record_id": "316689877",
@@ -9788,7 +10157,9 @@
           "apn_pattern": null,
           "apn": null,
           "pages_captured": 3,
-          "capture_warnings": []
+          "capture_warnings": [
+            "initial_load_hung_reloading"
+          ]
         },
         "resolution_history": [
           {
@@ -9948,218 +10319,6 @@
       "buy_box_reasons": [],
       "grantor_raw": "OROZCO-GARCIA , JUAN",
       "grantee_raw": "ORIZCO-GARCIA , CAROLINA"
-    },
-    {
-      "record_id": "pro-9e115db9d3ff4af8840d604cade94e89",
-      "source": "probate.txcourts.gov",
-      "dallas_code": "PB",
-      "category": "PROB",
-      "filing_date": "2026-05-27",
-      "instrument_num": "PR-26-01683-1",
-      "grantor": "Toeniskoetter, Kenneth A.",
-      "grantee": "Toeniskoetter, Joseph E.",
-      "address": null,
-      "address_normalized": null,
-      "dcad_account": null,
-      "dcad_owner": null,
-      "dcad_market_value": null,
-      "dcad_homestead": null,
-      "dcad_over65": null,
-      "dcad_disabled": null,
-      "dcad_tax_deferred": null,
-      "dcad_mailing_address": null,
-      "dcad_mailing_city": null,
-      "dcad_mailing_state": null,
-      "dcad_mailing_zip": null,
-      "amount": null,
-      "trustee": null,
-      "sale_date": null,
-      "raw_excerpt": null,
-      "active": true,
-      "release_record_id": null,
-      "signal_metadata": {
-        "case_type": "Independent Administration",
-        "case_status": "OPEN",
-        "judge": "JULIA MALVEAUX",
-        "attorneys": [
-          "MIMS, LISABETH ANN"
-        ],
-        "jurisdiction": "Dallas County - County Clerk",
-        "additional_applicants": [],
-        "decedent_owned_properties": [],
-        "dcad_match_tier": null,
-        "dcad_match_warning": null,
-        "applicant_mailing": null,
-        "resolution_history": [
-          {
-            "path": "path_pb_decedent_owner_index",
-            "stage": "canonicalize",
-            "input": "TOENISKOETTER , KENNETH  A.",
-            "status": "no_match",
-            "skip_reason": null,
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "path_pb_applicant_owner_index",
-            "stage": "canonicalize",
-            "input": "TOENISKOETTER , JOSEPH  E.",
-            "status": "no_match",
-            "skip_reason": null,
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "path_b_raw_excerpt",
-            "stage": "6.3",
-            "input": null,
-            "status": "skipped",
-            "skip_reason": "no_raw_excerpt",
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "path_c_legal_resolver",
-            "stage": "6.5",
-            "input": null,
-            "status": "skipped",
-            "skip_reason": "no_snippet",
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          }
-        ]
-      },
-      "address_city": null,
-      "address_state": null,
-      "address_zip": null,
-      "source_url": null,
-      "score": 45,
-      "score_breakdown": {
-        "base": 30,
-        "category_flag": 10,
-        "new_this_week": 5
-      },
-      "parse_warnings": [],
-      "first_seen": "2026-05-27",
-      "last_seen": "2026-05-27",
-      "in_buy_box": true,
-      "buy_box_reasons": [],
-      "grantor_raw": "TOENISKOETTER , KENNETH  A.",
-      "grantee_raw": "TOENISKOETTER , JOSEPH  E."
-    },
-    {
-      "record_id": "pro-00436186cd0a4f9fb21dc59ffa7bbf44",
-      "source": "probate.txcourts.gov",
-      "dallas_code": "PB",
-      "category": "PROB",
-      "filing_date": "2026-05-27",
-      "instrument_num": "PR-26-01680-3",
-      "grantor": "Amaya Galvez, Jose Mauricio",
-      "grantee": "Amaya, Susana M.",
-      "address": null,
-      "address_normalized": null,
-      "dcad_account": null,
-      "dcad_owner": null,
-      "dcad_market_value": null,
-      "dcad_homestead": null,
-      "dcad_over65": null,
-      "dcad_disabled": null,
-      "dcad_tax_deferred": null,
-      "dcad_mailing_address": null,
-      "dcad_mailing_city": null,
-      "dcad_mailing_state": null,
-      "dcad_mailing_zip": null,
-      "amount": null,
-      "trustee": null,
-      "sale_date": null,
-      "raw_excerpt": null,
-      "active": true,
-      "release_record_id": null,
-      "signal_metadata": {
-        "case_type": "Independent Administration",
-        "case_status": "OPEN",
-        "judge": "MARGARET JOHNSON",
-        "attorneys": [
-          "HERNANDEZ- PACE, ANA MARIA"
-        ],
-        "jurisdiction": "Dallas County - County Clerk",
-        "additional_applicants": [],
-        "decedent_owned_properties": [],
-        "dcad_match_tier": null,
-        "dcad_match_warning": null,
-        "applicant_mailing": null,
-        "resolution_history": [
-          {
-            "path": "path_pb_decedent_owner_index",
-            "stage": "canonicalize",
-            "input": "AMAYA GALVEZ, JOSE MAURICIO",
-            "status": "no_match",
-            "skip_reason": null,
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "path_pb_applicant_owner_index",
-            "stage": "canonicalize",
-            "input": "AMAYA, SUSANA M.",
-            "status": "no_match",
-            "skip_reason": null,
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "path_b_raw_excerpt",
-            "stage": "6.3",
-            "input": null,
-            "status": "skipped",
-            "skip_reason": "no_raw_excerpt",
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "path_c_legal_resolver",
-            "stage": "6.5",
-            "input": null,
-            "status": "skipped",
-            "skip_reason": "no_snippet",
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          }
-        ]
-      },
-      "address_city": null,
-      "address_state": null,
-      "address_zip": null,
-      "source_url": null,
-      "score": 45,
-      "score_breakdown": {
-        "base": 30,
-        "category_flag": 10,
-        "new_this_week": 5
-      },
-      "parse_warnings": [],
-      "first_seen": "2026-05-27",
-      "last_seen": "2026-05-27",
-      "in_buy_box": true,
-      "buy_box_reasons": [],
-      "grantor_raw": "AMAYA GALVEZ, JOSE MAURICIO",
-      "grantee_raw": "AMAYA, SUSANA M."
     },
     {
       "record_id": "pro-26bc99dba2094fc396c8af46fd9079aa",
