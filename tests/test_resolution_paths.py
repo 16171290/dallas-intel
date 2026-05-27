@@ -14,13 +14,22 @@ import pytest
 
 from scraper import address_variants, resolution_paths
 from scraper.resolution import (
+    PATH_A_GRANTOR_OWNER_INDEX,
     PATH_B_RAW_EXCERPT,
     PATH_VARIANT_LOOKUP,
+    STATUS_GUARDED,
     STATUS_MATCHED,
+    STATUS_MULTI_MATCH,
     STATUS_NO_MATCH,
     STATUS_SKIPPED,
+    WARN_COMMON_NAME_POLLUTION,
     WARN_LOOKUP_VARIANT_USED,
+    WARN_MULTI_ACCOUNT,
     WARN_PATH_B_USED_ALTERNATE,
+    WARN_SURNAME_DRIFT,
+    WARN_SURNAME_IN_TRUST_FIRST_NAME,
+    WARN_SURNAME_ONLY_TIER,
+    get_alternate_accounts,
     get_history,
     get_warnings,
 )
@@ -555,3 +564,263 @@ class TestRunVariantLookup:
         assert stats.candidates == 2     # r4 + r5
         assert stats.matched == 1        # r4
         assert stats.no_match == 1       # r5
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Stage 6.45 — run_path_a (NOF grantor → DCAD owner_index)
+# ═══════════════════════════════════════════════════════════════════════════
+
+class TestPathABoilerplateGuard:
+    """Class 2 defense: known boilerplate single-token grantors must
+    not be looked up in owner_index."""
+
+    def test_liable_boilerplate_skipped(self):
+        assert resolution_paths._is_boilerplate_grantor("Liable") is True
+        assert resolution_paths._is_boilerplate_grantor("LIABLE") is True
+        assert resolution_paths._is_boilerplate_grantor("liable") is True
+
+    def test_other_boilerplate_tokens(self):
+        for tok in ("MORTGAGOR", "BORROWER", "TRUSTEE", "DEBTOR",
+                    "GRANTOR", "EXECUTOR", "ATTORNEY"):
+            assert resolution_paths._is_boilerplate_grantor(tok) is True
+
+    def test_real_name_not_boilerplate(self):
+        for name in ("Ousley, Skyler", "Wilson, Robert", "Meyers, Bobbie",
+                     "Bobbie Meyers"):
+            assert resolution_paths._is_boilerplate_grantor(name) is False
+
+    def test_empty_treated_as_boilerplate(self):
+        assert resolution_paths._is_boilerplate_grantor("") is True
+        assert resolution_paths._is_boilerplate_grantor(None) is True
+        assert resolution_paths._is_boilerplate_grantor("   ") is True
+
+
+class TestPathAClass19aGuard:
+    """Class 19a defense: surname matching first-name-in-trust pattern."""
+
+    def test_heather_bass_pattern_detected(self):
+        """Empirical case: grantor='Heather, Linda A.' DCAD owner=
+        'Bass Jeffery & Heather Revocable Trust The'.
+        'HEATHER' is a first name inside a trust, not a surname."""
+        assert resolution_paths._is_trust_first_name_pattern(
+            "Heather, Linda A.",
+            "Bass Jeffery & Heather Revocable Trust The",
+        ) is True
+
+    def test_earls_trust_not_flagged(self):
+        """Earls Trust — 'EARLS' IS the trust family name, at the start.
+        NOT a first-name-in-trust pattern."""
+        assert resolution_paths._is_trust_first_name_pattern(
+            "Earls, Richard Lawrence",
+            "Earls Trust",
+        ) is False
+
+    def test_rhodes_family_trust_not_flagged(self):
+        assert resolution_paths._is_trust_first_name_pattern(
+            "Rhodes, Margaret",
+            "Rhodes Family Trust",
+        ) is False
+
+    def test_no_entity_keyword_not_flagged(self):
+        """If the DCAD owner isn't a trust/entity at all, even mid-position
+        surname matches are likely legit joint-owner cases."""
+        assert resolution_paths._is_trust_first_name_pattern(
+            "Smith, John",
+            "Doe Jane & Smith John",
+        ) is False
+
+    def test_no_grantor_returns_false(self):
+        assert resolution_paths._is_trust_first_name_pattern(
+            "", "Bass Jeffery & Heather Revocable Trust The"
+        ) is False
+
+    def test_no_comma_grantor_returns_false(self):
+        """Path A's class 19a guard only fires on comma-form grantor names."""
+        assert resolution_paths._is_trust_first_name_pattern(
+            "Linda Heather",
+            "Bass Jeffery & Heather Revocable Trust The",
+        ) is False
+
+
+class TestRunPathA:
+    def _build_fixtures(self):
+        """owner_index, account_address_index, account_owner_index for tests."""
+        owner_index = {
+            "OUSLEY SKYLER":  ["acct_ousley"],
+            "WILSON ROBERT":  ["acct_wilson_1", "acct_wilson_2"],  # multi-account
+            "MEYERS BOBBIE":  ["acct_meyers"],
+            "HEATHER":        ["acct_bass_trust"],  # Class 19a candidate
+        }
+        # Flat dict[str, str] — same shape as legal_resolver._build_account_to_address
+        account_address_index = {
+            "acct_ousley":     "6840 DART AVE",
+            "acct_wilson_1":   "355 CARDINAL CREEK DR",
+            "acct_wilson_2":   "3613 BERMUDA DR",
+            "acct_meyers":     "4314 HAMILTON AVE",
+            "acct_bass_trust": "7018 CLEAR SPRINGS PKWY",
+        }
+        # Note: dcad owner string for bass_trust contains 'Heather' as a
+        # first-name inside a trust — triggers Class 19a guard.
+        account_owner_index = {
+            "acct_ousley":     "OUSLEY SKYLER",
+            "acct_wilson_1":   "WILSON ROBERT",
+            "acct_wilson_2":   "WILSON ROBERT",
+            "acct_meyers":     "MEYERS BOBBIE",
+            "acct_bass_trust": "BASS JEFFERY & HEATHER REVOCABLE TRUST THE",
+        }
+        return owner_index, account_address_index, account_owner_index
+
+    def test_ousley_single_clean_match(self):
+        oi, aai, aoi = self._build_fixtures()
+        records = [{
+            "record_id": "rO",
+            "dallas_code": "NOF",
+            "grantor": "Ousley, Skyler",
+        }]
+        stats = resolution_paths.run_path_a(records, oi, aai, aoi)
+        assert stats.matched == 1
+        assert records[0]["dcad_account"] == "acct_ousley"
+        assert records[0]["address_normalized"] == "6840 DART AVE"
+        # Single-account match — no multi_account warning
+        assert WARN_MULTI_ACCOUNT not in get_warnings(records[0])
+        # History entry
+        history = get_history(records[0])
+        assert len(history) == 1
+        assert history[0]["status"] == STATUS_MATCHED
+        assert history[0]["path"] == PATH_A_GRANTOR_OWNER_INDEX
+
+    def test_wilson_multi_account_stamps_alternates(self):
+        oi, aai, aoi = self._build_fixtures()
+        records = [{
+            "record_id": "rW",
+            "dallas_code": "NOF",
+            "grantor": "Wilson, Robert",
+        }]
+        stats = resolution_paths.run_path_a(records, oi, aai, aoi)
+        assert stats.multi_account_matched == 1
+        assert records[0]["dcad_account"] == "acct_wilson_1"  # first picked
+        # Alternates stamped
+        alternates = get_alternate_accounts(records[0])
+        assert "acct_wilson_2" in alternates
+        # Multi-account warning
+        assert WARN_MULTI_ACCOUNT in get_warnings(records[0])
+        # History reflects multi_match
+        history = get_history(records[0])
+        assert history[0]["status"] == STATUS_MULTI_MATCH
+
+    def test_heather_class_19a_guarded(self):
+        """Heather, Linda A. -> surname_only HEATHER -> Bass trust.
+        Must be guarded — operator should not be skip-tracing Bass family."""
+        oi, aai, aoi = self._build_fixtures()
+        records = [{
+            "record_id": "rH",
+            "dallas_code": "NOF",
+            "grantor": "Heather, Linda A.",
+        }]
+        stats = resolution_paths.run_path_a(records, oi, aai, aoi)
+        assert stats.guarded == 1
+        assert stats.matched == 0
+        # Critical: dcad_account NOT stamped
+        assert records[0].get("dcad_account") is None
+        # Warning surfaces why
+        assert WARN_SURNAME_IN_TRUST_FIRST_NAME in get_warnings(records[0])
+        # History shows GUARDED status
+        history = get_history(records[0])
+        assert history[0]["status"] == STATUS_GUARDED
+        assert history[0]["skip_reason"] == "surname_in_trust_first_name"
+
+    def test_liable_boilerplate_skipped(self):
+        oi, aai, aoi = self._build_fixtures()
+        records = [{
+            "record_id": "rL",
+            "dallas_code": "NOF",
+            "grantor": "Liable",
+        }]
+        stats = resolution_paths.run_path_a(records, oi, aai, aoi)
+        assert stats.skipped_boilerplate == 1
+        assert records[0].get("dcad_account") is None
+        history = get_history(records[0])
+        assert history[0]["skip_reason"] == "boilerplate_grantor"
+
+    def test_pb_records_skipped(self):
+        """Path A only runs on NOFs. PB records have their own decedent
+        fan-out via canonicalize_probate."""
+        oi, aai, aoi = self._build_fixtures()
+        records = [{
+            "record_id": "rPB",
+            "dallas_code": "PB",
+            "grantor": "Ousley, Skyler",  # matches but path A skips PB
+        }]
+        stats = resolution_paths.run_path_a(records, oi, aai, aoi)
+        assert stats.skipped_not_nof == 1
+        assert records[0].get("dcad_account") is None
+        # No history entry — Path A didn't consider this record
+        assert get_history(records[0]) == []
+
+    def test_already_resolved_skipped(self):
+        oi, aai, aoi = self._build_fixtures()
+        records = [{
+            "record_id": "rR",
+            "dallas_code": "NOF",
+            "grantor": "Ousley, Skyler",
+            "dcad_account": "already_set",
+        }]
+        stats = resolution_paths.run_path_a(records, oi, aai, aoi)
+        assert stats.skipped_already_resolved == 1
+        # Original dcad_account preserved
+        assert records[0]["dcad_account"] == "already_set"
+
+    def test_no_grantor_skipped(self):
+        oi, aai, aoi = self._build_fixtures()
+        records = [{"record_id": "rN", "dallas_code": "NOF"}]
+        stats = resolution_paths.run_path_a(records, oi, aai, aoi)
+        assert stats.skipped_no_grantor == 1
+
+    def test_no_match_records_history(self):
+        """Grantor present but no DCAD owner match — must still log
+        the attempt in history for audit."""
+        oi, aai, aoi = self._build_fixtures()
+        records = [{
+            "record_id": "rNM",
+            "dallas_code": "NOF",
+            "grantor": "Nobody, Doesnt Exist",
+        }]
+        stats = resolution_paths.run_path_a(records, oi, aai, aoi)
+        assert stats.no_match == 1
+        history = get_history(records[0])
+        assert len(history) == 1
+        assert history[0]["status"] == STATUS_NO_MATCH
+
+    def test_aggregate_counters(self):
+        oi, aai, aoi = self._build_fixtures()
+        records = [
+            {"record_id": "r1", "dallas_code": "NOF",
+             "grantor": "Ousley, Skyler"},                # matched
+            {"record_id": "r2", "dallas_code": "NOF",
+             "grantor": "Wilson, Robert"},                # multi_account
+            {"record_id": "r3", "dallas_code": "NOF",
+             "grantor": "Liable"},                        # boilerplate
+            {"record_id": "r4", "dallas_code": "PB",
+             "grantor": "Ousley, Skyler"},                # not NOF -> skip
+            {"record_id": "r5", "dallas_code": "NOF",
+             "dcad_account": "x",
+             "grantor": "Ousley, Skyler"},                # already resolved
+            {"record_id": "r6", "dallas_code": "NOF"},    # no grantor
+            {"record_id": "r7", "dallas_code": "NOF",
+             "grantor": "Heather, Linda A."},             # guarded
+            {"record_id": "r8", "dallas_code": "NOF",
+             "grantor": "Nobody, NotInIndex"},            # no_match
+        ]
+        stats = resolution_paths.run_path_a(records, oi, aai, aoi)
+        assert stats.total_records == 8
+        assert stats.matched == 1
+        assert stats.multi_account_matched == 1
+        assert stats.skipped_boilerplate == 1
+        assert stats.skipped_not_nof == 1
+        assert stats.skipped_already_resolved == 1
+        assert stats.skipped_no_grantor == 1
+        assert stats.guarded == 1
+        assert stats.no_match == 1
+        # candidates = total - skip_buckets - guarded? actually candidates
+        # is incremented after the boilerplate check passes
+        assert stats.candidates == 4  # r1, r2, r7 (will be guarded), r8

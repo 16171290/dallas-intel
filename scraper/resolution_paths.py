@@ -23,18 +23,34 @@ from dataclasses import dataclass
 from typing import Optional
 
 from . import address_variants, normalize
+from .probate_matcher import match_decedent_to_dcad
 from .resolution import (
+    GRANTOR_BOILERPLATE_BLOCKLIST,
+    PATH_A_GRANTOR_OWNER_INDEX,
     PATH_B_RAW_EXCERPT,
     PATH_VARIANT_LOOKUP,
+    STATUS_GUARDED,
     STATUS_MATCHED,
+    STATUS_MULTI_MATCH,
     STATUS_NO_MATCH,
     STATUS_SKIPPED,
+    TIER_DOUBLE_INITIAL,
+    TIER_EXACT,
+    TIER_INITIAL_FORM,
+    TIER_NO_MIDDLE,
+    TIER_SURNAME_ONLY,
     VENUE_TRUSTEE_SIGS,
+    WARN_COMMON_NAME_POLLUTION,
     WARN_LOOKUP_VARIANT_USED,
+    WARN_MULTI_ACCOUNT,
     WARN_PATH_B_USED_ALTERNATE,
+    WARN_SURNAME_DRIFT,
+    WARN_SURNAME_ONLY_TIER,
+    WARN_SURNAME_IN_TRUST_FIRST_NAME,
     ResolutionHistoryEntry,
     add_warning,
     append_history,
+    set_alternate_accounts,
 )
 
 logger = logging.getLogger(__name__)
@@ -484,4 +500,310 @@ def log_variant_lookup_summary(stats: VariantLookupStats) -> None:
         stats.skipped_already_resolved,
         stats.skipped_suspect_address,
         stats.skipped_no_address,
+    )
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Stage 6.45 — Path A (NOF grantor → DCAD owner_index)
+# ═══════════════════════════════════════════════════════════════════════════
+#
+# Mirrors what match_decedent_to_dcad already does for PB records, but
+# applied to NOF grantors. For records where:
+#   - dallas_code == "NOF"
+#   - dcad_account is still None after Stage 6.3/6.35/6.4
+#   - grantor is populated and looks like a real person name
+#
+# Look up the grantor in DCAD's owner_index. On a confident match, stamp
+# dcad_account + derive address_normalized from the matched account's
+# property address.
+#
+# Per design §5 + forensic findings, several guards prevent wrong-person
+# matches that would lead to wrong-person calls:
+#   - Boilerplate-grantor blocklist (Class 2: "Liable" etc.)
+#   - Class 19a: surname_only tier where surname appears mid-string in
+#     a trust/entity DCAD owner — guarded against (Heather → Bass case)
+#   - Multi-account matches: stamp first + alternates + warning so the
+#     operator sees alternates rather than silent first-pick
+#   - Surname drift: when matched dcad_owner surname ≠ grantor surname
+#     (e.g. trust grantor name doesn't match decedent), stamp warning
+
+
+@dataclass
+class PathAStats:
+    """Per-run observability counters for Path A."""
+    total_records:            int = 0
+    skipped_not_nof:          int = 0
+    skipped_already_resolved: int = 0
+    skipped_no_grantor:       int = 0
+    skipped_boilerplate:      int = 0
+    candidates:               int = 0
+    matched:                  int = 0    # 1 account, clean
+    multi_account_matched:    int = 0    # 2+ accounts, first stamped + warned
+    guarded:                  int = 0    # match found but Class 19a filter rejected
+    no_match:                 int = 0
+
+
+def _is_boilerplate_grantor(grantor: Optional[str]) -> bool:
+    """True if the grantor string reduces to a known boilerplate token.
+
+    Catches Class 2 (OCR-boilerplate-as-grantor) — e.g. "Liable" extracted
+    from "BUT NOT TO OTHERWISE BE LIABLE as Grantor/Borrower" text.
+    """
+    if not grantor:
+        return True
+    g = grantor.strip().upper()
+    if not g:
+        return True
+    # Strip post-comma material so 'LIABLE, FOO' collapses to 'LIABLE'
+    main = g.split(",")[0].strip()
+    if main in GRANTOR_BOILERPLATE_BLOCKLIST:
+        return True
+    # First token alone — catches "LIABLE FOO BAR" too
+    first_token = main.split()[0] if main.split() else ""
+    if first_token in GRANTOR_BOILERPLATE_BLOCKLIST:
+        return True
+    return False
+
+
+def _is_trust_first_name_pattern(grantor: str, dcad_owner: str) -> bool:
+    """Class 19a guard: detect when grantor surname matches a first-name
+    position INSIDE a trust/entity DCAD owner string.
+
+    Example FP (without guard):
+      grantor='Heather, Linda A.'       (surname=HEATHER)
+      dcad_owner='Bass Jeffery & Heather Revocable Trust The'
+
+    'HEATHER' appears in DCAD owner but as the trust grantor's FIRST name,
+    not as anybody's surname. The surname_only tier matched anyway because
+    expand_joint_owners + normalize stripped trust suffixes down to just
+    'HEATHER' in owner_index.
+
+    Returns True when:
+      - DCAD owner contains TRUST/LLC/INC/CORP/LP/LIFE ESTATE keyword
+      - grantor surname is present mid-string (not at the start)
+      - text before the surname is non-trivial (i.e. there's a real
+        first-name before "HEATHER" rather than the surname being the
+        first word).
+    """
+    if not grantor or not dcad_owner:
+        return False
+    if "," not in grantor:
+        return False
+    grantor_surname = grantor.split(",")[0].strip().upper()
+    if not grantor_surname:
+        return False
+    owner_upper = dcad_owner.upper()
+    if grantor_surname not in owner_upper:
+        return False
+    # Entity / trust indicator
+    has_entity = bool(re.search(
+        r"\b(TRUST|LLC|INC|CORP|LP|LTD|ESTATE)\b", owner_upper,
+    ))
+    if not has_entity:
+        return False
+    idx = owner_upper.index(grantor_surname)
+    before = owner_upper[:idx].strip()
+    # If surname is at the very start of the DCAD owner, it really is
+    # acting as a surname (e.g. "Earls Trust" — Earls IS the surname).
+    if not before:
+        return False
+    # If text before the surname includes '&' (joint owner) OR another
+    # capitalized name token, the surname is in a first-name position.
+    if "&" in before:
+        return True
+    # If there are 2+ word tokens before the surname, surname is mid-string
+    if len(before.split()) >= 1:
+        return True
+    return False
+
+
+def _surname_of(name: str) -> str:
+    """Extract the canonical surname token from a grantor / dcad_owner string.
+
+    Handles 'LAST, FIRST [MIDDLE]' (publicsearch comma form) and 'LAST FIRST [MIDDLE]'
+    (DCAD bulk first-token form). Returns uppercased surname or '' on empty.
+    """
+    if not name:
+        return ""
+    name_upper = name.strip().upper()
+    if "," in name_upper:
+        return name_upper.split(",")[0].strip()
+    tokens = name_upper.split()
+    return tokens[0] if tokens else ""
+
+
+def _account_owner_lookup(
+    account_num: str,
+    dcad_account_owner_index: dict[str, str],
+) -> Optional[str]:
+    """Look up the DCAD owner_name1 string for an account number.
+
+    Caller provides ``dcad_account_owner_index`` — a precomputed
+    ``{account_num: cleaned_owner_name}`` map. The harness builds this
+    from ACCOUNT_INFO at startup; main.py does the same.
+    """
+    return dcad_account_owner_index.get(account_num)
+
+
+def run_path_a(
+    records: list[dict],
+    owner_index: dict[str, list[str]],
+    account_address_index: dict[str, dict],
+    dcad_account_owner_index: dict[str, str],
+) -> PathAStats:
+    """Stage 6.45 — Path A: NOF grantor → DCAD owner_index lookup.
+
+    Fires on NOF records where dcad_account is still None. Uses the
+    same match_decedent_to_dcad machinery that PB records have used
+    since PR 1; for NOFs the 'decedent name' is the foreclosed grantor.
+
+    Mutates records in place:
+      - Stamps dcad_account on match
+      - Sets address_normalized from the matched account's property address
+      - Sets signal_metadata.alternate_accounts on multi-account matches
+      - Adds warnings: WARN_MULTI_ACCOUNT, WARN_SURNAME_ONLY_TIER,
+        WARN_COMMON_NAME_POLLUTION, WARN_SURNAME_DRIFT,
+        WARN_SURNAME_IN_TRUST_FIRST_NAME (latter only when GUARDED)
+      - Appends resolution_history entry for every considered record
+
+    Returns PathAStats for run-level observability.
+    """
+    stats = PathAStats(total_records=len(records))
+
+    for rec in records:
+        # Path A only runs on NOF records (PB records use the existing
+        # canonicalize_probate->match_decedent_to_dcad path).
+        if rec.get("dallas_code") != "NOF":
+            stats.skipped_not_nof += 1
+            continue
+
+        if rec.get("dcad_account"):
+            stats.skipped_already_resolved += 1
+            continue
+
+        grantor = rec.get("grantor")
+        if not grantor:
+            stats.skipped_no_grantor += 1
+            continue
+
+        if _is_boilerplate_grantor(grantor):
+            append_history(rec, ResolutionHistoryEntry(
+                path=PATH_A_GRANTOR_OWNER_INDEX,
+                stage="6.45",
+                input=grantor,
+                status=STATUS_SKIPPED,
+                skip_reason="boilerplate_grantor",
+            ))
+            stats.skipped_boilerplate += 1
+            continue
+
+        stats.candidates += 1
+
+        match = match_decedent_to_dcad(grantor, owner_index)
+
+        if match is None:
+            append_history(rec, ResolutionHistoryEntry(
+                path=PATH_A_GRANTOR_OWNER_INDEX,
+                stage="6.45",
+                input=grantor,
+                status=STATUS_NO_MATCH,
+            ))
+            stats.no_match += 1
+            continue
+
+        # We have a match. Class 19a guard for surname_only matches:
+        # peek at the DCAD owner of the matched account to see if the
+        # surname is in a first-name position inside a trust.
+        if match.tier == TIER_SURNAME_ONLY and match.accounts:
+            first_acct = match.accounts[0]
+            dcad_owner = _account_owner_lookup(first_acct, dcad_account_owner_index) or ""
+            if _is_trust_first_name_pattern(grantor, dcad_owner):
+                append_history(rec, ResolutionHistoryEntry(
+                    path=PATH_A_GRANTOR_OWNER_INDEX,
+                    stage="6.45",
+                    input=grantor,
+                    status=STATUS_GUARDED,
+                    skip_reason="surname_in_trust_first_name",
+                    tier=match.tier,
+                    alternates=list(match.accounts),
+                ))
+                add_warning(rec, WARN_SURNAME_IN_TRUST_FIRST_NAME)
+                stats.guarded += 1
+                continue
+
+        # Match passes guards. Stamp it.
+        primary_acct = match.accounts[0]
+        alternates = list(match.accounts[1:])
+
+        rec["dcad_account"] = primary_acct
+        # Derive address_normalized from the matched account's property.
+        # account_address_index is the flat dict[str, str] produced by
+        # legal_resolver._build_account_to_address.
+        acct_addr = account_address_index.get(primary_acct)
+        if acct_addr:
+            rec["address_normalized"] = acct_addr
+
+        # Per-entry warnings — captured on the history entry AND on the
+        # record-level confidence_warnings.
+        history_warnings: list[str] = []
+        if len(match.accounts) > 1:
+            history_warnings.append(WARN_MULTI_ACCOUNT)
+            add_warning(rec, WARN_MULTI_ACCOUNT)
+            set_alternate_accounts(rec, alternates)
+            stats.multi_account_matched += 1
+        else:
+            stats.matched += 1
+
+        if match.tier == TIER_SURNAME_ONLY:
+            history_warnings.append(WARN_SURNAME_ONLY_TIER)
+            add_warning(rec, WARN_SURNAME_ONLY_TIER)
+
+        if match.warning == "common_name_pollution":
+            history_warnings.append(WARN_COMMON_NAME_POLLUTION)
+            add_warning(rec, WARN_COMMON_NAME_POLLUTION)
+
+        # Surname drift check: post-match, does the grantor surname
+        # actually align with the DCAD owner surname?
+        dcad_owner_str = _account_owner_lookup(primary_acct, dcad_account_owner_index) or ""
+        grantor_surname = _surname_of(grantor)
+        owner_surname = _surname_of(dcad_owner_str)
+        if (grantor_surname and owner_surname
+                and grantor_surname != owner_surname
+                and grantor_surname not in owner_surname
+                and owner_surname not in grantor_surname):
+            history_warnings.append(WARN_SURNAME_DRIFT)
+            add_warning(rec, WARN_SURNAME_DRIFT)
+
+        status = STATUS_MULTI_MATCH if len(match.accounts) > 1 else STATUS_MATCHED
+        append_history(rec, ResolutionHistoryEntry(
+            path=PATH_A_GRANTOR_OWNER_INDEX,
+            stage="6.45",
+            input=grantor,
+            status=status,
+            tier=match.tier,
+            dcad_account=primary_acct,
+            alternates=alternates,
+            warnings=history_warnings,
+        ))
+
+    return stats
+
+
+def log_path_a_summary(stats: PathAStats) -> None:
+    """Emit a single-line operations summary suitable for the daily-run log."""
+    logger.info(
+        "Path A (NOF grantor->owner_index): "
+        "%d/%d NOFs | candidates=%d matched=%d multi=%d guarded=%d no_match=%d "
+        "(skipped: not_nof=%d already_resolved=%d no_grantor=%d boilerplate=%d)",
+        stats.matched + stats.multi_account_matched,
+        stats.total_records,
+        stats.candidates,
+        stats.matched,
+        stats.multi_account_matched,
+        stats.guarded,
+        stats.no_match,
+        stats.skipped_not_nof,
+        stats.skipped_already_resolved,
+        stats.skipped_no_grantor,
+        stats.skipped_boilerplate,
     )

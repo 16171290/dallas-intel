@@ -62,8 +62,9 @@ logger = logging.getLogger("validate_resolution")
 # DCAD index cache
 # ═══════════════════════════════════════════════════════════════════════════
 
-CACHE_DIR  = REPO_ROOT / "data" / "cache"
-CACHE_FILE = CACHE_DIR / "dcad_address_index.pkl.gz"
+CACHE_DIR        = REPO_ROOT / "data" / "cache"
+CACHE_FILE       = CACHE_DIR / "dcad_address_index.pkl.gz"
+PATH_A_CACHE_FILE = CACHE_DIR / "dcad_path_a_indexes.pkl.gz"
 
 
 def find_dcad_zip() -> Optional[Path]:
@@ -162,6 +163,64 @@ def load_or_build_address_index(force_rebuild: bool = False) -> dict[str, str]:
     return index
 
 
+def build_path_a_indexes(zip_path: Path) -> dict:
+    """Build the three indexes Path A needs from a DCAD ZIP.
+
+    Returns ``{owner_index, account_owner_lookup, account_address_index}``.
+    """
+    from scraper import dcad_bulk, dcad_owner_index, legal_resolver
+
+    logger.info("Parsing DCAD tables for Path A indexes...")
+    t0 = time.perf_counter()
+    tables = dcad_bulk.parse_dcad_tables(zip_path)
+
+    owner_index           = dcad_owner_index.build_owner_index(tables)
+    account_owner_lookup  = dcad_owner_index.build_account_to_owner_name(tables)
+    account_address_index = legal_resolver._build_account_to_address(tables)
+
+    elapsed = time.perf_counter() - t0
+    logger.info(
+        "Built Path A indexes: owner_index=%d, account_owner_lookup=%d, "
+        "account_address_index=%d in %.1fs",
+        len(owner_index), len(account_owner_lookup),
+        len(account_address_index), elapsed,
+    )
+    return {
+        "owner_index":           owner_index,
+        "account_owner_lookup":  account_owner_lookup,
+        "account_address_index": account_address_index,
+    }
+
+
+def load_or_build_path_a_indexes(force_rebuild: bool = False) -> dict:
+    """Load Path A's indexes from cache; build from DCAD ZIP if missing
+    or force_rebuild=True. Cache lives alongside the address_index cache."""
+    if not force_rebuild and PATH_A_CACHE_FILE.exists():
+        logger.info("Loading cached Path A indexes from %s", PATH_A_CACHE_FILE)
+        t0 = time.perf_counter()
+        with gzip.open(PATH_A_CACHE_FILE, "rb") as f:
+            indexes = pickle.load(f)
+        elapsed = time.perf_counter() - t0
+        logger.info(
+            "Loaded Path A indexes: owner_index=%d, account_owner_lookup=%d, "
+            "account_address_index=%d in %.1fs",
+            len(indexes["owner_index"]),
+            len(indexes["account_owner_lookup"]),
+            len(indexes["account_address_index"]),
+            elapsed,
+        )
+        return indexes
+
+    zip_path = fetch_dcad_zip_or_die()
+    indexes  = build_path_a_indexes(zip_path)
+
+    CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    logger.info("Writing Path A cache to %s", PATH_A_CACHE_FILE)
+    with gzip.open(PATH_A_CACHE_FILE, "wb") as f:
+        pickle.dump(indexes, f, protocol=pickle.HIGHEST_PROTOCOL)
+    return indexes
+
+
 # ═══════════════════════════════════════════════════════════════════════════
 # Path runners
 # ═══════════════════════════════════════════════════════════════════════════
@@ -227,8 +286,40 @@ def run_path_b(records: list[dict], address_index: dict[str, str],
     }
 
 
-# Path A and Path C runners will be added by PRs 3 and 4. They follow
-# the same signature shape: (records, indexes_needed, verbose) -> diff dict.
+def run_path_a(records: list[dict], path_a_indexes: dict,
+               verbose: bool = False) -> dict:
+    """Run Stage 6.45 — Path A (NOF grantor → DCAD owner_index)."""
+    from scraper import resolution_paths
+    from scraper.resolution import get_warnings
+
+    before = _snapshot_before(records)
+    stats = resolution_paths.run_path_a(
+        records,
+        path_a_indexes["owner_index"],
+        path_a_indexes["account_address_index"],
+        path_a_indexes["account_owner_lookup"],
+    )
+    newly_matched, overwrote_address = _diff_records(records, before, get_warnings)
+
+    return {
+        "stats": {
+            "total_records":            stats.total_records,
+            "skipped_not_nof":          stats.skipped_not_nof,
+            "skipped_already_resolved": stats.skipped_already_resolved,
+            "skipped_no_grantor":       stats.skipped_no_grantor,
+            "skipped_boilerplate":      stats.skipped_boilerplate,
+            "candidates":               stats.candidates,
+            "matched":                  stats.matched,
+            "multi_account_matched":    stats.multi_account_matched,
+            "guarded":                  stats.guarded,
+            "no_match":                 stats.no_match,
+        },
+        "newly_matched":     newly_matched,
+        "overwrote_address": overwrote_address,
+    }
+
+
+# Path C runner will be added by PR 4.
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -275,6 +366,39 @@ def report_variant_lookup(diff: dict, verbose: bool) -> None:
     print(f"  Variant-lookup candidates    : {s['candidates']}")
     print(f"    Matched (newly resolved)   : {s['matched']}")
     print(f"    No match (lookup failed)   : {s['no_match']}")
+    print()
+
+    if diff["newly_matched"]:
+        print(f"NEWLY RESOLVED — {len(diff['newly_matched'])} records:")
+        print()
+        for m in diff["newly_matched"]:
+            print(f"  record_id={m['record_id']}")
+            print(f"    grantor:         {m['grantor']!r}")
+            print(f"    before:          {m['before_address']!r}")
+            print(f"    after:           {m['after_address']!r}")
+            print(f"    dcad_account:    {m['dcad_account']}")
+            if m['warnings']:
+                print(f"    warnings:        {m['warnings']}")
+            print()
+
+
+def report_path_a(diff: dict, verbose: bool) -> None:
+    """Human-readable summary of Stage 6.45 Path A diff."""
+    s = diff["stats"]
+    print()
+    print("=" * 72)
+    print("STAGE 6.45 — Path A (NOF grantor -> DCAD owner_index)")
+    print("=" * 72)
+    print(f"  Total records considered     : {s['total_records']}")
+    print(f"  Skipped: not NOF (PB/AJ)     : {s['skipped_not_nof']}")
+    print(f"  Skipped: dcad_account set    : {s['skipped_already_resolved']}")
+    print(f"  Skipped: no grantor          : {s['skipped_no_grantor']}")
+    print(f"  Skipped: boilerplate grantor : {s['skipped_boilerplate']}")
+    print(f"  Path A candidates            : {s['candidates']}")
+    print(f"    Matched (single account)   : {s['matched']}")
+    print(f"    Multi-account (alternates) : {s['multi_account_matched']}")
+    print(f"    Guarded (Class 19a)        : {s['guarded']}")
+    print(f"    No match                   : {s['no_match']}")
     print()
 
     if diff["newly_matched"]:
@@ -374,12 +498,13 @@ def main() -> int:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     ap.add_argument(
-        "--path", choices=["B", "variant", "all"], default="all",
+        "--path", choices=["A", "B", "variant", "all"], default="all",
         help="Which resolution path(s) to validate. "
              "B = Path B raw_excerpt fallback (Stage 6.3). "
              "variant = Class 26 family fuzzy lookup (Stage 6.35). "
-             "all = run both in pipeline order. "
-             "Future PRs add A and C.",
+             "A = Path A NOF grantor -> owner_index (Stage 6.45). "
+             "all = run B, variant, then A in pipeline order. "
+             "Future PRs add C.",
     )
     ap.add_argument(
         "--records", type=Path,
@@ -403,18 +528,22 @@ def main() -> int:
 
     if args.build_cache:
         load_or_build_address_index(force_rebuild=True)
-        print("DCAD address_index cache rebuilt.")
+        load_or_build_path_a_indexes(force_rebuild=True)
+        print("DCAD address_index + Path A indexes caches rebuilt.")
         return 0
 
     # Load records
     records = load_records(args.records)
     report_baseline(records)
 
-    # Load DCAD address_index (cached)
-    address_index = load_or_build_address_index()
+    # Load DCAD address_index (cached). Only paths that need it touch the
+    # disk; Path A needs the owner-keyed indexes instead.
+    address_index = None
+    if args.path in ("B", "variant", "all"):
+        address_index = load_or_build_address_index()
 
-    # Run requested path(s) — note: when --path all, B runs first, then
-    # variant lookup runs over remaining unresolved records (pipeline order).
+    # Run requested path(s) — when --path all, pipeline order is
+    # B -> variant -> A (mirrors main.py stages 6.3 -> 6.35 -> 6.45).
     if args.path in ("B", "all"):
         diff = run_path_b(records, address_index, verbose=args.verbose)
         report_path_b(diff, verbose=args.verbose)
@@ -422,6 +551,11 @@ def main() -> int:
     if args.path in ("variant", "all"):
         diff = run_variant_lookup(records, address_index, verbose=args.verbose)
         report_variant_lookup(diff, verbose=args.verbose)
+
+    if args.path in ("A", "all"):
+        path_a_indexes = load_or_build_path_a_indexes()
+        diff = run_path_a(records, path_a_indexes, verbose=args.verbose)
+        report_path_a(diff, verbose=args.verbose)
 
     # Write enriched records if requested
     if args.write:
