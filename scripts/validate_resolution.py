@@ -62,9 +62,10 @@ logger = logging.getLogger("validate_resolution")
 # DCAD index cache
 # ═══════════════════════════════════════════════════════════════════════════
 
-CACHE_DIR        = REPO_ROOT / "data" / "cache"
-CACHE_FILE       = CACHE_DIR / "dcad_address_index.pkl.gz"
+CACHE_DIR         = REPO_ROOT / "data" / "cache"
+CACHE_FILE        = CACHE_DIR / "dcad_address_index.pkl.gz"
 PATH_A_CACHE_FILE = CACHE_DIR / "dcad_path_a_indexes.pkl.gz"
+PATH_C_CACHE_FILE = CACHE_DIR / "dcad_path_c_indexes.pkl.gz"
 
 
 def find_dcad_zip() -> Optional[Path]:
@@ -190,6 +191,48 @@ def build_path_a_indexes(zip_path: Path) -> dict:
         "account_owner_lookup":  account_owner_lookup,
         "account_address_index": account_address_index,
     }
+
+
+def build_path_c_indexes(zip_path: Path) -> dict:
+    """Build the indexes Path C needs: legal_index + acct_to_addr."""
+    from scraper import dcad_bulk, legal_resolver
+
+    logger.info("Parsing DCAD tables for Path C indexes...")
+    t0 = time.perf_counter()
+    tables       = dcad_bulk.parse_dcad_tables(zip_path)
+    legal_index  = legal_resolver.build_legal_index(tables)
+    acct_to_addr = legal_resolver._build_account_to_address(tables)
+    elapsed = time.perf_counter() - t0
+    logger.info(
+        "Built Path C indexes: legal_index=%d keys, acct_to_addr=%d in %.1fs",
+        len(legal_index), len(acct_to_addr), elapsed,
+    )
+    return {"legal_index": legal_index, "acct_to_addr": acct_to_addr}
+
+
+def load_or_build_path_c_indexes(force_rebuild: bool = False) -> dict:
+    """Load Path C's indexes from cache; build from DCAD ZIP otherwise."""
+    if not force_rebuild and PATH_C_CACHE_FILE.exists():
+        logger.info("Loading cached Path C indexes from %s", PATH_C_CACHE_FILE)
+        t0 = time.perf_counter()
+        with gzip.open(PATH_C_CACHE_FILE, "rb") as f:
+            indexes = pickle.load(f)
+        elapsed = time.perf_counter() - t0
+        logger.info(
+            "Loaded Path C indexes: legal_index=%d, acct_to_addr=%d in %.1fs",
+            len(indexes["legal_index"]),
+            len(indexes["acct_to_addr"]),
+            elapsed,
+        )
+        return indexes
+
+    zip_path = fetch_dcad_zip_or_die()
+    indexes  = build_path_c_indexes(zip_path)
+    CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    logger.info("Writing Path C cache to %s", PATH_C_CACHE_FILE)
+    with gzip.open(PATH_C_CACHE_FILE, "wb") as f:
+        pickle.dump(indexes, f, protocol=pickle.HIGHEST_PROTOCOL)
+    return indexes
 
 
 def load_or_build_path_a_indexes(force_rebuild: bool = False) -> dict:
@@ -319,7 +362,91 @@ def run_path_a(records: list[dict], path_a_indexes: dict,
     }
 
 
-# Path C runner will be added by PR 4.
+def run_path_c(records: list[dict], path_c_indexes: dict,
+               verbose: bool = False) -> dict:
+    """Run Stage 6.4 APN resolver + Stage 6.5 legal resolver as Path C.
+
+    Both share the acct_to_addr index; legal resolver also needs legal_index.
+    Returns a merged diff: stats from both stages plus per-record changes.
+    """
+    from scraper import legal_resolver
+    from scraper.resolution import get_warnings
+
+    before = _snapshot_before(records)
+    apn_stats = legal_resolver.resolve_apn_to_address_with_indexes(
+        records, path_c_indexes["acct_to_addr"],
+    )
+    legal_stats = legal_resolver.resolve_legal_descriptions_with_indexes(
+        records,
+        path_c_indexes["legal_index"],
+        path_c_indexes["acct_to_addr"],
+    )
+    newly_matched, overwrote_address = _diff_records(records, before, get_warnings)
+
+    return {
+        "stats": {
+            "apn": {
+                "total":            apn_stats.total,
+                "resolved":         apn_stats.resolved,
+                "no_apn":           apn_stats.no_apn,
+                "no_match":         apn_stats.no_match,
+                "skipped_already_resolved": apn_stats.skipped_already_resolved,
+            },
+            "legal": {
+                "total":            legal_stats.total,
+                "matched_exact":    legal_stats.matched_exact,
+                "matched_fuzzy":    legal_stats.matched_fuzzy,
+                "resolved":         legal_stats.resolved,
+                "no_parse":         legal_stats.no_parse,
+                "no_match":         legal_stats.no_match,
+                "multi_match":      legal_stats.multi_match,
+                "no_snippet":       legal_stats.no_snippet,
+                "skipped_already_resolved": legal_stats.skipped_already_resolved,
+            },
+        },
+        "newly_matched":     newly_matched,
+        "overwrote_address": overwrote_address,
+    }
+
+
+def report_path_c(diff: dict, verbose: bool) -> None:
+    """Human-readable summary of Stage 6.4 + 6.5 Path C diff."""
+    apn = diff["stats"]["apn"]
+    leg = diff["stats"]["legal"]
+    print()
+    print("=" * 72)
+    print("PATH C — APN resolver (6.4) + Legal resolver (6.5)")
+    print("=" * 72)
+    print(f"  Stage 6.4 (APN):")
+    print(f"    Total considered           : {apn['total']}")
+    print(f"    Skipped: dcad_account set  : {apn['skipped_already_resolved']}")
+    print(f"    Resolved (APN -> account)  : {apn['resolved']}")
+    print(f"    No APN in OCR              : {apn['no_apn']}")
+    print(f"    APN no match               : {apn['no_match']}")
+    print(f"  Stage 6.5 (Legal resolver):")
+    print(f"    Total considered           : {leg['total']}")
+    print(f"    Skipped: dcad_account set  : {leg['skipped_already_resolved']}")
+    print(f"    Matched (exact)            : {leg['matched_exact']}")
+    print(f"    Matched (fuzzy subdivision): {leg['matched_fuzzy']}")
+    print(f"    Resolved total             : {leg['resolved']}")
+    print(f"    No subdivision parsed      : {leg['no_parse']}")
+    print(f"    No match                   : {leg['no_match']}")
+    print(f"    Multi-account skipped      : {leg['multi_match']}")
+    print(f"    No raw_excerpt             : {leg['no_snippet']}")
+    print()
+
+    if diff["newly_matched"]:
+        print(f"NEWLY RESOLVED — {len(diff['newly_matched'])} records:")
+        print()
+        for m in diff["newly_matched"]:
+            print(f"  record_id={m['record_id']}")
+            print(f"    grantor:         {m['grantor']!r}")
+            print(f"    before:          {m['before_address']!r}")
+            print(f"    after:           {m['after_address']!r}")
+            print(f"    dcad_account:    {m['dcad_account']}")
+            if m['warnings']:
+                print(f"    warnings:        {m['warnings']}")
+            print()
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -498,13 +625,13 @@ def main() -> int:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     ap.add_argument(
-        "--path", choices=["A", "B", "variant", "all"], default="all",
+        "--path", choices=["A", "B", "C", "variant", "all"], default="all",
         help="Which resolution path(s) to validate. "
              "B = Path B raw_excerpt fallback (Stage 6.3). "
              "variant = Class 26 family fuzzy lookup (Stage 6.35). "
              "A = Path A NOF grantor -> owner_index (Stage 6.45). "
-             "all = run B, variant, then A in pipeline order. "
-             "Future PRs add C.",
+             "C = Path C APN + legal-description resolver (Stages 6.4 + 6.5). "
+             "all = run B, variant, A, then C in pipeline order.",
     )
     ap.add_argument(
         "--records", type=Path,
@@ -529,7 +656,8 @@ def main() -> int:
     if args.build_cache:
         load_or_build_address_index(force_rebuild=True)
         load_or_build_path_a_indexes(force_rebuild=True)
-        print("DCAD address_index + Path A indexes caches rebuilt.")
+        load_or_build_path_c_indexes(force_rebuild=True)
+        print("DCAD address_index + Path A + Path C indexes caches rebuilt.")
         return 0
 
     # Load records
@@ -537,13 +665,14 @@ def main() -> int:
     report_baseline(records)
 
     # Load DCAD address_index (cached). Only paths that need it touch the
-    # disk; Path A needs the owner-keyed indexes instead.
+    # disk; Paths A/C need different indexes.
     address_index = None
     if args.path in ("B", "variant", "all"):
         address_index = load_or_build_address_index()
 
     # Run requested path(s) — when --path all, pipeline order is
-    # B -> variant -> A (mirrors main.py stages 6.3 -> 6.35 -> 6.45).
+    # B -> variant -> A -> C (mirrors main.py stages
+    # 6.3 -> 6.35 -> 6.45 -> 6.4 + 6.5).
     if args.path in ("B", "all"):
         diff = run_path_b(records, address_index, verbose=args.verbose)
         report_path_b(diff, verbose=args.verbose)
@@ -556,6 +685,11 @@ def main() -> int:
         path_a_indexes = load_or_build_path_a_indexes()
         diff = run_path_a(records, path_a_indexes, verbose=args.verbose)
         report_path_a(diff, verbose=args.verbose)
+
+    if args.path in ("C", "all"):
+        path_c_indexes = load_or_build_path_c_indexes()
+        diff = run_path_c(records, path_c_indexes, verbose=args.verbose)
+        report_path_c(diff, verbose=args.verbose)
 
     # Write enriched records if requested
     if args.write:
