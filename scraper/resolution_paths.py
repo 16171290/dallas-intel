@@ -22,13 +22,15 @@ import re
 from dataclasses import dataclass
 from typing import Optional
 
-from . import normalize
+from . import address_variants, normalize
 from .resolution import (
     PATH_B_RAW_EXCERPT,
+    PATH_VARIANT_LOOKUP,
     STATUS_MATCHED,
     STATUS_NO_MATCH,
     STATUS_SKIPPED,
     VENUE_TRUSTEE_SIGS,
+    WARN_LOOKUP_VARIANT_USED,
     WARN_PATH_B_USED_ALTERNATE,
     ResolutionHistoryEntry,
     add_warning,
@@ -325,4 +327,142 @@ def log_path_b_summary(stats: PathBStats) -> None:
         stats.skipped_clean_address,
         stats.skipped_no_raw_excerpt,
         stats.skipped_no_clean_address,
+    )
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Stage 6.35 — Variant Lookup (Class 26 family)
+# ═══════════════════════════════════════════════════════════════════════════
+#
+# Runs AFTER Path B. Targets records where Stage 7 + Path B both missed
+# despite the source carrying a clean-looking address that's *almost*
+# correct. The forensic motivation (per docs/FORENSIC_AUDIT_*):
+#
+#   - DCAD's web search supports forgiving partial / suffix-less /
+#     directional-drop / compound-split matching
+#   - Our bulk address_index is strict equality
+#   - Records like '4314 HAMILTON', '309 BILLY WICKLIFFE',
+#     '2828 S LAKEVIEW DR' have correct property data in DCAD bulk but
+#     under slightly different forms ('4314 HAMILTON AVE',
+#     '309 BILLY WICKLIFFE DR', '2828 LAKE VIEW DR')
+#
+# Stage 6.35 fixes this by performing a fuzzy lookup keyed by street
+# number, with similarity scoring on the post-number portion. See
+# scraper/address_variants.py for the matching strategy.
+
+
+@dataclass
+class VariantLookupStats:
+    """Per-run observability counters for the variant-lookup stage."""
+    total_records:           int = 0
+    skipped_already_resolved: int = 0    # dcad_account already set
+    skipped_suspect_address: int = 0     # address is suspect (Path B territory)
+    skipped_no_address:      int = 0     # no address_normalized to look up
+    candidates:              int = 0     # records that DID trigger variant lookup
+    matched:                 int = 0     # fuzzy lookup hit DCAD
+    no_match:                int = 0     # candidate but no acceptable variant
+
+
+def _address_eligible_for_variant_lookup(addr_norm: Optional[str]) -> bool:
+    """Variant lookup fires only on addresses that LOOK clean — Path B
+    has already handled the suspect ones."""
+    if not addr_norm:
+        return False
+    # Skip suspect addresses — Path B owns those
+    is_suspect, _ = _is_suspect_address(addr_norm)
+    if is_suspect:
+        return False
+    # Must have a leading digit run (the street number for the lookup key)
+    return bool(re.match(r"^\d+\s+", addr_norm))
+
+
+def run_variant_lookup(
+    records: list[dict],
+    address_index: dict[str, str],
+    fuzzy_index: dict[str, list[tuple[str, str]]],
+) -> VariantLookupStats:
+    """Stage 6.35 — Variant Lookup.
+
+    For each record where dcad_account is None AND address_normalized
+    looks clean (not suspect), attempt a fuzzy lookup. On a confident
+    match, stamp dcad_account + replace address_normalized with the
+    canonical DCAD form.
+
+    Mutates records in place:
+      - Stamps dcad_account on match
+      - Replaces address_normalized with the matched DCAD form
+      - Adds WARN_LOOKUP_VARIANT_USED if the address was changed
+      - Appends resolution_history entry for every considered record
+
+    Returns VariantLookupStats for run-level observability.
+    """
+    stats = VariantLookupStats(total_records=len(records))
+
+    for rec in records:
+        # Guard 1: skip already-resolved records
+        if rec.get("dcad_account"):
+            stats.skipped_already_resolved += 1
+            continue
+
+        addr_norm = rec.get("address_normalized")
+
+        # Guard 2: skip suspect addresses (Path B's domain)
+        if not addr_norm:
+            stats.skipped_no_address += 1
+            continue
+        if not _address_eligible_for_variant_lookup(addr_norm):
+            stats.skipped_suspect_address += 1
+            continue
+
+        stats.candidates += 1
+
+        matched_addr, acct = address_variants.fuzzy_lookup(
+            addr_norm, address_index, fuzzy_index,
+        )
+
+        if acct and matched_addr:
+            old_addr = addr_norm
+            rec["dcad_account"] = acct
+            # Replace address_normalized only if it differs from the matched form
+            if matched_addr != old_addr:
+                rec["address_normalized"] = matched_addr
+                add_warning(rec, WARN_LOOKUP_VARIANT_USED)
+            append_history(rec, ResolutionHistoryEntry(
+                path=PATH_VARIANT_LOOKUP,
+                stage="6.35",
+                input=old_addr,
+                status=STATUS_MATCHED,
+                dcad_account=acct,
+            ))
+            stats.matched += 1
+            logger.debug(
+                "Variant lookup matched record_id=%s %r -> %r (acct=%s)",
+                rec.get("record_id"), old_addr, matched_addr, acct,
+            )
+        else:
+            append_history(rec, ResolutionHistoryEntry(
+                path=PATH_VARIANT_LOOKUP,
+                stage="6.35",
+                input=addr_norm,
+                status=STATUS_NO_MATCH,
+            ))
+            stats.no_match += 1
+
+    return stats
+
+
+def log_variant_lookup_summary(stats: VariantLookupStats) -> None:
+    """Emit a single-line operations summary suitable for the daily-run log."""
+    logger.info(
+        "Variant lookup (Class 26 family): "
+        "%d/%d records | candidates=%d matched=%d no_match=%d "
+        "(skipped: already_resolved=%d suspect_addr=%d no_addr=%d)",
+        stats.matched,
+        stats.total_records,
+        stats.candidates,
+        stats.matched,
+        stats.no_match,
+        stats.skipped_already_resolved,
+        stats.skipped_suspect_address,
+        stats.skipped_no_address,
     )

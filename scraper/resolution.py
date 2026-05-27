@@ -41,6 +41,7 @@ logger = logging.getLogger(__name__)
 # signal_metadata.primary_resolution.
 PATH_STAGE_7_ADDRESS_INDEX     = "stage_7_address_index"
 PATH_B_RAW_EXCERPT             = "path_b_raw_excerpt"
+PATH_VARIANT_LOOKUP            = "path_variant_lookup"             # PR 2.5
 PATH_A_GRANTOR_OWNER_INDEX     = "path_a_grantor_owner_index"
 PATH_C_LEGAL_RESOLVER          = "path_c_legal_resolver"
 PATH_C_APN                     = "path_c_apn"
@@ -50,6 +51,7 @@ PATH_PB_APPLICANT_OWNER_INDEX  = "path_pb_applicant_owner_index"  # PB retrofit 
 VALID_PATHS: frozenset[str] = frozenset({
     PATH_STAGE_7_ADDRESS_INDEX,
     PATH_B_RAW_EXCERPT,
+    PATH_VARIANT_LOOKUP,
     PATH_A_GRANTOR_OWNER_INDEX,
     PATH_C_LEGAL_RESOLVER,
     PATH_C_APN,
@@ -105,6 +107,7 @@ WARN_PATH_DISAGREEMENT            = "path_disagreement"
 WARN_PATH_B_USED_ALTERNATE        = "path_b_used_alternate"
 WARN_FUZZY_SUBDIVISION_MATCH      = "fuzzy_subdivision_match"
 WARN_VENUE_OR_TRUSTEE_ADDRESS     = "venue_or_trustee_address"
+WARN_LOOKUP_VARIANT_USED          = "lookup_variant_used"
 
 CANONICAL_WARNINGS: frozenset[str] = frozenset({
     WARN_MULTI_ACCOUNT,
@@ -117,6 +120,7 @@ CANONICAL_WARNINGS: frozenset[str] = frozenset({
     WARN_PATH_B_USED_ALTERNATE,
     WARN_FUZZY_SUBDIVISION_MATCH,
     WARN_VENUE_OR_TRUSTEE_ADDRESS,
+    WARN_LOOKUP_VARIANT_USED,
 })
 
 

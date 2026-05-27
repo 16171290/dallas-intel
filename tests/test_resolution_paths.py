@@ -12,12 +12,14 @@ from __future__ import annotations
 
 import pytest
 
-from scraper import resolution_paths
+from scraper import address_variants, resolution_paths
 from scraper.resolution import (
     PATH_B_RAW_EXCERPT,
+    PATH_VARIANT_LOOKUP,
     STATUS_MATCHED,
     STATUS_NO_MATCH,
     STATUS_SKIPPED,
+    WARN_LOOKUP_VARIANT_USED,
     WARN_PATH_B_USED_ALTERNATE,
     get_history,
     get_warnings,
@@ -372,3 +374,148 @@ class TestAuditTrail:
         rec = {"record_id": "r1", "address_normalized": "4314 HAMILTON"}
         resolution_paths.run_path_b([rec], {})
         assert get_history(rec) == []
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Stage 6.35 — run_variant_lookup (Class 26 family)
+# ═══════════════════════════════════════════════════════════════════════════
+
+class TestRunVariantLookup:
+    """Stage 6.35 fuzzy-lookup retry for records whose addresses look
+    clean but DCAD exact lookup missed."""
+
+    def _build_fixtures(self):
+        # Mock DCAD address_index. Note that some entries deliberately
+        # have suffix forms that our source addresses lack.
+        idx = {
+            "4314 HAMILTON AVE":      "acct_hamilton",
+            "309 BILLY WICKLIFFE DR": "acct_wickliffe",
+            "2828 LAKE VIEW DR":      "acct_lakeview",
+            "1234 EXACT MATCH ST":    "acct_exact",
+        }
+        fi = address_variants.build_fuzzy_index(idx)
+        return idx, fi
+
+    def test_meyers_missing_suffix_recovery(self):
+        idx, fi = self._build_fixtures()
+        records = [{
+            "record_id":          "rM",
+            "address_normalized": "4314 HAMILTON",   # no suffix
+        }]
+        stats = resolution_paths.run_variant_lookup(records, idx, fi)
+        assert stats.matched == 1
+        assert records[0]["dcad_account"] == "acct_hamilton"
+        assert records[0]["address_normalized"] == "4314 HAMILTON AVE"
+        # Warning indicates the address was rewritten
+        assert WARN_LOOKUP_VARIANT_USED in get_warnings(records[0])
+        # History entry recorded
+        history = get_history(records[0])
+        assert len(history) == 1
+        assert history[0]["status"] == STATUS_MATCHED
+        assert history[0]["path"] == PATH_VARIANT_LOOKUP
+        assert history[0]["dcad_account"] == "acct_hamilton"
+
+    def test_acuna_partial_street_recovery(self):
+        idx, fi = self._build_fixtures()
+        records = [{
+            "record_id":          "rA",
+            "address_normalized": "309 BILLY WICKLIFFE",
+        }]
+        stats = resolution_paths.run_variant_lookup(records, idx, fi)
+        assert stats.matched == 1
+        assert records[0]["dcad_account"] == "acct_wickliffe"
+
+    def test_adama_directional_plus_compound_split(self):
+        """Real forensic case: source '2828 S LAKEVIEW DR' vs DCAD
+        '2828 LAKE VIEW DR'."""
+        idx, fi = self._build_fixtures()
+        records = [{
+            "record_id":          "rAdama",
+            "address_normalized": "2828 S LAKEVIEW DR",
+        }]
+        stats = resolution_paths.run_variant_lookup(records, idx, fi)
+        assert stats.matched == 1
+        assert records[0]["dcad_account"] == "acct_lakeview"
+        assert WARN_LOOKUP_VARIANT_USED in get_warnings(records[0])
+
+    def test_exact_match_no_warning(self):
+        """If source already matches DCAD exactly, no rewrite warning."""
+        idx, fi = self._build_fixtures()
+        records = [{
+            "record_id":          "rE",
+            "address_normalized": "1234 EXACT MATCH ST",
+        }]
+        stats = resolution_paths.run_variant_lookup(records, idx, fi)
+        assert stats.matched == 1
+        # Address unchanged, so no path_used_alternate warning
+        assert WARN_LOOKUP_VARIANT_USED not in get_warnings(records[0])
+
+    def test_skips_already_resolved(self):
+        idx, fi = self._build_fixtures()
+        records = [{
+            "record_id":          "rR",
+            "address_normalized": "4314 HAMILTON",
+            "dcad_account":       "already_set",
+        }]
+        stats = resolution_paths.run_variant_lookup(records, idx, fi)
+        assert stats.skipped_already_resolved == 1
+        assert stats.matched == 0
+        # Record unchanged
+        assert records[0]["dcad_account"] == "already_set"
+
+    def test_skips_suspect_address(self):
+        """Suspect addresses are Path B's territory — don't double-process."""
+        idx, fi = self._build_fixtures()
+        records = [{
+            "record_id":          "rS",
+            "address_normalized": "DALLAS",   # city-only is suspect
+        }]
+        stats = resolution_paths.run_variant_lookup(records, idx, fi)
+        assert stats.skipped_suspect_address == 1
+        assert stats.matched == 0
+
+    def test_skips_no_address(self):
+        idx, fi = self._build_fixtures()
+        records = [{"record_id": "rN"}]  # no address_normalized
+        stats = resolution_paths.run_variant_lookup(records, idx, fi)
+        assert stats.skipped_no_address == 1
+        assert stats.matched == 0
+
+    def test_no_match_writes_history(self):
+        """Records where fuzzy lookup found no candidate above threshold
+        still get a history entry."""
+        idx, fi = self._build_fixtures()
+        records = [{
+            "record_id":          "rNoMatch",
+            "address_normalized": "9999 NONEXISTENT RD",
+        }]
+        stats = resolution_paths.run_variant_lookup(records, idx, fi)
+        assert stats.no_match == 1
+        history = get_history(records[0])
+        assert len(history) == 1
+        assert history[0]["status"] == STATUS_NO_MATCH
+        assert history[0]["path"] == PATH_VARIANT_LOOKUP
+
+    def test_full_aggregate_counters(self):
+        idx, fi = self._build_fixtures()
+        records = [
+            # 1. Already resolved
+            {"record_id": "r1", "address_normalized": "4314 HAMILTON",
+             "dcad_account": "x"},
+            # 2. Suspect address — Path B's domain
+            {"record_id": "r2", "address_normalized": "DALLAS"},
+            # 3. No address
+            {"record_id": "r3"},
+            # 4. Matches via variant lookup
+            {"record_id": "r4", "address_normalized": "4314 HAMILTON"},
+            # 5. No match
+            {"record_id": "r5", "address_normalized": "9999 NOWHERE RD"},
+        ]
+        stats = resolution_paths.run_variant_lookup(records, idx, fi)
+        assert stats.total_records == 5
+        assert stats.skipped_already_resolved == 1
+        assert stats.skipped_suspect_address == 1
+        assert stats.skipped_no_address == 1
+        assert stats.candidates == 2     # r4 + r5
+        assert stats.matched == 1        # r4
+        assert stats.no_match == 1       # r5
