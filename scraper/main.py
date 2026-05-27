@@ -121,6 +121,23 @@ def _foreclosure_pdf_enabled() -> bool:
     )
 
 
+def _tyler_case_detail_enabled() -> bool:
+    """Read the TYLER_CASE_DETAIL_ENABLED env var. Defaults to False.
+
+    PR 8 Phase 2 — the Tyler/re:SearchTX case-detail scrape — was designed
+    from standard Tyler Odyssey patterns but the real HTML has not been
+    inspected from this codebase yet. Gated so the operator runs the
+    forensic probe (``scripts/probe_tyler_case_detail.py``) first, verifies
+    the parser against real Tyler output, and only flips this on once the
+    extraction is confirmed working.
+
+    Set TYLER_CASE_DETAIL_ENABLED=true to enable in production main.py runs.
+    """
+    return os.getenv("TYLER_CASE_DETAIL_ENABLED", "false").strip().lower() in (
+        "true", "1", "yes", "on",
+    )
+
+
 def _foreclosure_ocr_enabled() -> bool:
     """Read the FORECLOSURE_OCR_ENABLED env var. Defaults to False.
 
@@ -713,12 +730,19 @@ def _run_pipeline() -> int:
     )
 
     # 7.6 Tyler case-detail property lookup (PR 8 Phase 2) -------------------
-    # For Tyler-source PB records that didn't resolve via decedent →
-    # owner_index, fetch the re:SearchTX case detail page and search for
-    # inline property addresses. Texas Estates Code §309.051 inventories
-    # are filed within ~90 days of administration and often surface
-    # property text inline.
-    if tyler_session_cookies:
+    # Gated by TYLER_CASE_DETAIL_ENABLED env var (default False) until the
+    # probe (scripts/probe_tyler_case_detail.py) confirms the parser works
+    # against real Tyler HTML. The fetcher logic was designed from standard
+    # Tyler Odyssey patterns, not from inspected production HTML — operator
+    # must validate via probe before enabling here.
+    if not _tyler_case_detail_enabled():
+        logger.info(
+            "[7.6/12] Tyler case-detail lookup SKIPPED - set "
+            "TYLER_CASE_DETAIL_ENABLED=true to enable. Run "
+            "scripts/probe_tyler_case_detail.py first to verify the "
+            "parser against real Tyler HTML."
+        )
+    elif tyler_session_cookies:
         logger.info("[7.6/12] Tyler case-detail property lookup")
         dump_dir = config.DATA_DIR / "probes" / "tyler_case_detail"
         pb_stats = resolve_pb_via_tyler_case_detail(
@@ -736,7 +760,8 @@ def _run_pipeline() -> int:
         )
     else:
         logger.info(
-            "[7.6/12] Tyler case-detail lookup SKIPPED - no session cookies "
+            "[7.6/12] Tyler case-detail lookup SKIPPED - "
+            "TYLER_CASE_DETAIL_ENABLED is set but no session cookies "
             "(probate phase disabled or auth failed)"
         )
 
