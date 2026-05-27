@@ -143,6 +143,7 @@ VENUE_TRUSTEE_SIGS: tuple[str, ...] = (
     "20405 STATE HIGHWAY",
     "15851 N DALLAS PKWY",
     "15851 N. DALLAS PARKWAY",
+    "15851 N DALLAS PARKWAY",       # no-period variant
     "7730 MARKET CENTER",
     "17100 GILLETTE",
     "5204 VILLAGE CREEK",
