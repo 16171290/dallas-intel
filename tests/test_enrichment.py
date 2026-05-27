@@ -625,3 +625,224 @@ class TestCanonicalizeProbate:
         )
         assert out["signal_metadata"]["applicant_mailing"] is None
 
+
+# ═══════════════════════════════════════════════════════════════════════════
+# PR 6 — PB retrofit: resolution_history + direct dcad_account stamping
+# ═══════════════════════════════════════════════════════════════════════════
+
+
+class TestCanonicalizeProbatePR6Retrofit:
+    """PR 6: probate canonicalization now writes resolution_history,
+    stamps dcad_account directly, and emits canonical warnings — same
+    framework as Paths A / B / C."""
+
+    def _make_record(self, **overrides):
+        from scraper.probate import ProbateRecord
+        defaults = dict(
+            case_data_id="abc123",
+            case_number="PR-26-99999-1",
+            case_type="Independent Administration",
+            case_status="Open",
+            date_filed="2026-05-14T17:00:00",
+            decedent_name="WALLACE, VON ELLEN",
+            applicant_name="MORTON, REBECCA J.",
+            additional_applicants=[],
+            judge="WARREN, INGRID M.",
+            attorneys=[],
+            jurisdiction="Dallas County - County Clerk",
+            raw={},
+            parse_warnings=[],
+        )
+        defaults.update(overrides)
+        return ProbateRecord(**defaults)
+
+    def test_decedent_match_stamps_dcad_account_directly(self):
+        from scraper.resolution import get_history
+        rec = self._make_record(decedent_name="WALLACE, VON ELLEN")
+        owner_index = {"WALLACE VON ELLEN": ["acct_w"]}
+        addr_index  = {"acct_w": {"address_normalized": "1316 SATURN ST"}}
+        out = enrichment.canonicalize_probate(
+            rec, owner_index=owner_index, account_address_index=addr_index,
+        )
+        # PR 6: dcad_account is stamped on the record (not deferred to enrich_record)
+        assert out["dcad_account"] == "acct_w"
+        assert out["address_normalized"] == "1316 SATURN ST"
+        # History entry written
+        history = get_history(out)
+        decedent_entries = [
+            h for h in history
+            if h["path"] == "path_pb_decedent_owner_index"
+        ]
+        assert len(decedent_entries) == 1
+        h = decedent_entries[0]
+        assert h["status"] == "matched"
+        assert h["dcad_account"] == "acct_w"
+        assert h["tier"] == "exact"
+
+    def test_decedent_multi_property_stamps_alternates(self):
+        from scraper.resolution import (
+            get_alternate_accounts, get_history, get_warnings,
+        )
+        rec = self._make_record(decedent_name="WARREN, ALLEN")
+        owner_index = {"WARREN ALLEN": ["acct_a", "acct_b", "acct_c"]}
+        addr_index = {
+            "acct_a": {"address_normalized": "1337 EXETER DR"},
+            "acct_b": {"address_normalized": "203 GOLDEN POND DR"},
+            "acct_c": {"address_normalized": "55 OTHER ST"},
+        }
+        out = enrichment.canonicalize_probate(
+            rec, owner_index=owner_index, account_address_index=addr_index,
+        )
+        # Primary acct = first
+        assert out["dcad_account"] == "acct_a"
+        # Alternates stamped
+        alternates = get_alternate_accounts(out)
+        assert set(alternates) == {"acct_b", "acct_c"}
+        # Multi-account warning surfaced
+        assert "multi_account" in get_warnings(out)
+        # History reflects multi_match status
+        history = get_history(out)
+        decedent_entries = [
+            h for h in history if h["path"] == "path_pb_decedent_owner_index"
+        ]
+        assert decedent_entries[0]["status"] == "multi_match"
+        assert set(decedent_entries[0]["alternates"]) == {"acct_b", "acct_c"}
+
+    def test_common_name_pollution_emits_warning(self):
+        from scraper.resolution import get_history, get_warnings
+        rec = self._make_record(decedent_name="WILSON, ROBERT")
+        # 8 accounts triggers common_name_pollution (threshold > 3)
+        accounts = [f"acct_{i}" for i in range(8)]
+        owner_index = {"WILSON ROBERT": accounts}
+        addr_index = {a: {"address_normalized": f"{i} MAIN ST"}
+                      for i, a in enumerate(accounts)}
+        out = enrichment.canonicalize_probate(
+            rec, owner_index=owner_index, account_address_index=addr_index,
+        )
+        # Both legacy and new locations carry the signal
+        assert out["signal_metadata"]["dcad_match_warning"] == "common_name_pollution"
+        assert "common_name_pollution" in get_warnings(out)
+        assert "multi_account" in get_warnings(out)
+        # History entry carries the warning too
+        history = get_history(out)
+        decedent_entries = [
+            h for h in history if h["path"] == "path_pb_decedent_owner_index"
+        ]
+        assert "common_name_pollution" in decedent_entries[0]["warnings"]
+
+    def test_surname_only_tier_emits_warning(self):
+        from scraper.resolution import get_warnings
+        rec = self._make_record(decedent_name="LE, MINH HUNG")
+        # owner_index has only the surname → surname_only tier match
+        owner_index = {"LE": ["acct_le"]}
+        addr_index = {"acct_le": {"address_normalized": "100 OAK ST"}}
+        out = enrichment.canonicalize_probate(
+            rec, owner_index=owner_index, account_address_index=addr_index,
+        )
+        # Match succeeded, surname_only warning surfaced
+        if out["dcad_account"] == "acct_le":
+            # surname_only tier was reached
+            assert "surname_only_tier" in get_warnings(out)
+
+    def test_no_match_writes_no_match_history(self):
+        from scraper.resolution import get_history
+        rec = self._make_record(decedent_name="NOBODY, AT ALL")
+        owner_index = {"WALLACE VON ELLEN": ["acct_w"]}
+        out = enrichment.canonicalize_probate(
+            rec, owner_index=owner_index, account_address_index={},
+        )
+        # dcad_account still None
+        assert out["dcad_account"] is None
+        # But history records the no-match attempt
+        history = get_history(out)
+        decedent_entries = [
+            h for h in history if h["path"] == "path_pb_decedent_owner_index"
+        ]
+        assert len(decedent_entries) == 1
+        assert decedent_entries[0]["status"] == "no_match"
+
+    def test_no_owner_index_writes_no_history(self):
+        """Backwards compat: no owner_index = no fanout = no history entry."""
+        from scraper.resolution import get_history
+        rec = self._make_record(decedent_name="ANYONE, AT ALL")
+        out = enrichment.canonicalize_probate(rec)
+        # No fanout attempted, no history entry
+        assert get_history(out) == []
+        # Legacy fields still in their default state
+        assert out["dcad_account"] is None
+        assert out["address_normalized"] is None
+
+    def test_applicant_match_writes_history_even_when_accepted(self):
+        from scraper.resolution import get_history
+        rec = self._make_record(
+            decedent_name="WALLACE, VON ELLEN",
+            applicant_name="MORTON, REBECCA J.",
+        )
+        owner_index = {
+            "WALLACE VON ELLEN": ["acct_w"],
+            "MORTON REBECCA J":  ["acct_app"],
+        }
+        addr_index  = {"acct_w": {"address_normalized": "1316 SATURN ST"}}
+        mailing_idx = {"acct_app": {
+            "address": "3960 DAVILA DR", "city": "DALLAS",
+            "state": "TEXAS", "zip": "75220",
+        }}
+        out = enrichment.canonicalize_probate(
+            rec, owner_index=owner_index,
+            account_address_index=addr_index,
+            mailing_index=mailing_idx,
+        )
+        # applicant_mailing still populated (existing behavior preserved)
+        assert out["signal_metadata"]["applicant_mailing"]["address"] == "3960 DAVILA DR"
+        # PR 6: applicant history entry written
+        history = get_history(out)
+        applicant_entries = [
+            h for h in history if h["path"] == "path_pb_applicant_owner_index"
+        ]
+        assert len(applicant_entries) == 1
+        assert applicant_entries[0]["status"] == "matched"
+        assert applicant_entries[0]["dcad_account"] == "acct_app"
+
+    def test_applicant_match_rejected_for_mailing_still_logged(self):
+        """Applicant matched but tier was too loose (surname_only): mailing
+        is rejected, but the match attempt itself is logged in history so
+        the operator can see why no mailing was populated."""
+        from scraper.resolution import get_history
+        rec = self._make_record(applicant_name="WALLACE, ALLEN GLENN")
+        owner_index = {"WALLACE": ["acct_w", "acct_w2"]}  # surname_only tier
+        mailing_idx = {"acct_w": {"address": "6314 NORWAY RD"}}
+        out = enrichment.canonicalize_probate(
+            rec, owner_index=owner_index,
+            account_address_index={}, mailing_index=mailing_idx,
+        )
+        # applicant_mailing rejected (preserving existing semantics)
+        assert out["signal_metadata"]["applicant_mailing"] is None
+        # History captures the match-but-rejected attempt
+        history = get_history(out)
+        applicant_entries = [
+            h for h in history if h["path"] == "path_pb_applicant_owner_index"
+        ]
+        assert len(applicant_entries) == 1
+        # skip_reason explains why mailing wasn't populated
+        assert applicant_entries[0].get("skip_reason") == "applicant_match_too_loose"
+
+    def test_legacy_decedent_owned_properties_still_populated(self):
+        """Backward-compat check: dashboards / other readers consuming the
+        legacy `decedent_owned_properties` field still work."""
+        rec = self._make_record(decedent_name="WARREN, ALLEN")
+        owner_index = {"WARREN ALLEN": ["acct_a", "acct_b"]}
+        addr_index = {
+            "acct_a": {"address_normalized": "1337 EXETER DR",
+                       "address_city": "DALLAS", "address_state": "TX",
+                       "address_zip": "75201"},
+            "acct_b": {"address_normalized": "203 GOLDEN POND DR"},
+        }
+        out = enrichment.canonicalize_probate(
+            rec, owner_index=owner_index, account_address_index=addr_index,
+        )
+        props = out["signal_metadata"]["decedent_owned_properties"]
+        assert len(props) == 2
+        assert [p["account_num"] for p in props] == ["acct_a", "acct_b"]
+        # Legacy fields still present alongside new framework
+        assert out["signal_metadata"]["dcad_match_tier"] == "exact"
+

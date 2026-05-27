@@ -24,6 +24,21 @@ import pandas as pd
 
 from . import config, normalize
 from .probate_matcher import match_decedent_to_dcad
+from .resolution import (
+    PATH_PB_APPLICANT_OWNER_INDEX,
+    PATH_PB_DECEDENT_OWNER_INDEX,
+    STATUS_MATCHED,
+    STATUS_MULTI_MATCH,
+    STATUS_NO_MATCH,
+    TIER_SURNAME_ONLY,
+    WARN_COMMON_NAME_POLLUTION,
+    WARN_MULTI_ACCOUNT,
+    WARN_SURNAME_ONLY_TIER,
+    ResolutionHistoryEntry,
+    add_warning,
+    append_history,
+    set_alternate_accounts,
+)
 
 
 # Stricter criteria for the applicant (heir) DCAD match than the decedent
@@ -410,23 +425,35 @@ def canonicalize_probate(
       - ``grantor`` is the decedent (the party from whom the estate flows)
       - ``grantee`` is the applicant (the party petitioning for letters)
 
-    DCAD fan-out (PR 5.x): probate filings themselves carry no property
-    address. To surface the decedent's owned Dallas property as a
-    motivated-seller lead, we look up the decedent_name in DCAD's
-    owner_index via ``probate_matcher.match_decedent_to_dcad``. When a
-    match is found:
+    DCAD fan-out: probate filings themselves carry no property address.
+    To surface the decedent's owned Dallas property as a motivated-seller
+    lead, we look up the decedent_name in DCAD's owner_index via
+    ``probate_matcher.match_decedent_to_dcad``. When a match is found:
+      - ``dcad_account`` is stamped to the FIRST matched account (PR 6).
+        The downstream ``enrich_record`` then fills ``dcad_owner`` /
+        market value / exemptions from that account.
       - ``address_normalized`` is set to the FIRST matched property's
-        normalized address. The downstream ``enrich_record`` then
-        re-derives ``dcad_account`` / ``dcad_owner`` / market value /
-        exemptions through the canonical address-keyed path.
-      - ``signal_metadata.decedent_owned_properties`` carries the FULL
-        list of matched properties (a decedent may own 1+ parcels).
-      - ``signal_metadata.dcad_match_tier`` records which matcher tier
-        produced the hit (exact / no_middle / initial_form / etc.).
-      - ``signal_metadata.dcad_match_warning`` is set to
-        "common_name_pollution" when the match resolves to >3 accounts
-        (likely multiple unrelated people sharing a common name —
-        operator should manually verify).
+        normalized address.
+      - ``signal_metadata.alternate_accounts`` carries any additional
+        accounts the decedent owns (PR 6).
+      - ``signal_metadata.decedent_owned_properties`` (legacy, retained
+        for backward compat) carries the FULL list with address details
+        per parcel.
+      - ``signal_metadata.resolution_history`` carries a
+        ``PATH_PB_DECEDENT_OWNER_INDEX`` entry so Stage 6.6 can audit it
+        and the operator sees provenance in the dashboard (PR 6).
+      - ``signal_metadata.confidence_warnings`` includes:
+          * ``WARN_MULTI_ACCOUNT`` when the decedent owns 2+ properties
+          * ``WARN_SURNAME_ONLY_TIER`` when the match was on surname alone
+          * ``WARN_COMMON_NAME_POLLUTION`` when 4+ accounts matched
+        (PR 6).
+      - ``signal_metadata.dcad_match_tier`` / ``dcad_match_warning``
+        retained for backward compatibility.
+
+    Applicant fan-out: stricter criteria for mailing-address resolution.
+    Only exact/no_middle tiers, no common-name-pollution warning, <= 2
+    accounts. PR 6 adds a ``PATH_PB_APPLICANT_OWNER_INDEX`` history entry
+    so applicant provenance is visible alongside decedent.
 
     When ``owner_index`` is not provided (e.g. unit tests, or backwards
     compatibility) the function falls back to address=None and no
@@ -448,10 +475,15 @@ def canonicalize_probate(
     match_tier: Optional[str] = None
     match_warning: Optional[str] = None
     primary_address_normalized: Optional[str] = None
+    primary_dcad_account: Optional[str] = None
+    decedent_alternates: list[str] = []
+    decedent_history_warnings: list[str] = []
+    decedent_match = None
 
     if owner_index and rec.decedent_name:
         match = match_decedent_to_dcad(rec.decedent_name, owner_index)
         if match:
+            decedent_match = match
             match_tier = match.tier
             match_warning = match.warning
             for acct in match.accounts:
@@ -463,12 +495,20 @@ def canonicalize_probate(
                     "address_state":      addr_info.get("address_state"),
                     "address_zip":        addr_info.get("address_zip"),
                 })
-            # Use the first matched property's address as the primary
-            # so downstream enrich_record fills DCAD fields via its
-            # canonical address-keyed lookup. Order within match.accounts
-            # is DCAD's natural insertion order — first found wins for now.
             if decedent_properties:
+                # PR 6: stamp dcad_account directly (consistent with Paths A/C)
+                primary_dcad_account = match.accounts[0]
                 primary_address_normalized = decedent_properties[0]["address_normalized"]
+                decedent_alternates = list(match.accounts[1:])
+
+            # Build the warnings list that will be attached BOTH to the
+            # history entry AND to record-level confidence_warnings.
+            if len(match.accounts) > 1:
+                decedent_history_warnings.append(WARN_MULTI_ACCOUNT)
+            if match.tier == TIER_SURNAME_ONLY:
+                decedent_history_warnings.append(WARN_SURNAME_ONLY_TIER)
+            if match.warning == "common_name_pollution":
+                decedent_history_warnings.append(WARN_COMMON_NAME_POLLUTION)
 
     # Applicant fan-out — find a mailing address for the heir/petitioner.
     # STRICTER criteria than decedent fan-out: only exact/no_middle tiers,
@@ -478,8 +518,11 @@ def canonicalize_probate(
     # Sylvia Garcias would give a junk mailing address). We'd rather
     # leave the field blank than mislead the operator.
     applicant_mailing: Optional[dict] = None
+    applicant_match = None
+    applicant_accepted = False
     if owner_index and rec.applicant_name and mailing_index:
         amatch = match_decedent_to_dcad(rec.applicant_name, owner_index)
+        applicant_match = amatch
         if (
             amatch is not None
             and amatch.tier in _APPLICANT_MAILING_ACCEPT_TIERS
@@ -498,8 +541,9 @@ def canonicalize_probate(
                     "state":        mail.get("state"),
                     "zip":          mail.get("zip"),
                 }
+                applicant_accepted = True
 
-    return {
+    record = {
         "record_id":          f"pro-{rec.case_data_id}",
         "source":             "probate.txcourts.gov",
         "dallas_code":        "PB",
@@ -510,7 +554,7 @@ def canonicalize_probate(
         "grantee":            rec.applicant_name,
         "address":            None,
         "address_normalized": primary_address_normalized,
-        "dcad_account":       None,
+        "dcad_account":       primary_dcad_account,
         "dcad_owner":         None,
         "dcad_market_value":  None,
         "dcad_homestead":     None,
@@ -547,6 +591,84 @@ def canonicalize_probate(
         "score_breakdown":    {},
         "parse_warnings":     list(rec.parse_warnings),
     }
+
+    # ─── PR 6 retrofit: provenance via resolution_history + warnings ───
+    # Write a decedent-match history entry (matched / no_match) AND record
+    # alternate_accounts + canonical confidence_warnings via the helpers
+    # from scraper.resolution. Stage 6.6 reads these the same way it reads
+    # Path A / B / C output.
+    if owner_index and rec.decedent_name:
+        if decedent_match is not None:
+            status = (
+                STATUS_MULTI_MATCH if len(decedent_match.accounts) > 1
+                else STATUS_MATCHED
+            )
+            append_history(record, ResolutionHistoryEntry(
+                path=PATH_PB_DECEDENT_OWNER_INDEX,
+                stage="canonicalize",
+                input=rec.decedent_name,
+                status=status,
+                tier=decedent_match.tier,
+                dcad_account=primary_dcad_account,
+                alternates=decedent_alternates,
+                warnings=decedent_history_warnings,
+            ))
+            # Mirror history warnings onto record-level confidence_warnings
+            for w in decedent_history_warnings:
+                add_warning(record, w)
+            if decedent_alternates:
+                set_alternate_accounts(record, decedent_alternates)
+        else:
+            append_history(record, ResolutionHistoryEntry(
+                path=PATH_PB_DECEDENT_OWNER_INDEX,
+                stage="canonicalize",
+                input=rec.decedent_name,
+                status=STATUS_NO_MATCH,
+            ))
+
+    # Applicant match: history entry too, so operator sees applicant_mailing
+    # provenance side-by-side with decedent provenance. Note this is
+    # mailing-address resolution, NOT primary record resolution.
+    if owner_index and rec.applicant_name and mailing_index:
+        if applicant_match is not None:
+            # Whether or not the strict criteria accepted the match for
+            # mailing_address, the match attempt itself is recorded so
+            # Stage 6.6 and the operator can see what was considered.
+            applicant_warnings: list[str] = []
+            if applicant_match.warning == "common_name_pollution":
+                applicant_warnings.append(WARN_COMMON_NAME_POLLUTION)
+            if applicant_match.tier == TIER_SURNAME_ONLY:
+                applicant_warnings.append(WARN_SURNAME_ONLY_TIER)
+            if len(applicant_match.accounts) > 1:
+                applicant_warnings.append(WARN_MULTI_ACCOUNT)
+
+            status = (
+                STATUS_MATCHED if applicant_accepted
+                else STATUS_MULTI_MATCH if len(applicant_match.accounts) > 1
+                else STATUS_MATCHED
+            )
+            append_history(record, ResolutionHistoryEntry(
+                path=PATH_PB_APPLICANT_OWNER_INDEX,
+                stage="canonicalize",
+                input=rec.applicant_name,
+                status=status,
+                tier=applicant_match.tier,
+                dcad_account=(applicant_match.accounts[0]
+                              if applicant_match.accounts else None),
+                alternates=list(applicant_match.accounts[1:]),
+                warnings=applicant_warnings,
+                skip_reason=(None if applicant_accepted
+                             else "applicant_match_too_loose"),
+            ))
+        else:
+            append_history(record, ResolutionHistoryEntry(
+                path=PATH_PB_APPLICANT_OWNER_INDEX,
+                stage="canonicalize",
+                input=rec.applicant_name,
+                status=STATUS_NO_MATCH,
+            ))
+
+    return record
 
 
 def enrich_batch(
