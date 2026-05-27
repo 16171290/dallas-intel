@@ -18,14 +18,19 @@ what the scanner reads vs what the document contains. This script:
   7. Writes a top-level docs/ocr_forensic/SUMMARY.md aggregating all
      records with their CURRENT field values from records.json next to
      the OCR raw + extraction result
+  8. Bundles everything into ocr_forensic_bundle.zip at the repo root —
+     upload that zip to the chat and Claude will extract + view PNGs
+     directly to diagnose.
 
 Usage:
     python scripts/probe_ocr_pages.py
     python scripts/probe_ocr_pages.py --records 315562554 315561589
     python scripts/probe_ocr_pages.py --all-unresolved  # all records without dcad_account
 
-After running, share docs/ocr_forensic/SUMMARY.md plus any specific
-PNGs you want me to look at, and we'll plan PR 7 with concrete data.
+After running, upload ocr_forensic_bundle.zip to the chat. Claude will
+extract the PNGs and visually inspect them along with the OCR text and
+extraction results, so we can diagnose each failure case at three layers:
+document truth ↔ Tesseract output ↔ regex extraction.
 """
 
 from __future__ import annotations
@@ -35,6 +40,7 @@ import json
 import logging
 import sys
 import time
+import zipfile
 from dataclasses import asdict
 from pathlib import Path
 
@@ -346,14 +352,35 @@ def main() -> int:
 
     write_summary(per_record_results)
 
+    # Bundle everything into a zip for easy sharing with the reviewer.
+    zip_path = REPO_ROOT / "ocr_forensic_bundle.zip"
+    bundle_zip(zip_path)
+
     print()
     print("=" * 72)
     print(f"Done. Probed {len(per_record_results)} records.")
     print(f"Open {OUT_DIR}/SUMMARY.md for the aggregate table.")
     print(f"Each record's PNG + raw OCR + extraction is under "
           f"{OUT_DIR}/<record_id>/")
+    print()
+    print(f"📦 BUNDLED ZIP for sharing: {zip_path}")
+    print(f"   Size: {zip_path.stat().st_size / 1024:.1f} KB")
+    print("   Upload this zip to the chat and Claude will extract + view the PNGs.")
     print("=" * 72)
     return 0
+
+
+def bundle_zip(zip_path: Path) -> None:
+    """Bundle the whole docs/ocr_forensic/ tree into a single zip."""
+    if zip_path.exists():
+        zip_path.unlink()
+    with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED) as zf:
+        for path in sorted(OUT_DIR.rglob("*")):
+            if path.is_file():
+                arcname = path.relative_to(OUT_DIR.parent)
+                zf.write(path, arcname)
+    logger.info("Wrote zip bundle: %s (%.1f KB)",
+                zip_path, zip_path.stat().st_size / 1024)
 
 
 if __name__ == "__main__":
