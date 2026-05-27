@@ -431,6 +431,23 @@ def _run_pipeline() -> int:
         apn_stats.no_apn, apn_stats.no_match,
     )
 
+    # 6.45 Path A — NOF grantor → DCAD owner_index ---------------------------
+    # NOF records whose grantor (the foreclosed homeowner) is extracted by
+    # OCR but whose address didn't resolve via Stage 7 / Path B / Variant /
+    # APN can often be matched directly via the grantor name. Same machinery
+    # as PB record decedent fan-out; tier ladder + class 19a guard prevent
+    # the wrong-person-called failure mode. See docs/RESOLUTION_PATHS_DESIGN §5.
+    logger.info("[6.45/12] Path A: NOF grantor -> DCAD owner_index")
+    path_a_account_owner_index = dcad_owner_index.build_account_to_owner_name(dcad_tables)
+    path_a_account_address_index = legal_resolver._build_account_to_address(dcad_tables)
+    path_a_stats = resolution_paths.run_path_a(
+        all_records,
+        owner_index,
+        path_a_account_address_index,
+        path_a_account_owner_index,
+    )
+    resolution_paths.log_path_a_summary(path_a_stats)
+
     # 6.5 Legal-description -> DCAD address resolution -----------------------
     # Publicsearch records lack a street address at canonicalization time;
     # they carry the property's legal description in raw_excerpt. This stage

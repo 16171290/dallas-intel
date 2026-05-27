@@ -157,6 +157,39 @@ def build_owner_index(
     return dict(index)
 
 
+def build_account_to_owner_name(
+    dcad_tables: Mapping,
+    *,
+    table_name: str = "ACCOUNT_INFO",
+) -> dict[str, str]:
+    """Build ``{account_num: raw_owner_name1}`` from DCAD tables.
+
+    Used by resolution_paths Path A's Class 19a guard, which needs to peek
+    at the DCAD owner string for a candidate account to decide whether a
+    surname_only match is real or a first-name-in-trust false positive.
+
+    The raw owner name is preserved (not normalized) so the guard can
+    inspect the original text — including TRUST/LLC entity keywords that
+    normalize_dcad_owner_name strips. Trailing '&' (joint-owner marker
+    in DCAD bulk) is removed because it's a layout artifact, not part
+    of the name.
+
+    Returns ``{}`` when the table is missing or has no usable rows.
+    """
+    table = dcad_tables.get(table_name)
+    rows = _coerce_to_row_dicts(table)
+    out: dict[str, str] = {}
+    for row in rows:
+        account = _first_field(row, _ACCOUNT_NUM_CANDIDATES)
+        owner = _first_field(row, _OWNER_NAME_CANDIDATES)
+        if not account or not owner:
+            continue
+        cleaned = owner.strip().rstrip("&").strip()
+        if cleaned:
+            out[account] = cleaned
+    return out
+
+
 def _coerce_to_row_dicts(table) -> list[dict]:
     """Accept either a list[dict] or a pandas DataFrame; return list[dict]."""
     if table is None:
