@@ -48,6 +48,7 @@ PATH_C_APN                     = "path_c_apn"
 PATH_STAGE_6_6                 = "stage_6_6_agreement"            # PR 5
 PATH_PB_DECEDENT_OWNER_INDEX   = "path_pb_decedent_owner_index"   # PB retrofit (PR 6)
 PATH_PB_APPLICANT_OWNER_INDEX  = "path_pb_applicant_owner_index"  # PB retrofit (PR 6)
+PATH_PB_CASE_DETAIL_INVENTORY  = "path_pb_case_detail_inventory"  # PR 8 Phase 2: Tyler case detail scrape
 
 VALID_PATHS: frozenset[str] = frozenset({
     PATH_STAGE_7_ADDRESS_INDEX,
@@ -59,6 +60,7 @@ VALID_PATHS: frozenset[str] = frozenset({
     PATH_STAGE_6_6,
     PATH_PB_DECEDENT_OWNER_INDEX,
     PATH_PB_APPLICANT_OWNER_INDEX,
+    PATH_PB_CASE_DETAIL_INVENTORY,
 })
 
 # Status values for a single resolution attempt.
@@ -114,6 +116,8 @@ WARN_FUZZY_SUBDIVISION_MATCH      = "fuzzy_subdivision_match"
 WARN_VENUE_OR_TRUSTEE_ADDRESS     = "venue_or_trustee_address"
 WARN_LOOKUP_VARIANT_USED          = "lookup_variant_used"
 WARN_GRANTOR_FROM_DCAD            = "grantor_from_dcad"            # PR 7.6: grantor null after OCR; filled from dcad_owner
+WARN_PB_CASE_DETAIL_USED          = "pb_case_detail_used"          # PR 8: property recovered via Tyler case-detail scrape
+WARN_PB_INVENTORY_NO_ADDRESS      = "pb_inventory_no_address"      # PR 8: case has I&A filing but no inline address — operator should review PDF
 
 CANONICAL_WARNINGS: frozenset[str] = frozenset({
     WARN_MULTI_ACCOUNT,
@@ -131,6 +135,8 @@ CANONICAL_WARNINGS: frozenset[str] = frozenset({
     WARN_VENUE_OR_TRUSTEE_ADDRESS,
     WARN_LOOKUP_VARIANT_USED,
     WARN_GRANTOR_FROM_DCAD,
+    WARN_PB_CASE_DETAIL_USED,
+    WARN_PB_INVENTORY_NO_ADDRESS,
 })
 
 

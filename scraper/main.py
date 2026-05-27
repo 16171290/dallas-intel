@@ -51,6 +51,7 @@ import time
 import traceback
 from datetime import date
 from pathlib import Path
+from typing import Optional
 
 from . import (
     address_variants,
@@ -69,6 +70,7 @@ from . import (
     output,
     page_fetcher,
     probate,
+    probate_auth,
     publicsearch,
     resolution,
     resolution_paths,
@@ -163,6 +165,158 @@ def apply_grantor_fallback_from_dcad_owner(records: list[dict]) -> int:
                 resolution.add_warning(rec, resolution.WARN_GRANTOR_FROM_DCAD)
                 count += 1
     return count
+
+
+def resolve_pb_via_tyler_case_detail(
+    records: list[dict],
+    address_index: dict[str, str],
+    cookies: dict[str, str],
+    *,
+    dump_dir: Optional["Path"] = None,
+) -> dict[str, int]:
+    """PR 8 Phase 2 — recover unresolved PB records by scraping the Tyler
+    case detail page and searching for inline property addresses.
+
+    Walks records, filters to Tyler-source PB records without a
+    dcad_account, fetches the case detail page (via Playwright + the
+    pre-acquired session cookies), and looks for Texas-style property
+    addresses in the rendered text. When an address matches the DCAD
+    address_index, stamps dcad_account + address_normalized.
+
+    Records mutated in place. Returns a stats dict:
+        considered:        Tyler PB records reachable for this lookup
+        skipped_resolved:  already had dcad_account from earlier paths
+        skipped_no_case:   missing case_data_id (publicsearch PBs etc.)
+        attempted:         actually fetched the page
+        resolved:          extracted address matched DCAD → stamped
+        inventory_only:    page had I&A filing but no inline address
+                           (operator should review the filed PDF)
+        errors:            page fetch or extraction failed
+
+    The function fail-opens: any per-record failure logs a warning and
+    moves on. Caller must supply valid session cookies from
+    ``probate_auth.acquire_session``.
+    """
+    # Local imports to keep main.py top-level import-time light when
+    # this path isn't reached (no Playwright at module-import time).
+    from .probate_case_detail import CaseDetailFetcher
+
+    stats = {
+        "considered": 0, "skipped_resolved": 0, "skipped_no_case": 0,
+        "attempted": 0, "resolved": 0, "inventory_only": 0, "errors": 0,
+    }
+
+    # Only Tyler-source PB records can be looked up here; publicsearch PBs
+    # don't have a case_data_id (Tyler's primary key).
+    targets = []
+    for rec in records:
+        if rec.get("dallas_code") != "PB":
+            continue
+        if rec.get("source") != "probate.txcourts.gov":
+            continue
+        stats["considered"] += 1
+        if rec.get("dcad_account"):
+            stats["skipped_resolved"] += 1
+            continue
+        # case_data_id is encoded into record_id as "pro-{case_data_id}"
+        rid = rec.get("record_id") or ""
+        if not rid.startswith("pro-"):
+            stats["skipped_no_case"] += 1
+            continue
+        case_data_id = rid.removeprefix("pro-")
+        targets.append((rec, case_data_id))
+
+    if not targets:
+        return stats
+
+    logger.info(
+        "PB case-detail lookup: %d Tyler PBs to fetch (%d already resolved)",
+        len(targets), stats["skipped_resolved"],
+    )
+
+    with CaseDetailFetcher(cookies, dump_dir=dump_dir) as fetcher:
+        for rec, case_data_id in targets:
+            stats["attempted"] += 1
+            try:
+                result = fetcher(case_data_id)
+            except Exception as exc:
+                logger.warning(
+                    "PB case-detail %s: unexpected error %s: %s",
+                    case_data_id, type(exc).__name__, exc,
+                )
+                stats["errors"] += 1
+                continue
+
+            if result.status == "error":
+                stats["errors"] += 1
+                continue
+
+            # Score each extracted address against DCAD address_index;
+            # prefer the first that resolves.
+            from . import normalize as _norm
+            picked_account = None
+            picked_address = None
+            for addr in result.addresses_found:
+                addr_norm = _norm.normalize_address(addr)
+                if not addr_norm:
+                    continue
+                acct = address_index.get(addr_norm)
+                if acct:
+                    picked_account = acct
+                    picked_address = addr_norm
+                    break
+
+            if picked_account:
+                rec["dcad_account"] = picked_account
+                rec["address_normalized"] = picked_address
+                resolution.add_warning(rec, resolution.WARN_PB_CASE_DETAIL_USED)
+                resolution.append_history(
+                    rec,
+                    resolution.ResolutionHistoryEntry(
+                        path=resolution.PATH_PB_CASE_DETAIL_INVENTORY,
+                        stage="7.6",
+                        input=case_data_id,
+                        status=resolution.STATUS_MATCHED,
+                        dcad_account=picked_account,
+                        warnings=[resolution.WARN_PB_CASE_DETAIL_USED],
+                    ),
+                )
+                stats["resolved"] += 1
+                logger.info(
+                    "PB case-detail %s: resolved → %s (%s)",
+                    case_data_id, picked_account, picked_address,
+                )
+            elif result.has_inventory:
+                resolution.add_warning(rec, resolution.WARN_PB_INVENTORY_NO_ADDRESS)
+                resolution.append_history(
+                    rec,
+                    resolution.ResolutionHistoryEntry(
+                        path=resolution.PATH_PB_CASE_DETAIL_INVENTORY,
+                        stage="7.6",
+                        input=case_data_id,
+                        status=resolution.STATUS_NO_MATCH,
+                        skip_reason="inventory_filed_but_no_inline_address",
+                    ),
+                )
+                stats["inventory_only"] += 1
+                logger.info(
+                    "PB case-detail %s: inventory filing seen but no "
+                    "address extractable from page text — operator should "
+                    "review the filed PDF",
+                    case_data_id,
+                )
+            else:
+                resolution.append_history(
+                    rec,
+                    resolution.ResolutionHistoryEntry(
+                        path=resolution.PATH_PB_CASE_DETAIL_INVENTORY,
+                        stage="7.6",
+                        input=case_data_id,
+                        status=resolution.STATUS_NO_MATCH,
+                    ),
+                )
+
+    return stats
 
 
 def _run_pipeline() -> int:
@@ -357,6 +511,10 @@ def _run_pipeline() -> int:
     # or unexpected exception types).
     logger.info("[4/12] Probate fetch (re:SearchTX)")
     probate_records_canonical: list[dict] = []
+    # PR 8 Phase 2: acquire Tyler session cookies ONCE for this run and
+    # reuse them for both the search-API fetch (probate.fetch_dallas_probate)
+    # AND the case-detail page scrape (Stage 7.6). Avoids double-login.
+    tyler_session_cookies: Optional[dict[str, str]] = None
     if not config.PROBATE_ENABLED:
         logger.info(
             "Probate SKIPPED - PROBATE_ENABLED env var not set. "
@@ -365,7 +523,11 @@ def _run_pipeline() -> int:
         )
     else:
         try:
-            probate_records = probate.fetch_dallas_probate(days_back=config.DAYS_BACK)
+            tyler_session_cookies = probate_auth.acquire_session()
+            probate_records = probate.fetch_dallas_probate(
+                days_back=config.DAYS_BACK,
+                session_cookies=tyler_session_cookies,
+            )
             probate_records_canonical = [
                 enrichment.canonicalize_probate(
                     r,
@@ -549,6 +711,34 @@ def _run_pipeline() -> int:
         "Grantor fallback from dcad_owner: filled %d/%d records",
         grantor_fallback_count, len(all_records),
     )
+
+    # 7.6 Tyler case-detail property lookup (PR 8 Phase 2) -------------------
+    # For Tyler-source PB records that didn't resolve via decedent →
+    # owner_index, fetch the re:SearchTX case detail page and search for
+    # inline property addresses. Texas Estates Code §309.051 inventories
+    # are filed within ~90 days of administration and often surface
+    # property text inline.
+    if tyler_session_cookies:
+        logger.info("[7.6/12] Tyler case-detail property lookup")
+        dump_dir = config.DATA_DIR / "probes" / "tyler_case_detail"
+        pb_stats = resolve_pb_via_tyler_case_detail(
+            all_records, address_index, tyler_session_cookies,
+            dump_dir=dump_dir,
+        )
+        logger.info(
+            "Tyler case-detail: considered=%d skipped_resolved=%d "
+            "skipped_no_case=%d attempted=%d resolved=%d "
+            "inventory_only=%d errors=%d",
+            pb_stats["considered"], pb_stats["skipped_resolved"],
+            pb_stats["skipped_no_case"], pb_stats["attempted"],
+            pb_stats["resolved"], pb_stats["inventory_only"],
+            pb_stats["errors"],
+        )
+    else:
+        logger.info(
+            "[7.6/12] Tyler case-detail lookup SKIPPED - no session cookies "
+            "(probate phase disabled or auth failed)"
+        )
 
     # 8. Governmental-grantor suppression (Phase 0.A) ------------------------
     # Removes records where the grantor is a government entity (Trinity

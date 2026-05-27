@@ -55,12 +55,33 @@ _OWNER_NAME_CANDIDATES = (
     "OWNER1",
     "NAME",
 )
+# Secondary owner-name columns. ACCOUNT_INFO has OWNER_NAME2 when a
+# property is held jointly and the second owner is named on the deed.
+# Indexing this column (PR 8) recovers probate decedents who appear as
+# OWNER_NAME2 (e.g. Steinhart case: Ronald is NAME1, Phyllis is NAME2).
+_OWNER_NAME2_CANDIDATES = (
+    "OWNER_NAME2",
+    "OWNERS_NAME2",
+    "OWNERNAME2",
+    "OWNER2",
+)
 _ACCOUNT_NUM_CANDIDATES = (
     "ACCOUNT_NUM",
     "ACCOUNT_NUMBER",
     "ACCT_NUM",
     "ACCT_NO",
     "ACCOUNT_ID",
+)
+
+# MULTI_OWNER table holds joint-ownership entries beyond the two
+# OWNER_NAMEx slots in ACCOUNT_INFO. Typical row: ACCOUNT_NUM,
+# OWNER_SEQ_NUM, OWNER_NAME. (Same schema observed across DCAD 2024+
+# bulk releases.) PR 8 indexes this so condo / family-trust co-owners
+# also resolve.
+_MULTI_OWNER_NAME_CANDIDATES = (
+    "OWNER_NAME",
+    "OWNERS_NAME",
+    "NAME",
 )
 
 
@@ -92,9 +113,18 @@ _ROLE_SUFFIX_RE = re.compile(
     r"LIFE\s+ESTATE|"
     r"JR|SR|II|III|IV|"
     r"EXECUTOR|ADMINISTRATOR|HEIRS|HEIR\s+OF|"
-    r"DECEASED|DEC\b"
+    r"DECEASED|DEC\b|"
+    # PR 8: estate-of patterns — "BELL ANGELA B EST OF", "SMITH JOHN ESTATE OF",
+    # "SMITH JOHN ESTATE", "SMITH JOHN EST". Strip everything from EST onward.
+    r"EST\s+OF|ESTATE\s+OF|ESTATE\b|EST\b"
     r")\b.*$",
     re.IGNORECASE,
+)
+
+# PR 8: leading "ESTATE OF" form — "ESTATE OF JOHN SMITH" → "JOHN SMITH".
+# Some DCAD entries title the estate this way after the owner passes.
+_LEADING_ESTATE_OF_RE = re.compile(
+    r"^\s*ESTATE\s+OF\s+", re.IGNORECASE,
 )
 
 # PR 2 fix: strip a trailing standalone LE token (Life Estate
@@ -120,6 +150,7 @@ def build_owner_index(
     dcad_tables: Mapping,
     *,
     table_name: str = "ACCOUNT_INFO",
+    multi_owner_table: str = "MULTI_OWNER",
 ) -> dict[str, list[str]]:
     """Build ``{normalized_owner_name: [account_nums]}`` from DCAD tables.
 
@@ -127,34 +158,76 @@ def build_owner_index(
     account. Identical normalized names across multiple accounts (a
     homeowner who owns 2+ properties) collect into one list per name.
 
+    Sources of owner names (PR 8 extends beyond OWNER_NAME1):
+      1. ``ACCOUNT_INFO.OWNER_NAME1`` (primary owner — what we've always indexed)
+      2. ``ACCOUNT_INFO.OWNER_NAME2`` (second owner on jointly-held property)
+      3. ``MULTI_OWNER`` table (3rd+ owners on multi-party titles like
+         condos, family-trust co-owners)
+
+    Each name → account_num mapping is appended to the same index, so a
+    decedent who appears as OWNER_NAME2 on a property still resolves
+    through Path A's owner-name lookup.
+
     Args:
         dcad_tables: dict of {table_name: rows}. ``rows`` may be either
             a list[dict] OR a pandas DataFrame — ``dcad_bulk.parse_dcad_tables``
             returns DataFrames, but the function originally took list[dict]
             from a removed alternate loader. Both shapes are accepted so
             production (DataFrame) and tests (list[dict]) work.
-        table_name: which DCAD table holds owner data. Default
+        table_name: which DCAD table holds primary owner data. Default
             ``"ACCOUNT_INFO"``.
+        multi_owner_table: which DCAD table holds additional joint
+            owners (PR 8). Default ``"MULTI_OWNER"``. Omit by passing
+            ``None`` if a test fixture doesn't include it.
 
     Returns:
         ``{owner_name: [account_num, ...]}``. Empty dict if the
         target table is missing or all rows lack owner fields.
     """
-    table = dcad_tables.get(table_name)
-    rows = _coerce_to_row_dicts(table)
     index: dict[str, list[str]] = defaultdict(list)
 
+    # ─── Primary table: ACCOUNT_INFO ─────────────────────────────────
+    rows = _coerce_to_row_dicts(dcad_tables.get(table_name))
     for row in rows:
-        raw_owner = _first_field(row, _OWNER_NAME_CANDIDATES)
         account = _first_field(row, _ACCOUNT_NUM_CANDIDATES)
-        if not raw_owner or not account:
+        if not account:
             continue
-        for individual in expand_joint_owners(raw_owner):
-            normalized = normalize_dcad_owner_name(individual)
-            if normalized:
-                index[normalized].append(account)
+        # OWNER_NAME1
+        raw_owner1 = _first_field(row, _OWNER_NAME_CANDIDATES)
+        if raw_owner1:
+            for individual in expand_joint_owners(raw_owner1):
+                normalized = normalize_dcad_owner_name(individual)
+                if normalized:
+                    index[normalized].append(account)
+        # OWNER_NAME2 (PR 8: index the second owner column too)
+        raw_owner2 = _first_field(row, _OWNER_NAME2_CANDIDATES)
+        if raw_owner2:
+            for individual in expand_joint_owners(raw_owner2):
+                normalized = normalize_dcad_owner_name(individual)
+                if normalized:
+                    index[normalized].append(account)
 
-    return dict(index)
+    # ─── MULTI_OWNER table (PR 8): 3rd+ joint owners ─────────────────
+    if multi_owner_table:
+        mo_rows = _coerce_to_row_dicts(dcad_tables.get(multi_owner_table))
+        for row in mo_rows:
+            account = _first_field(row, _ACCOUNT_NUM_CANDIDATES)
+            raw_owner = _first_field(row, _MULTI_OWNER_NAME_CANDIDATES)
+            if not account or not raw_owner:
+                continue
+            for individual in expand_joint_owners(raw_owner):
+                normalized = normalize_dcad_owner_name(individual)
+                if normalized:
+                    index[normalized].append(account)
+
+    # Dedupe per-name account lists while preserving first-seen order
+    # so a decedent appearing in both OWNER_NAME1 and MULTI_OWNER for
+    # the same account is recorded once.
+    deduped: dict[str, list[str]] = {}
+    for name, accts in index.items():
+        seen: set[str] = set()
+        deduped[name] = [a for a in accts if not (a in seen or seen.add(a))]
+    return deduped
 
 
 def build_account_to_owner_name(
@@ -221,6 +294,9 @@ def normalize_dcad_owner_name(raw: str | None) -> str | None:
         return None
     s = str(raw).upper().strip()
     s = _PUNCT_RE.sub(" ", s)
+    # PR 8: strip leading "ESTATE OF " so "ESTATE OF JOHN SMITH" indexes
+    # under the underlying decedent name "JOHN SMITH".
+    s = _LEADING_ESTATE_OF_RE.sub("", s)
     # PR 2 fix: strip trailing LE before the general role-suffix sweep
     s = _TRAILING_LE_RE.sub("", s)
     s = _ROLE_SUFFIX_RE.sub("", s)

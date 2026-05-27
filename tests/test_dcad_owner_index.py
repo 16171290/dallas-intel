@@ -218,3 +218,167 @@ class TestInspectFields:
         assert result["row_count"] == 0
         assert result["sample_rows"] == []
         assert result["matched_owner_field"] is None
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# PR 8 Phase 1 — OWNER_NAME2, MULTI_OWNER, ESTATE OF
+# ═══════════════════════════════════════════════════════════════════════════
+#
+# PR 8 audit on 2026-05-27 GHA run found 21/50 PB records unresolved.
+# Several (Steinhart-class) had the decedent as OWNER_NAME2 — we missed
+# them because the index only read OWNER_NAME1. ESTATE OF patterns
+# similarly disappeared in normalization.
+
+
+class TestEstateOfNormalization:
+    """PR 8: leading and trailing 'ESTATE OF' / 'EST OF' / 'ESTATE'
+    forms collapse to the underlying decedent name."""
+
+    def test_leading_estate_of(self):
+        assert oi.normalize_dcad_owner_name("ESTATE OF JOHN SMITH") == "JOHN SMITH"
+
+    def test_leading_estate_of_case_insensitive(self):
+        assert oi.normalize_dcad_owner_name("estate of john smith") == "JOHN SMITH"
+
+    def test_trailing_estate_of(self):
+        assert oi.normalize_dcad_owner_name("JOHN SMITH ESTATE OF") == "JOHN SMITH"
+
+    def test_trailing_est_of(self):
+        """Real data observed: 'BELL ANGELA B EST OF' at 611 MATTHEW PL."""
+        assert oi.normalize_dcad_owner_name("BELL ANGELA B EST OF") == "BELL ANGELA B"
+
+    def test_trailing_estate_no_of(self):
+        assert oi.normalize_dcad_owner_name("SMITH JOHN ESTATE") == "SMITH JOHN"
+
+    def test_trailing_est_no_of(self):
+        assert oi.normalize_dcad_owner_name("SMITH JOHN EST") == "SMITH JOHN"
+
+    def test_le_surname_not_consumed_by_estate(self):
+        """Vietnamese surname 'LE' must not be eaten by leading-estate
+        or any estate-related pattern."""
+        assert oi.normalize_dcad_owner_name("LE MINH HUNG") == "LE MINH HUNG"
+
+    def test_existing_role_suffixes_still_work(self):
+        """Regression: TRUSTEE etc. still strip correctly."""
+        assert oi.normalize_dcad_owner_name("SMITH JOHN A TRUSTEE") == "SMITH JOHN A"
+
+
+class TestBuildOwnerIndexWithSecondaryOwners:
+    """PR 8: index OWNER_NAME2 + MULTI_OWNER so joint-property decedents
+    resolve through Path A."""
+
+    def test_owner_name2_indexed_at_same_account(self):
+        """Steinhart case: Ronald is NAME1, Phyllis is NAME2. Both
+        index under the same account so a decedent search on Phyllis
+        finds the property."""
+        tables = {
+            "ACCOUNT_INFO": [
+                {
+                    "ACCOUNT_NUM": "acct_robledo",
+                    "OWNER_NAME1": "STEINHART RONALD G",
+                    "OWNER_NAME2": "STEINHART PHYLLIS Y",
+                },
+            ],
+        }
+        idx = oi.build_owner_index(tables)
+        assert idx.get("STEINHART RONALD G") == ["acct_robledo"]
+        assert idx.get("STEINHART PHYLLIS Y") == ["acct_robledo"]
+
+    def test_owner_name2_empty_does_not_break(self):
+        """A row with NAME1 but no NAME2 should still index NAME1."""
+        tables = {
+            "ACCOUNT_INFO": [
+                {"ACCOUNT_NUM": "a1", "OWNER_NAME1": "DOE JANE", "OWNER_NAME2": ""},
+            ],
+        }
+        idx = oi.build_owner_index(tables)
+        assert idx == {"DOE JANE": ["a1"]}
+
+    def test_multi_owner_table_indexed(self):
+        """MULTI_OWNER captures 3rd+ joint owners (condos, family
+        trust co-owners). Decedents holding 1/4 interest in a family
+        property would only appear here."""
+        tables = {
+            "ACCOUNT_INFO": [
+                {"ACCOUNT_NUM": "acct_family",
+                 "OWNER_NAME1": "DOE JANE",
+                 "OWNER_NAME2": "DOE JOHN"},
+            ],
+            "MULTI_OWNER": [
+                {"ACCOUNT_NUM": "acct_family", "OWNER_SEQ_NUM": "3",
+                 "OWNER_NAME": "DOE ALICE"},
+                {"ACCOUNT_NUM": "acct_family", "OWNER_SEQ_NUM": "4",
+                 "OWNER_NAME": "DOE BOB"},
+            ],
+        }
+        idx = oi.build_owner_index(tables)
+        assert idx["DOE JANE"]  == ["acct_family"]
+        assert idx["DOE JOHN"]  == ["acct_family"]
+        assert idx["DOE ALICE"] == ["acct_family"]
+        assert idx["DOE BOB"]   == ["acct_family"]
+
+    def test_same_owner_in_multiple_columns_deduplicated(self):
+        """If a name appears in OWNER_NAME1 AND in MULTI_OWNER for the
+        same account, we should record the account once — not twice."""
+        tables = {
+            "ACCOUNT_INFO": [
+                {"ACCOUNT_NUM": "a1", "OWNER_NAME1": "DOE JANE"},
+            ],
+            "MULTI_OWNER": [
+                {"ACCOUNT_NUM": "a1", "OWNER_NAME": "DOE JANE"},
+            ],
+        }
+        idx = oi.build_owner_index(tables)
+        assert idx["DOE JANE"] == ["a1"]  # not ["a1", "a1"]
+
+    def test_same_owner_multiple_accounts_preserved(self):
+        """An owner with two distinct properties still gets both
+        accounts in the list."""
+        tables = {
+            "ACCOUNT_INFO": [
+                {"ACCOUNT_NUM": "a1", "OWNER_NAME1": "DOE JANE"},
+                {"ACCOUNT_NUM": "a2", "OWNER_NAME1": "DOE JANE"},
+            ],
+        }
+        idx = oi.build_owner_index(tables)
+        assert set(idx["DOE JANE"]) == {"a1", "a2"}
+
+    def test_estate_of_owner_indexed_under_decedent(self):
+        """A property already retitled to 'ESTATE OF JOHN SMITH' in
+        DCAD should still match a probate search for 'John Smith'."""
+        tables = {
+            "ACCOUNT_INFO": [
+                {"ACCOUNT_NUM": "acct_est",
+                 "OWNER_NAME1": "ESTATE OF SMITH JOHN"},
+            ],
+        }
+        idx = oi.build_owner_index(tables)
+        assert idx.get("SMITH JOHN") == ["acct_est"]
+
+    def test_multi_owner_table_missing_handled(self):
+        """Backwards compat: MULTI_OWNER table not present in fixtures
+        (and not yet in older DCAD bulk releases) → owner_index still
+        builds from ACCOUNT_INFO."""
+        tables = {
+            "ACCOUNT_INFO": [
+                {"ACCOUNT_NUM": "a1", "OWNER_NAME1": "DOE JANE"},
+            ],
+        }
+        idx = oi.build_owner_index(tables)
+        assert idx == {"DOE JANE": ["a1"]}
+
+    def test_explicit_multi_owner_table_none_disables_lookup(self):
+        """Callers can pass multi_owner_table=None to opt out (e.g.
+        unit tests of the legacy code path)."""
+        tables = {
+            "ACCOUNT_INFO": [
+                {"ACCOUNT_NUM": "a1", "OWNER_NAME1": "DOE JANE"},
+            ],
+            "MULTI_OWNER": [
+                {"ACCOUNT_NUM": "a1", "OWNER_NAME": "DOE BOB"},
+            ],
+        }
+        idx = oi.build_owner_index(tables, multi_owner_table=None)
+        assert idx == {"DOE JANE": ["a1"]}
+        # Bob is in MULTI_OWNER but we opted out → not indexed
+        assert "DOE BOB" not in idx
