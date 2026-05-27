@@ -165,7 +165,11 @@ class ProbateRecord:
 # ============================================================================
 
 
-def fetch_dallas_probate(*, days_back: int = 7) -> list[ProbateRecord]:
+def fetch_dallas_probate(
+    *,
+    days_back: int = 7,
+    session_cookies: Optional[dict[str, str]] = None,
+) -> list[ProbateRecord]:
     """Fetch Dallas County probate cases filed within ``days_back`` days.
 
     Returns an empty list on ANY failure. Caller (PR 5 wiring in
@@ -177,6 +181,11 @@ def fetch_dallas_probate(*, days_back: int = 7) -> list[ProbateRecord]:
         days_back: rolling window in days. Mapped to Tyler's relative-
             bucket facet â€” the wire protocol uses opaque strings like
             "In The Last Week", not numeric ranges.
+        session_cookies: pre-acquired Tyler session cookies (PR 8). When
+            None (default), the function acquires its own via
+            probate_auth.acquire_session. main.py passes the same cookies
+            to both this call and PR 8 Phase 2's case-detail fetcher so
+            we authenticate only once per pipeline run.
 
     Returns:
         list of ProbateRecord. Empty on disabled / missing cookie /
@@ -186,7 +195,8 @@ def fetch_dallas_probate(*, days_back: int = 7) -> list[ProbateRecord]:
         logger.info("Probate: PROBATE_ENABLED is False; skipping fetch")
         return []
 
-    session_cookies = probate_auth.acquire_session()
+    if session_cookies is None:
+        session_cookies = probate_auth.acquire_session()
     if session_cookies is None:
         logger.warning(
             "Probate: session acquisition failed; skipping probate fetch"

@@ -85,3 +85,183 @@ class TestGrantorFallbackFromDcadOwner:
                    for i in range(5)]
         n = apply_grantor_fallback_from_dcad_owner(records)
         assert n == 5
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# PR 8 Phase 2 — resolve_pb_via_tyler_case_detail integration
+# ═══════════════════════════════════════════════════════════════════════════
+#
+# We mock the CaseDetailFetcher class so the unit test exercises the
+# orchestration logic (filtering, address-index lookup, history writes,
+# fail-open behavior) without spinning up Playwright.
+
+
+from unittest.mock import MagicMock, patch
+
+from scraper.main import resolve_pb_via_tyler_case_detail
+from scraper.probate_case_detail import CaseDetailResult
+from scraper.resolution import (
+    PATH_PB_CASE_DETAIL_INVENTORY,
+    WARN_PB_CASE_DETAIL_USED,
+    WARN_PB_INVENTORY_NO_ADDRESS,
+    get_history,
+    get_warnings,
+)
+
+
+class TestResolvePbViaTylerCaseDetail:
+    def _addr_index(self):
+        return {
+            "1234 MAIN ST": "acct_main",
+            "5678 OAK AVE": "acct_oak",
+        }
+
+    def test_resolves_when_address_matches(self):
+        rec = {
+            "record_id": "pro-abc123",
+            "dallas_code": "PB",
+            "source": "probate.txcourts.gov",
+            "grantor": "Smith, John",
+        }
+        result = CaseDetailResult(
+            case_data_id="abc123", status="ok",
+            page_text="...",
+            addresses_found=["1234 Main St, Dallas, TX 75201"],
+            has_inventory=True,
+        )
+        with patch("scraper.probate_case_detail.CaseDetailFetcher") as MockFetcher:
+            instance = MagicMock()
+            instance.__enter__ = MagicMock(return_value=lambda cid: result)
+            instance.__exit__ = MagicMock(return_value=None)
+            MockFetcher.return_value = instance
+            stats = resolve_pb_via_tyler_case_detail(
+                [rec], self._addr_index(), {"sess": "cookie"},
+            )
+        assert stats["attempted"] == 1
+        assert stats["resolved"] == 1
+        assert rec["dcad_account"] == "acct_main"
+        assert rec["address_normalized"] == "1234 MAIN ST"
+        # History entry written
+        history = get_history(rec)
+        case_entries = [h for h in history if h["path"] == PATH_PB_CASE_DETAIL_INVENTORY]
+        assert len(case_entries) == 1
+        assert case_entries[0]["status"] == "matched"
+        # Warning surfaces the provenance
+        assert WARN_PB_CASE_DETAIL_USED in get_warnings(rec)
+
+    def test_records_inventory_only_when_no_address_matches_dcad(self):
+        """Case detail had inventory filing visible but the extracted
+        address didn't match anything in DCAD (different county, typo,
+        OR no address could be extracted from the page text)."""
+        rec = {
+            "record_id": "pro-no_addr",
+            "dallas_code": "PB",
+            "source": "probate.txcourts.gov",
+        }
+        result = CaseDetailResult(
+            case_data_id="no_addr", status="ok",
+            page_text="...",
+            addresses_found=[],   # nothing extractable
+            has_inventory=True,
+        )
+        with patch("scraper.probate_case_detail.CaseDetailFetcher") as MockFetcher:
+            instance = MagicMock()
+            instance.__enter__ = MagicMock(return_value=lambda cid: result)
+            instance.__exit__ = MagicMock(return_value=None)
+            MockFetcher.return_value = instance
+            stats = resolve_pb_via_tyler_case_detail(
+                [rec], self._addr_index(), {"sess": "c"},
+            )
+        assert stats["inventory_only"] == 1
+        assert stats["resolved"] == 0
+        assert WARN_PB_INVENTORY_NO_ADDRESS in get_warnings(rec)
+        # No dcad_account stamped — we don't have a property match
+        assert rec.get("dcad_account") is None
+
+    def test_skips_already_resolved_records(self):
+        rec = {
+            "record_id": "pro-already",
+            "dallas_code": "PB",
+            "source": "probate.txcourts.gov",
+            "dcad_account": "already_set",
+        }
+        with patch("scraper.probate_case_detail.CaseDetailFetcher") as MockFetcher:
+            fetch_mock = MagicMock()
+            MockFetcher.return_value.__enter__.return_value = fetch_mock
+            MockFetcher.return_value.__exit__.return_value = None
+            stats = resolve_pb_via_tyler_case_detail(
+                [rec], self._addr_index(), {},
+            )
+        assert stats["considered"] == 1
+        assert stats["skipped_resolved"] == 1
+        assert stats["attempted"] == 0
+        fetch_mock.assert_not_called()
+
+    def test_skips_non_pb_records(self):
+        rec = {
+            "record_id": "315551161",
+            "dallas_code": "NOF",
+            "source": "publicsearch.us",
+        }
+        with patch("scraper.probate_case_detail.CaseDetailFetcher") as MockFetcher:
+            MockFetcher.return_value.__enter__.return_value = MagicMock()
+            MockFetcher.return_value.__exit__.return_value = None
+            stats = resolve_pb_via_tyler_case_detail(
+                [rec], self._addr_index(), {},
+            )
+        assert stats["considered"] == 0
+
+    def test_skips_publicsearch_pb_records(self):
+        """publicsearch.us PB records don't have a Tyler case_data_id
+        (their record_id is the publicsearch instrument id, not the
+        Tyler caseDataID). The Tyler API would return nothing for them."""
+        rec = {
+            "record_id": "315553795",
+            "dallas_code": "PB",
+            "source": "publicsearch.us",
+        }
+        with patch("scraper.probate_case_detail.CaseDetailFetcher") as MockFetcher:
+            MockFetcher.return_value.__enter__.return_value = MagicMock()
+            MockFetcher.return_value.__exit__.return_value = None
+            stats = resolve_pb_via_tyler_case_detail(
+                [rec], self._addr_index(), {},
+            )
+        # The record IS PB and not resolved — but source != Tyler so we skip
+        assert stats["considered"] == 0
+
+    def test_fetch_error_does_not_crash(self):
+        """A page-fetch exception must not propagate — fail-open behavior."""
+        rec = {
+            "record_id": "pro-crash",
+            "dallas_code": "PB",
+            "source": "probate.txcourts.gov",
+        }
+
+        def crashing_fetcher(cid):
+            raise RuntimeError("Playwright crashed")
+
+        with patch("scraper.probate_case_detail.CaseDetailFetcher") as MockFetcher:
+            MockFetcher.return_value.__enter__.return_value = crashing_fetcher
+            MockFetcher.return_value.__exit__.return_value = None
+            stats = resolve_pb_via_tyler_case_detail(
+                [rec], self._addr_index(), {},
+            )
+        assert stats["errors"] == 1
+        assert stats["resolved"] == 0
+        # Record left alone — no dcad_account set
+        assert rec.get("dcad_account") is None
+
+    def test_no_targets_skips_fetcher_init(self):
+        """When there are no unresolved Tyler PBs, we shouldn't even
+        instantiate the fetcher (saves Playwright startup cost)."""
+        records = [
+            {"record_id": "pro-done", "dallas_code": "PB",
+             "source": "probate.txcourts.gov", "dcad_account": "x"},
+        ]
+        with patch("scraper.probate_case_detail.CaseDetailFetcher") as MockFetcher:
+            stats = resolve_pb_via_tyler_case_detail(
+                records, self._addr_index(), {},
+            )
+        MockFetcher.assert_not_called()
+        assert stats["considered"] == 1
+        assert stats["skipped_resolved"] == 1
