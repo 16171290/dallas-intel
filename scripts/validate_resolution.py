@@ -304,13 +304,14 @@ def _diff_records(records, before, get_warnings_fn):
 
 
 def run_path_b(records: list[dict], address_index: dict[str, str],
-               verbose: bool = False) -> dict:
+               verbose: bool = False, *,
+               always_run: bool = False) -> dict:
     """Run Stage 6.3 — Path B and return diff stats + per-record changes."""
     from scraper import resolution_paths
     from scraper.resolution import get_history, get_warnings
 
     before = _snapshot_before(records)
-    stats = resolution_paths.run_path_b(records, address_index)
+    stats = resolution_paths.run_path_b(records, address_index, always_run=always_run)
     newly_matched, overwrote_address = _diff_records(records, before, get_warnings)
 
     return {
@@ -330,7 +331,8 @@ def run_path_b(records: list[dict], address_index: dict[str, str],
 
 
 def run_path_a(records: list[dict], path_a_indexes: dict,
-               verbose: bool = False) -> dict:
+               verbose: bool = False, *,
+               always_run: bool = False) -> dict:
     """Run Stage 6.45 — Path A (NOF grantor → DCAD owner_index)."""
     from scraper import resolution_paths
     from scraper.resolution import get_warnings
@@ -341,6 +343,7 @@ def run_path_a(records: list[dict], path_a_indexes: dict,
         path_a_indexes["owner_index"],
         path_a_indexes["account_address_index"],
         path_a_indexes["account_owner_lookup"],
+        always_run=always_run,
     )
     newly_matched, overwrote_address = _diff_records(records, before, get_warnings)
 
@@ -363,7 +366,8 @@ def run_path_a(records: list[dict], path_a_indexes: dict,
 
 
 def run_path_c(records: list[dict], path_c_indexes: dict,
-               verbose: bool = False) -> dict:
+               verbose: bool = False, *,
+               always_run: bool = False) -> dict:
     """Run Stage 6.4 APN resolver + Stage 6.5 legal resolver as Path C.
 
     Both share the acct_to_addr index; legal resolver also needs legal_index.
@@ -374,12 +378,13 @@ def run_path_c(records: list[dict], path_c_indexes: dict,
 
     before = _snapshot_before(records)
     apn_stats = legal_resolver.resolve_apn_to_address_with_indexes(
-        records, path_c_indexes["acct_to_addr"],
+        records, path_c_indexes["acct_to_addr"], always_run=always_run,
     )
     legal_stats = legal_resolver.resolve_legal_descriptions_with_indexes(
         records,
         path_c_indexes["legal_index"],
         path_c_indexes["acct_to_addr"],
+        always_run=always_run,
     )
     newly_matched, overwrote_address = _diff_records(records, before, get_warnings)
 
@@ -454,14 +459,17 @@ def report_path_c(diff: dict, verbose: bool) -> None:
 # ═══════════════════════════════════════════════════════════════════════════
 
 def run_variant_lookup(records: list[dict], address_index: dict[str, str],
-                       verbose: bool = False) -> dict:
+                       verbose: bool = False, *,
+                       always_run: bool = False) -> dict:
     """Run Stage 6.35 — Variant lookup (Class 26 family)."""
     from scraper import address_variants, resolution_paths
     from scraper.resolution import get_warnings
 
     before = _snapshot_before(records)
     fuzzy_index = address_variants.build_fuzzy_index(address_index)
-    stats = resolution_paths.run_variant_lookup(records, address_index, fuzzy_index)
+    stats = resolution_paths.run_variant_lookup(
+        records, address_index, fuzzy_index, always_run=always_run,
+    )
     newly_matched, overwrote_address = _diff_records(records, before, get_warnings)
 
     return {
@@ -540,6 +548,70 @@ def report_path_a(diff: dict, verbose: bool) -> None:
             if m['warnings']:
                 print(f"    warnings:        {m['warnings']}")
             print()
+
+
+def report_stage_6_6(stats, records: list[dict], verbose: bool) -> None:
+    """Human-readable summary of Stage 6.6 (cross-path agreement) diff."""
+    from scraper.resolution import (
+        get_history,
+        get_warnings,
+        PATH_STAGE_6_6,
+        WARN_PATH_AGREEMENT,
+        WARN_PATH_DISAGREEMENT,
+        WARN_TIEBROKEN_BY_PAGE,
+        WARN_PAGE_TIEBREAK_INCONCLUSIVE,
+    )
+    print()
+    print("=" * 72)
+    print("STAGE 6.6 — Cross-path agreement + page tiebreaker")
+    print("=" * 72)
+    print(f"  Total records considered     : {stats.total_records}")
+    print(f"  No paths matched             : {stats.no_match_records}")
+    print(f"  Single path matched          : {stats.single_path_records}")
+    print(f"  Multi-path AGREEMENT         : {stats.agreement_records}")
+    print(f"  Multi-path DISAGREEMENT      : {stats.disagreement_records}")
+    print(f"    Page fetches attempted     : {stats.pages_fetched}")
+    print(f"    Tiebroken by page          : {stats.tiebroken}")
+    print(f"    Inconclusive (no signal)   : {stats.inconclusive}")
+    print()
+
+    # Surface disagreements + agreements for inspection
+    agreements   = [r for r in records if WARN_PATH_AGREEMENT in get_warnings(r)]
+    disagreements = [r for r in records if WARN_PATH_DISAGREEMENT in get_warnings(r)]
+
+    if agreements:
+        print(f"AGREEMENTS — {len(agreements)} records (high confidence):")
+        for r in agreements[:10]:
+            paths = sorted({h["path"] for h in get_history(r)
+                            if h.get("status") in ("matched", "multi_match")
+                            and h.get("dcad_account")})
+            print(f"  {r.get('record_id')} grantor={r.get('grantor')!r} "
+                  f"acct={r.get('dcad_account')} paths={paths}")
+        if len(agreements) > 10:
+            print(f"  ... and {len(agreements) - 10} more")
+        print()
+
+    if disagreements:
+        print(f"DISAGREEMENTS — {len(disagreements)} records "
+              f"(operator should verify):")
+        for r in disagreements:
+            history = get_history(r)
+            picks: dict[str, list[str]] = {}
+            for h in history:
+                if h.get("status") in ("matched", "multi_match") and h.get("dcad_account"):
+                    picks.setdefault(h["dcad_account"], []).append(h["path"])
+            tiebroken = WARN_TIEBROKEN_BY_PAGE in get_warnings(r)
+            inconclusive = WARN_PAGE_TIEBREAK_INCONCLUSIVE in get_warnings(r)
+            status = ("TIEBROKEN" if tiebroken
+                     else "INCONCLUSIVE" if inconclusive
+                     else "UNRESOLVED")
+            print(f"  {r.get('record_id')} grantor={r.get('grantor')!r}")
+            print(f"    current acct: {r.get('dcad_account')} "
+                  f"addr: {r.get('address_normalized')!r}")
+            for acct, paths in picks.items():
+                print(f"    pick: {acct}  by {sorted(paths)}")
+            print(f"    status: {status}")
+        print()
 
 
 def report_path_b(diff: dict, verbose: bool) -> None:
@@ -651,7 +723,24 @@ def main() -> int:
         "--verbose", action="store_true",
         help="Show per-record overwrite diffs in addition to summary.",
     )
+    ap.add_argument(
+        "--stage_6_6", action="store_true",
+        help="After all paths run, run Stage 6.6 (cross-path agreement + "
+             "page tiebreaker). Implies --path all and switches every path "
+             "into always_run mode so disagreements surface in history.",
+    )
+    ap.add_argument(
+        "--fetch-pages", action="store_true",
+        help="Stage 6.6: actually fetch publicsearch.us /doc/ pages via "
+             "Playwright. Default is dry-run (logs disagreements only).",
+    )
     args = ap.parse_args()
+
+    # Stage 6.6 needs full pipeline + always_run mode to see anything.
+    if args.stage_6_6:
+        if args.path != "all":
+            logger.info("Stage 6.6 requires full pipeline; forcing --path all")
+        args.path = "all"
 
     if args.build_cache:
         load_or_build_address_index(force_rebuild=True)
@@ -670,26 +759,56 @@ def main() -> int:
     if args.path in ("B", "variant", "all"):
         address_index = load_or_build_address_index()
 
+    # When Stage 6.6 is requested, all paths must run in diagnostic mode
+    # so disagreements appear in resolution_history (else nothing for
+    # Stage 6.6 to audit).
+    always_run = args.stage_6_6
+
     # Run requested path(s) — when --path all, pipeline order is
     # B -> variant -> A -> C (mirrors main.py stages
     # 6.3 -> 6.35 -> 6.45 -> 6.4 + 6.5).
     if args.path in ("B", "all"):
-        diff = run_path_b(records, address_index, verbose=args.verbose)
+        diff = run_path_b(records, address_index,
+                          verbose=args.verbose, always_run=always_run)
         report_path_b(diff, verbose=args.verbose)
 
     if args.path in ("variant", "all"):
-        diff = run_variant_lookup(records, address_index, verbose=args.verbose)
+        diff = run_variant_lookup(records, address_index,
+                                  verbose=args.verbose, always_run=always_run)
         report_variant_lookup(diff, verbose=args.verbose)
 
     if args.path in ("A", "all"):
         path_a_indexes = load_or_build_path_a_indexes()
-        diff = run_path_a(records, path_a_indexes, verbose=args.verbose)
+        diff = run_path_a(records, path_a_indexes,
+                          verbose=args.verbose, always_run=always_run)
         report_path_a(diff, verbose=args.verbose)
 
     if args.path in ("C", "all"):
         path_c_indexes = load_or_build_path_c_indexes()
-        diff = run_path_c(records, path_c_indexes, verbose=args.verbose)
+        diff = run_path_c(records, path_c_indexes,
+                          verbose=args.verbose, always_run=always_run)
         report_path_c(diff, verbose=args.verbose)
+
+    if args.path == "all" and args.stage_6_6:
+        # Stage 6.6 only makes sense after all paths have populated history.
+        # We need the acct -> address map; Path C cache already has it.
+        from scraper import stage_6_6_agreement, page_fetcher as pf
+        path_c_indexes = load_or_build_path_c_indexes()
+        acct_to_addr = path_c_indexes["acct_to_addr"]
+
+        if args.fetch_pages:
+            logger.info("Stage 6.6: real Playwright page fetches enabled")
+            with pf.PageFetcher() as fetcher:
+                stats = stage_6_6_agreement.run_stage_6_6(
+                    records, acct_to_addr, page_fetcher=fetcher,
+                )
+        else:
+            logger.info("Stage 6.6: dry-run (no page fetches; "
+                       "disagreements logged but not auto-resolved)")
+            stats = stage_6_6_agreement.run_stage_6_6(
+                records, acct_to_addr, page_fetcher=None,
+            )
+        report_stage_6_6(stats, records, verbose=args.verbose)
 
     # Write enriched records if requested
     if args.write:

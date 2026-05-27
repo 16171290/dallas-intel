@@ -67,10 +67,12 @@ from . import (
     legal_resolver,
     monitor,
     output,
+    page_fetcher,
     probate,
     publicsearch,
     resolution_paths,
     scorer,
+    stage_6_6_agreement,
 )
 
 logger = logging.getLogger("scraper.main")
@@ -393,6 +395,12 @@ def _run_pipeline() -> int:
     prior_records = output.read_records_json(config.RECORDS_JSON)
     all_records = _merge_seen_dates(all_records, prior_records)
 
+    # PR 5: every resolution path runs in `always_run=True` (diagnostic
+    # mode) so Stage 6.6 can audit cross-path agreement. Each path
+    # records what it WOULD pick to signal_metadata.resolution_history,
+    # but only the first path to reach a record stamps dcad_account;
+    # subsequent paths preserve the upstream stamp and just log.
+
     # 6.3 Path B — raw_excerpt clean-address fallback ------------------------
     # Records sometimes have a corrupted / city-only / venue-trustee value in
     # address_normalized but contain the correct property address inside
@@ -401,7 +409,9 @@ def _run_pipeline() -> int:
     # address is in raw_excerpt, guarded against known venue/trustee signatures.
     # See docs/RESOLUTION_PATHS_DESIGN.md §4.
     logger.info("[6.3/12] Path B: raw_excerpt clean-address fallback")
-    path_b_stats = resolution_paths.run_path_b(all_records, address_index)
+    path_b_stats = resolution_paths.run_path_b(
+        all_records, address_index, always_run=True,
+    )
     resolution_paths.log_path_b_summary(path_b_stats)
 
     # 6.35 Variant Lookup (Class 26 family) ----------------------------------
@@ -414,7 +424,7 @@ def _run_pipeline() -> int:
     logger.info("[6.35/12] Variant lookup (Class 26 family)")
     fuzzy_index = address_variants.build_fuzzy_index(address_index)
     variant_stats = resolution_paths.run_variant_lookup(
-        all_records, address_index, fuzzy_index,
+        all_records, address_index, fuzzy_index, always_run=True,
     )
     resolution_paths.log_variant_lookup_summary(variant_stats)
 
@@ -424,7 +434,9 @@ def _run_pipeline() -> int:
     # maps APN -> account -> normalized address. Runs BEFORE the legal-desc
     # resolver because APN is the highest-confidence identifier when present.
     logger.info("[6.4/12] APN -> DCAD address resolution")
-    apn_stats = legal_resolver.resolve_apn_to_address(all_records, dcad_tables)
+    apn_stats = legal_resolver.resolve_apn_to_address(
+        all_records, dcad_tables, always_run=True,
+    )
     logger.info(
         "APN resolver: %d/%d resolved (%.1f%%); no_apn=%d no_match=%d",
         apn_stats.resolved, apn_stats.total, apn_stats.resolution_rate * 100,
@@ -445,6 +457,7 @@ def _run_pipeline() -> int:
         owner_index,
         path_a_account_address_index,
         path_a_account_owner_index,
+        always_run=True,
     )
     resolution_paths.log_path_a_summary(path_a_stats)
 
@@ -456,7 +469,9 @@ def _run_pipeline() -> int:
     # Stage 7's address-based DCAD enrichment then picks them up. Skips
     # records that already have an address (foreclosure-PDF source).
     logger.info("[6.5/12] Legal-description -> DCAD address resolution")
-    legal_stats = legal_resolver.resolve_legal_descriptions(all_records, dcad_tables)
+    legal_stats = legal_resolver.resolve_legal_descriptions(
+        all_records, dcad_tables, always_run=True,
+    )
     logger.info(
         "Legal-description resolver: %d/%d resolved (%.1f%%); "
         "no_parse=%d no_match=%d multi=%d no_snippet=%d",
@@ -464,6 +479,25 @@ def _run_pipeline() -> int:
         legal_stats.no_parse, legal_stats.no_match, legal_stats.multi_match,
         legal_stats.no_snippet,
     )
+
+    # 6.6 Cross-path agreement audit + page tiebreaker -----------------------
+    # All paths above ran in always_run mode, recording their would-be
+    # picks to signal_metadata.resolution_history without overwriting the
+    # first-stamping path's choice. Stage 6.6 audits that history:
+    #   - Agreement (2+ paths picked the same account): WARN_PATH_AGREEMENT
+    #   - Disagreement (paths picked different accounts): fetches the
+    #     publicsearch.us /doc/ Summary panel's Property Address text and
+    #     uses it as referee via token-overlap scoring. Winner becomes
+    #     primary; losers move to alternate_accounts.
+    # See docs/RESOLUTION_PATHS_DESIGN.md §7 + scraper/stage_6_6_agreement.py.
+    logger.info("[6.6/12] Stage 6.6: cross-path agreement + page tiebreaker")
+    with page_fetcher.PageFetcher() as fetcher:
+        stage_6_6_stats = stage_6_6_agreement.run_stage_6_6(
+            all_records,
+            path_a_account_address_index,   # reuse the acct -> addr map
+            page_fetcher=fetcher,
+        )
+    stage_6_6_agreement.log_stage_6_6_summary(stage_6_6_stats)
 
     # 7. Enrich --------------------------------------------------------------
     logger.info("[7/12] Enriching with DCAD")

@@ -824,3 +824,128 @@ class TestRunPathA:
         # candidates = total - skip_buckets - guarded? actually candidates
         # is incremented after the boilerplate check passes
         assert stats.candidates == 4  # r1, r2, r7 (will be guarded), r8
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# PR 5 — diagnostic mode (always_run) tests
+# ═══════════════════════════════════════════════════════════════════════════
+
+
+class TestPathADiagnosticMode:
+    """When always_run=True, Path A still attempts on already-resolved
+    records and records history but does NOT overwrite record fields."""
+
+    def _fixtures(self):
+        owner_index = {
+            "OUSLEY SKYLER":  ["acct_ousley"],
+            "COX LAURA ANNETTE": ["acct_cordova", "acct_crest_ridge"],
+        }
+        account_address_index = {
+            "acct_ousley":      "6840 DART AVE",
+            "acct_cordova":     "706 CORDOVA ST",
+            "acct_crest_ridge": "3031 CREST RDG DR",
+        }
+        account_owner_index = {
+            "acct_ousley":      "OUSLEY SKYLER",
+            "acct_cordova":     "COX LAURA ANNETTE",
+            "acct_crest_ridge": "COX LAURA ANNETTE",
+        }
+        return owner_index, account_address_index, account_owner_index
+
+    def test_default_mode_skips_already_resolved(self):
+        oi, aai, aoi = self._fixtures()
+        rec = {
+            "record_id": "rO",
+            "dallas_code": "NOF",
+            "grantor": "Ousley, Skyler",
+            "dcad_account": "preset_from_path_b",
+            "address_normalized": "1234 PRESET ST",
+        }
+        stats = resolution_paths.run_path_a([rec], oi, aai, aoi)
+        assert stats.skipped_already_resolved == 1
+        # No history written by Path A
+        history = get_history(rec)
+        assert all(h["path"] != PATH_A_GRANTOR_OWNER_INDEX for h in history)
+
+    def test_always_run_records_history_but_preserves_stamp(self):
+        oi, aai, aoi = self._fixtures()
+        rec = {
+            "record_id": "rO",
+            "dallas_code": "NOF",
+            "grantor": "Ousley, Skyler",
+            "dcad_account": "preset_from_path_b",
+            "address_normalized": "1234 PRESET ST",
+        }
+        stats = resolution_paths.run_path_a([rec], oi, aai, aoi, always_run=True)
+        # Counters still bump
+        assert stats.skipped_already_resolved == 1
+        assert stats.matched == 1
+        # But record fields are preserved verbatim
+        assert rec["dcad_account"] == "preset_from_path_b"
+        assert rec["address_normalized"] == "1234 PRESET ST"
+        # History entry was written so Stage 6.6 can see what Path A picked
+        history = get_history(rec)
+        path_a_entries = [h for h in history if h["path"] == PATH_A_GRANTOR_OWNER_INDEX]
+        assert len(path_a_entries) == 1
+        assert path_a_entries[0]["dcad_account"] == "acct_ousley"
+
+    def test_always_run_reveals_disagreement_for_stage_6_6(self):
+        """Cox case: upstream stamped acct_crest_ridge; Path A in diagnostic
+        mode records its multi-account first-pick of acct_cordova."""
+        oi, aai, aoi = self._fixtures()
+        rec = {
+            "record_id": "rCox",
+            "dallas_code": "NOF",
+            "grantor": "Cox, Laura Annette",
+            "dcad_account": "acct_crest_ridge",   # upstream Path B already resolved
+            "address_normalized": "3031 CREST RDG DR",
+        }
+        stats = resolution_paths.run_path_a([rec], oi, aai, aoi, always_run=True)
+        # Path A would pick the multi_account first entry
+        assert stats.multi_account_matched == 1
+        # Stamp not overwritten
+        assert rec["dcad_account"] == "acct_crest_ridge"
+        # Record-level WARN_MULTI_ACCOUNT should NOT have been added
+        # (that warning belongs to the would-be-stamper, which we suppressed)
+        assert WARN_MULTI_ACCOUNT not in get_warnings(rec)
+        # But the history entry captures Path A's would-be pick
+        history = get_history(rec)
+        path_a_entries = [h for h in history if h["path"] == PATH_A_GRANTOR_OWNER_INDEX]
+        assert len(path_a_entries) == 1
+        # acct_cordova is the would-have-picked account
+        assert path_a_entries[0]["dcad_account"] == "acct_cordova"
+        assert WARN_MULTI_ACCOUNT in path_a_entries[0]["warnings"]
+
+    def test_always_run_unresolved_records_behave_normally(self):
+        """For records that don't have dcad_account yet, always_run=True
+        behaves exactly like default mode (stamps + warns + history)."""
+        oi, aai, aoi = self._fixtures()
+        rec = {
+            "record_id": "rO",
+            "dallas_code": "NOF",
+            "grantor": "Ousley, Skyler",
+        }
+        stats = resolution_paths.run_path_a([rec], oi, aai, aoi, always_run=True)
+        assert stats.matched == 1
+        assert rec["dcad_account"] == "acct_ousley"
+        assert rec["address_normalized"] == "6840 DART AVE"
+
+
+class TestPathBDiagnosticMode:
+    def test_always_run_preserves_existing_stamp(self):
+        address_index = {"3031 CREST RDG DR": "acct_path_b"}
+        rec = {
+            "record_id": "rB",
+            "dcad_account": "acct_already_set",
+            "address_normalized": "DALLAS",  # suspect
+            "raw_excerpt": "Property: 3031 CREST RDG DR, DALLAS, TX 75228",
+        }
+        stats = resolution_paths.run_path_b(
+            [rec], address_index, always_run=True,
+        )
+        assert stats.skipped_already_resolved == 1
+        assert rec["dcad_account"] == "acct_already_set"  # unchanged
+        # But Path B's match still goes to history
+        history = get_history(rec)
+        path_b_entries = [h for h in history if h["path"] == PATH_B_RAW_EXCERPT]
+        assert any(h["status"] == STATUS_MATCHED for h in path_b_entries)
