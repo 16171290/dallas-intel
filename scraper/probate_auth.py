@@ -113,6 +113,23 @@ USER_AGENT = (
 # ============================================================================
 
 
+# PR 8.3: module-level cache of full-attribute cookies from the most
+# recent acquire_session() call. Read via ``get_last_session_full_cookies``.
+_LAST_FULL_COOKIES: list[dict] = []
+
+
+def get_last_session_full_cookies() -> list[dict]:
+    """Return the full Playwright cookie list from the most recent
+    successful ``acquire_session()`` call. Empty list if no session has
+    been acquired this process or the last attempt failed.
+
+    Used by ``scraper.probate_case_detail.CaseDetailFetcher`` to inject
+    cookies with their full attributes into a fresh Playwright context
+    (the SPA's bootstrap requires secure/sameSite/etc. preserved).
+    """
+    return list(_LAST_FULL_COOKIES)
+
+
 def acquire_session() -> Optional[dict[str, str]]:
     """Log in to re:SearchTX via Playwright and return session cookies.
 
@@ -288,9 +305,14 @@ def acquire_session() -> Optional[dict[str, str]]:
                 except PWTimeout:
                     pass
 
-                # Step 4: extract cookies for research.txcourts.gov
+                # Step 4: extract cookies for research.txcourts.gov.
+                # PR 8.3: capture FULL cookie attributes too so the case-
+                # detail fetcher can re-inject them into its own browser
+                # context (the SPA's bootstrap auth check requires
+                # secure/sameSite/etc. attributes preserved).
                 all_cookies = context.cookies()
                 cookies = _filter_research_cookies(all_cookies)
+                full_cookies = filter_research_cookies_full(all_cookies)
                 if not cookies:
                     logger.error(
                         "Probate auth: logged in but no research.txcourts "
@@ -298,10 +320,19 @@ def acquire_session() -> Optional[dict[str, str]]:
                     )
                     return None
 
+                # Stash the full cookie list at module-level so callers
+                # who need full attributes (Playwright re-injection) can
+                # grab it via ``get_last_session_full_cookies()``. Keeps
+                # the existing ``acquire_session()`` -> dict return shape
+                # backward-compatible for the search-API caller.
+                global _LAST_FULL_COOKIES
+                _LAST_FULL_COOKIES = full_cookies
+
                 elapsed = time.time() - started
                 logger.info(
-                    "Probate auth: success in %.1fs (%d cookies captured)",
-                    elapsed, len(cookies),
+                    "Probate auth: success in %.1fs (%d cookies captured, "
+                    "%d with full attributes)",
+                    elapsed, len(cookies), len(full_cookies),
                 )
                 return cookies
 
@@ -349,6 +380,47 @@ def _filter_research_cookies(all_cookies: list[dict]) -> dict[str, str]:
             value = c.get("value")
             if name and value is not None:
                 out[name] = value
+    return out
+
+
+def filter_research_cookies_full(all_cookies: list[dict]) -> list[dict]:
+    """PR 8.3: same domain filter as ``_filter_research_cookies`` but
+    preserves the FULL Playwright cookie attributes (secure, httpOnly,
+    sameSite, expires, path, domain).
+
+    Required for re-injection into a fresh Playwright BrowserContext —
+    the SPA's bootstrap auth check rejects cookies missing ``secure`` /
+    ``sameSite`` attributes, even though the same cookies work fine
+    sent as a flat ``Cookie:`` header via Python requests (which is
+    how ``probate.fetch_dallas_probate`` uses them for the search API).
+
+    Returns a list of Playwright-format cookie dicts. Empty list when
+    no matching cookies were captured.
+    """
+    out: list[dict] = []
+    for c in all_cookies:
+        domain = c.get("domain") or ""
+        if "research.txcourts.gov" not in domain:
+            continue
+        if not c.get("name") or c.get("value") is None:
+            continue
+        # Preserve only the attributes Playwright accepts in add_cookies.
+        # ``expires`` is a unix timestamp; ``sameSite`` is "Strict"/"Lax"/"None".
+        cookie = {
+            "name":   c["name"],
+            "value":  c["value"],
+            "domain": c["domain"],
+            "path":   c.get("path", "/"),
+        }
+        if "secure" in c:
+            cookie["secure"] = bool(c["secure"])
+        if "httpOnly" in c:
+            cookie["httpOnly"] = bool(c["httpOnly"])
+        if c.get("sameSite") in ("Strict", "Lax", "None"):
+            cookie["sameSite"] = c["sameSite"]
+        if "expires" in c and isinstance(c["expires"], (int, float)) and c["expires"] > 0:
+            cookie["expires"] = c["expires"]
+        out.append(cookie)
     return out
 
 

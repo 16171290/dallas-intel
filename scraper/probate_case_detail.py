@@ -217,14 +217,40 @@ def fetch_case_detail(
     # Apply pre-acquired cookies to the browser context so we navigate
     # as the logged-in user. Tyler's SPA depends on these for any data
     # request behind the auth wall.
+    #
+    # PR 8.3: prefer full Playwright-format cookies (list[dict] with
+    # secure/sameSite/httpOnly preserved) over the simple {name: value}
+    # form. The SPA's bootstrap auth check rejects cookies missing those
+    # attributes — even though the search API (server-side requests with
+    # Cookie header) works fine with the simpler form.
     try:
         context = page.context
-        # Convert cookies dict → Playwright cookie format
-        cookie_list = [
-            {"name": k, "value": v,
-             "domain": ".txcourts.gov", "path": "/"}
-            for k, v in cookies.items()
-        ]
+        from . import probate_auth
+        full = probate_auth.get_last_session_full_cookies()
+        if full:
+            # Use the original captured cookies verbatim (correct domain,
+            # path, security attributes preserved).
+            cookie_list = full
+            logger.debug(
+                "case detail %s: using %d full-attribute cookies",
+                case_data_id, len(cookie_list),
+            )
+        else:
+            # Fallback path for callers (unit tests, manual scripts) that
+            # only have the {name: value} form. Tyler's SPA will likely
+            # still reject these on the bootstrap auth check.
+            cookie_list = [
+                {"name": k, "value": v,
+                 "domain": ".research.txcourts.gov", "path": "/",
+                 "secure": True, "sameSite": "Lax"}
+                for k, v in cookies.items()
+            ]
+            logger.debug(
+                "case detail %s: synthesized %d minimal cookies "
+                "(probate_auth.get_last_session_full_cookies returned []); "
+                "SPA bootstrap may reject",
+                case_data_id, len(cookie_list),
+            )
         if cookie_list:
             context.add_cookies(cookie_list)
     except Exception as e:
@@ -232,11 +258,48 @@ def fetch_case_detail(
         logger.warning("case detail %s: %s", case_data_id, result.error)
         return result
 
+    # PR 8.3: capture every XHR / fetch response Tyler's SPA makes during
+    # bootstrap. If the SPA fails to render content, this trace tells us
+    # WHICH internal API call returned what — e.g., "/api/configuration
+    # → 401" makes the auth diagnosis obvious instead of guessing.
+    xhr_log: list[dict] = []
+
+    def _on_response(response):
+        try:
+            url_lower = response.url.lower()
+            if "research.txcourts.gov" not in url_lower:
+                return
+            if any(skip in url_lower for skip in
+                   (".css", ".js", ".woff", ".png", ".jpg", ".svg", ".ico")):
+                return
+            xhr_log.append({
+                "url":    response.url,
+                "status": response.status,
+                "ctype":  response.headers.get("content-type", "") if hasattr(response, "headers") else "",
+            })
+        except Exception:
+            pass
+
+    try:
+        page.on("response", _on_response)
+    except Exception:
+        pass
+
     try:
         page.goto(url, wait_until="networkidle", timeout=timeout_ms)
     except Exception as e:
         result.error = f"goto failed: {type(e).__name__}: {e}"
         logger.warning("case detail %s: %s", case_data_id, result.error)
+        # Still dump whatever XHR we captured before the failure
+        if xhr_log and dump_dir:
+            try:
+                dump_dir.mkdir(parents=True, exist_ok=True)
+                import json as _json
+                (dump_dir / f"{case_data_id}_xhr.json").write_text(
+                    _json.dumps(xhr_log, indent=2), encoding="utf-8",
+                )
+            except Exception:
+                pass
         return result
 
     # Brief settle — Tyler's SPA defers some content
@@ -265,8 +328,28 @@ def fetch_case_detail(
                 (dump_dir / f"{case_data_id}.html").write_text(html, encoding="utf-8")
             except Exception:
                 pass
+            # PR 8.3: also dump the XHR trace so we can see SPA bootstrap
+            # API calls. Critical for diagnosing "SPA loaded but didn't
+            # render content" failures.
+            if xhr_log:
+                try:
+                    import json as _json
+                    (dump_dir / f"{case_data_id}_xhr.json").write_text(
+                        _json.dumps(xhr_log, indent=2), encoding="utf-8",
+                    )
+                except Exception:
+                    pass
         except Exception as e:
             logger.debug("case detail %s: dump failed: %s", case_data_id, e)
+    # Log XHR summary regardless of dump_dir setting
+    if xhr_log:
+        non_2xx = [x for x in xhr_log if not (200 <= x["status"] < 300)]
+        if non_2xx:
+            logger.info(
+                "case detail %s: %d XHR call(s); %d non-2xx (first: %s)",
+                case_data_id, len(xhr_log), len(non_2xx),
+                f"{non_2xx[0]['status']} {non_2xx[0]['url']}",
+            )
 
     # PR 8.2: detect HTTP-error pages BEFORE running the filings parser.
     # When Tyler's ALB serves a 403/404/5xx page, the body is a tiny

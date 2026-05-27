@@ -302,3 +302,85 @@ class TestCookieHeader:
 
     def test_single_cookie(self):
         assert cookies_to_header({"X": "Y"}) == "X=Y"
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# PR 8.3 — filter_research_cookies_full preserves attributes for
+# Playwright re-injection (case-detail SPA bootstrap needs full attrs).
+# ═══════════════════════════════════════════════════════════════════════════
+
+
+from scraper.probate_auth import (
+    filter_research_cookies_full,
+    get_last_session_full_cookies,
+)
+
+
+class TestFilterResearchCookiesFull:
+    def test_preserves_secure_and_samesite(self):
+        all_cookies = [
+            {"name": "sess", "value": "abc",
+             "domain": ".research.txcourts.gov", "path": "/",
+             "secure": True, "httpOnly": True, "sameSite": "Lax"},
+        ]
+        result = filter_research_cookies_full(all_cookies)
+        assert len(result) == 1
+        assert result[0]["name"] == "sess"
+        assert result[0]["value"] == "abc"
+        assert result[0]["secure"] is True
+        assert result[0]["httpOnly"] is True
+        assert result[0]["sameSite"] == "Lax"
+
+    def test_excludes_unrelated_domains(self):
+        all_cookies = [
+            {"name": "tracking", "value": "v", "domain": ".google.com", "path": "/"},
+            {"name": "sess", "value": "abc",
+             "domain": ".research.txcourts.gov", "path": "/"},
+        ]
+        result = filter_research_cookies_full(all_cookies)
+        names = [c["name"] for c in result]
+        assert "tracking" not in names
+        assert "sess" in names
+
+    def test_skips_invalid_samesite(self):
+        """Playwright add_cookies only accepts 'Strict'/'Lax'/'None'.
+        Any other value (e.g. legacy 'No Restriction') must be omitted."""
+        all_cookies = [
+            {"name": "sess", "value": "abc",
+             "domain": ".research.txcourts.gov", "path": "/",
+             "sameSite": "No Restriction"},
+        ]
+        result = filter_research_cookies_full(all_cookies)
+        assert "sameSite" not in result[0]
+
+    def test_skips_negative_expires(self):
+        """Negative expiry (-1 = session cookie in Playwright) shouldn't
+        be passed as an explicit expires value."""
+        all_cookies = [
+            {"name": "sess", "value": "abc",
+             "domain": ".research.txcourts.gov", "path": "/",
+             "expires": -1},
+        ]
+        result = filter_research_cookies_full(all_cookies)
+        assert "expires" not in result[0]
+
+
+class TestGetLastSessionFullCookies:
+    def test_returns_empty_when_no_session(self):
+        # Reset the module-level cache for test isolation
+        import scraper.probate_auth as pa
+        pa._LAST_FULL_COOKIES = []
+        assert get_last_session_full_cookies() == []
+
+    def test_returns_cached_list(self):
+        import scraper.probate_auth as pa
+        pa._LAST_FULL_COOKIES = [
+            {"name": "sess", "value": "abc",
+             "domain": ".research.txcourts.gov", "path": "/"},
+        ]
+        result = get_last_session_full_cookies()
+        assert len(result) == 1
+        assert result[0]["name"] == "sess"
+        # Returned list must be a copy — mutating it shouldn't poison the cache
+        result.append({"name": "evil", "value": "no"})
+        assert len(get_last_session_full_cookies()) == 1
