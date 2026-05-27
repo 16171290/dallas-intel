@@ -193,8 +193,26 @@ def fetch_case_detail(
         CaseDetailResult with status field indicating success / failure.
         Never raises — pipeline must continue when an individual case fails.
     """
+    # Lazy import to avoid circular dep at module-load time.
+    from .probate_auth import USER_AGENT as TYLER_UA
+
     url = _case_detail_url(case_data_id, base_url)
     result = CaseDetailResult(case_data_id=case_data_id, status="error")
+
+    # PR 8.2 fix for 403: Tyler's ALB enforces browser User-Agent.
+    # Set the same UA probate_auth uses (and probate.py search API uses).
+    # Also set Referer so the request looks like it came from the SPA
+    # search results page — Tyler often rejects naked direct navigations
+    # to /ui/cases/.../details with no Referer.
+    try:
+        page.set_extra_http_headers({
+            "User-Agent":      TYLER_UA,
+            "Referer":         f"{base_url.rstrip('/')}/CourtRecordsSearch/ui/search?q=",
+            "Accept":          "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            "Accept-Language": "en-US,en;q=0.9",
+        })
+    except Exception as e:
+        logger.debug("case detail %s: header set failed: %s", case_data_id, e)
 
     # Apply pre-acquired cookies to the browser context so we navigate
     # as the logged-in user. Tyler's SPA depends on these for any data
@@ -249,6 +267,31 @@ def fetch_case_detail(
                 pass
         except Exception as e:
             logger.debug("case detail %s: dump failed: %s", case_data_id, e)
+
+    # PR 8.2: detect HTTP-error pages BEFORE running the filings parser.
+    # When Tyler's ALB serves a 403/404/5xx page, the body is a tiny
+    # error string ("403 Forbidden"). Reporting that as "no_filings" is
+    # misleading — it's actually an auth/blocked-by-WAF situation that
+    # needs operator intervention (UA tuning, cookie refresh, etc.).
+    text_stripped = text.strip()
+    text_short = len(text_stripped) < 200
+    text_upper = text_stripped.upper()
+    error_markers = ("403 FORBIDDEN", "404 NOT FOUND", "ACCESS DENIED",
+                     "500 INTERNAL", "502 BAD GATEWAY", "503 SERVICE")
+    detected_marker = next((m for m in error_markers if m in text_upper), None)
+    if text_short and detected_marker:
+        result.status = "error"
+        result.error = (
+            f"server returned error page ({detected_marker.lower()}). "
+            f"Tyler likely blocked the request — verify User-Agent + "
+            f"cookies + Referer. Body: {text_stripped!r}"
+        )
+        logger.warning(
+            "case detail %s: %s",
+            case_data_id, result.error,
+        )
+        # Don't bother parsing an error page
+        return result
 
     # Parse: filings list + addresses + inventory hint
     result.filings_text = _extract_filings_lines(text)
@@ -356,9 +399,14 @@ class CaseDetailFetcher:
             return self._page
         try:
             from playwright.sync_api import sync_playwright
+            # PR 8.2: launch the browser context with the same User-Agent
+            # probate_auth used to acquire the session. Tyler's ALB rejects
+            # default Chromium UA — see probate.py line 211.
+            from .probate_auth import USER_AGENT as TYLER_UA
             self._pw = sync_playwright().start()
             self._browser = self._pw.chromium.launch(headless=self._headless)
-            self._page = self._browser.new_page()
+            context = self._browser.new_context(user_agent=TYLER_UA)
+            self._page = context.new_page()
             return self._page
         except Exception as e:
             logger.warning(
