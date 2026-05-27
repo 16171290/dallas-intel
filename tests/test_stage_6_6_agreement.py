@@ -443,3 +443,103 @@ class TestStage66DiagnosticLogging:
         # FETCH_FAILED prefix surfaces the exception class
         assert "FETCH_FAILED" in log
         assert "RuntimeError" in log
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# PR 7.5 — applicant-mailing path excluded from candidate set
+# ═══════════════════════════════════════════════════════════════════════════
+#
+# Per the 2026-05-27 production run, Stage 6.6 was producing 10 false-positive
+# disagreements per weekly run on probate records. Cause: PR 6 wrote
+# resolution_history entries for BOTH PATH_PB_DECEDENT_OWNER_INDEX (the
+# decedent's property) and PATH_PB_APPLICANT_OWNER_INDEX (the heir's
+# mailing address). These are legitimately different addresses (decedent
+# owns property X; heir lives at Y) but Stage 6.6 treated them as
+# conflicting candidates.
+#
+# Fix: scope agreement detection to "property candidate" paths only.
+
+
+class TestApplicantMailingExcludedFromCandidates:
+    """PR 7.5: PATH_PB_APPLICANT_OWNER_INDEX entries don't count toward
+    cross-path agreement/disagreement detection in Stage 6.6."""
+
+    def test_applicant_only_history_yields_no_match(self):
+        """An applicant-match-only history means no PRIMARY-property path
+        ran (or matched). Stage 6.6 should treat this as no_match for
+        agreement purposes — not as a 'single' property candidate."""
+        from scraper.resolution import PATH_PB_APPLICANT_OWNER_INDEX
+        rec = {"record_id": "pb_app_only", "dcad_account": "applicant_acct"}
+        append_history(rec, _hist(PATH_PB_APPLICANT_OWNER_INDEX, "applicant_acct"))
+        s = audit_agreement(rec)
+        assert s.kind == "no_match", (
+            f"Applicant-only history should be no_match (not a property "
+            f"candidate); got kind={s.kind}, picks={s.picks}"
+        )
+        assert s.picks == {}
+
+    def test_decedent_plus_applicant_yields_single(self):
+        """Decedent matched + applicant matched a different account =
+        single property candidate (the decedent's). The applicant
+        account is mailing-address and doesn't count as competing."""
+        from scraper.resolution import (
+            PATH_PB_APPLICANT_OWNER_INDEX,
+            PATH_PB_DECEDENT_OWNER_INDEX,
+        )
+        rec = {"record_id": "pb_both", "dcad_account": "decedent_property"}
+        append_history(rec, _hist(PATH_PB_DECEDENT_OWNER_INDEX, "decedent_property"))
+        append_history(rec, _hist(PATH_PB_APPLICANT_OWNER_INDEX, "applicant_mailing"))
+        s = audit_agreement(rec)
+        assert s.kind == "single", (
+            f"Decedent (property) + applicant (mailing) = single property "
+            f"candidate, not disagreement. Got kind={s.kind}, picks={s.picks}"
+        )
+        # Only the decedent's account is in picks
+        assert set(s.picks.keys()) == {"decedent_property"}
+
+    def test_decedent_plus_path_a_with_applicant_yields_agreement(self):
+        """Real cross-path agreement: decedent + Path A on same account.
+        Applicant pointing to a DIFFERENT account is ignored — wouldn't
+        change the agreement outcome."""
+        from scraper.resolution import (
+            PATH_A_GRANTOR_OWNER_INDEX,
+            PATH_PB_APPLICANT_OWNER_INDEX,
+            PATH_PB_DECEDENT_OWNER_INDEX,
+        )
+        rec = {"record_id": "pb_agree", "dcad_account": "property_X"}
+        append_history(rec, _hist(PATH_PB_DECEDENT_OWNER_INDEX, "property_X"))
+        append_history(rec, _hist(PATH_A_GRANTOR_OWNER_INDEX, "property_X"))
+        # Applicant mailing matches a totally different account — irrelevant
+        append_history(rec, _hist(PATH_PB_APPLICANT_OWNER_INDEX, "elsewhere"))
+        s = audit_agreement(rec)
+        assert s.kind == "agreement", (
+            f"Decedent+PathA agreement should not be derailed by applicant "
+            f"entry. Got kind={s.kind}, picks={s.picks}"
+        )
+        assert set(s.picks.keys()) == {"property_X"}
+
+    def test_run_stage_6_6_no_false_disagreement_on_probate(self):
+        """End-to-end: a probate record with decedent + applicant matches
+        on different accounts should NOT trigger the page tiebreaker
+        (no WARN_PATH_DISAGREEMENT, no page fetch attempt)."""
+        from scraper.resolution import (
+            PATH_PB_APPLICANT_OWNER_INDEX,
+            PATH_PB_DECEDENT_OWNER_INDEX,
+        )
+        rec = {"record_id": "pro-test", "dcad_account": "decedent_property"}
+        append_history(rec, _hist(PATH_PB_DECEDENT_OWNER_INDEX, "decedent_property"))
+        append_history(rec, _hist(PATH_PB_APPLICANT_OWNER_INDEX, "applicant_mailing"))
+
+        fetch_called = [False]
+        def fetcher(rid):
+            fetch_called[0] = True
+            return "irrelevant page text"
+
+        stats = run_stage_6_6([rec], {"decedent_property": "1234 OAK",
+                                       "applicant_mailing": "5678 ELM"},
+                              page_fetcher=fetcher)
+        assert stats.disagreement_records == 0
+        assert stats.single_path_records == 1
+        assert stats.pages_fetched == 0
+        assert not fetch_called[0], "page fetcher should NOT be called"
+        assert WARN_PATH_DISAGREEMENT not in get_warnings(rec)
