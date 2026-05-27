@@ -61,7 +61,7 @@ import time
 from dataclasses import dataclass, field
 from datetime import date
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Callable, Optional
 
 from . import config
 from .publicsearch import browser_context
@@ -320,12 +320,28 @@ def is_hoa_lien(ocr_text: str) -> bool:
     return bool(HOA_LIEN_RE.search(ocr_text))
 
 
-def _try_patterns(text: str, patterns: list[tuple[re.Pattern, str]]) -> tuple[Optional[str], Optional[str]]:
+def _try_patterns(
+    text: str,
+    patterns: list[tuple[re.Pattern, str]],
+    *,
+    cleaner: Optional[Callable[[str], str]] = None,
+    validator: Optional[Callable[[str], bool]] = None,
+) -> tuple[Optional[str], Optional[str]]:
     """Try each (regex, label) pair in order; return first match + label.
 
     When a pattern has multiple capture groups (e.g. the 2-line address
     matcher: street on group 1, city/state/zip on group 2), join them
     with a comma so the caller gets a single-string address.
+
+    PR 7 additions:
+        cleaner: optional post-processing function applied to the captured
+            string after whitespace/trailing-punctuation normalization.
+            Used to strip leading OCR garbage like pipe chars from names.
+        validator: optional predicate; when it returns False, the candidate
+            is discarded and the next pattern is tried. Used to reject
+            boilerplate captures (e.g. "LIABLE" from
+            "BUT NOT TO OTHERWISE BE LIABLE as Grantor/Borrower") and
+            obviously-garbled or wrong-county addresses.
     """
     for pat, label in patterns:
         m = pat.search(text)
@@ -338,9 +354,154 @@ def _try_patterns(text: str, patterns: list[tuple[re.Pattern, str]]) -> tuple[Op
                 captured = m.group(1).strip()
             # Collapse whitespace and strip trailing punctuation OCR leaves.
             captured = re.sub(r"\s+", " ", captured).rstrip(".,;: ")
-            if captured:
-                return (captured, label)
+            if cleaner:
+                captured = cleaner(captured)
+            if not captured:
+                continue
+            if validator and not validator(captured):
+                continue
+            return (captured, label)
     return (None, None)
+
+
+# ─────────────────────────────────────────────────────────────────────────
+# Field validators / cleaners (PR 7)
+# ─────────────────────────────────────────────────────────────────────────
+#
+# Built from forensic findings on the 8 production failure cases (Liable,
+# Montgomery, Cox, Battie, Betancourt, Adama, Velasquez, Flores). See
+# docs/ocr_forensic/SUMMARY.md and the per-record REPORT.md files for the
+# evidence each validator addresses.
+
+# Leading-punctuation strip: OCR occasionally captures stray characters
+# before a name (a vertical pipe from a table border, a bullet glyph, a
+# stray period from a watermark, etc.). Strip them so the grantor field
+# starts with a real letter.
+_GRANTOR_LEADING_PUNCT_RE = re.compile(r"^[\s|:>•·.\-]+")
+
+
+def _clean_grantor(captured: str) -> str:
+    """Strip leading punctuation/whitespace OCR sometimes leaves on names.
+
+    Fixes the Flores case (record_id=315562562) where OCR captured
+    "| JAIME O. FLORES AND MARIE G. FLORES..." (vertical pipe prefix).
+    """
+    if not captured:
+        return captured
+    return _GRANTOR_LEADING_PUNCT_RE.sub("", captured).strip()
+
+
+def _is_valid_grantor(captured: str) -> bool:
+    """Reject single-word boilerplate captures like 'LIABLE' / 'MORTGAGOR'.
+
+    Fixes the Liable case (record_id=315562554) where the
+    name-as-grantor-borrower regex captured "LIABLE" from
+    "BUT NOT TO OTHERWISE BE LIABLE as Grantor/Borrower" (the
+    OCR-correct text following ServiceLink boilerplate).
+
+    Reuses the canonical ``GRANTOR_BOILERPLATE_BLOCKLIST`` from
+    ``scraper.resolution`` so Path A's filter and the OCR-extractor's
+    filter stay in lockstep.
+    """
+    # Lazy import to avoid a top-of-module cycle with scraper.resolution.
+    from .resolution import GRANTOR_BOILERPLATE_BLOCKLIST
+
+    if not captured:
+        return False
+    upper = captured.upper().strip()
+    # Direct hit on the blocklist (any form)
+    if upper in GRANTOR_BOILERPLATE_BLOCKLIST:
+        return False
+    # First-token-only match (handles "LIABLE, ABC" variants)
+    main = upper.split(",")[0].strip()
+    if main in GRANTOR_BOILERPLATE_BLOCKLIST:
+        return False
+    first_token = main.split()[0] if main.split() else ""
+    if first_token in GRANTOR_BOILERPLATE_BLOCKLIST:
+        return False
+    # A single-token capture without any whitespace is almost certainly
+    # boilerplate garbage even when not in the blocklist.
+    if " " not in upper.strip():
+        return False
+    return True
+
+
+# Symbols that appear inside captured address strings are a strong garble
+# signal — they aren't legitimate parts of US street addresses. Counts of
+# 2+ such symbols indicate the watermark or some other artifact mangled
+# the text and the regex captured the mangle.
+_ADDRESS_GARBLE_SYMBOLS = set(":{}<>[]&")
+
+# Dallas County + immediate Texas-metro zip prefixes. Dallas County core is
+# 75xxx; Tarrant County (Fort Worth metro, sometimes appears in shared
+# trustee filings) is 76xxx. Anything else (77xxx Houston, 78xxx
+# San Antonio, 79xxx El Paso/West Texas) is the substitute trustee's
+# office address and not the property.
+_LOCAL_ZIP_PREFIXES = {"75", "76"}
+
+# ZIP-of-address detector: look for a 5-digit run that follows "TX" /
+# "TEXAS" (with optional comma), OR is at the very end of the string.
+# Anchoring this way avoids false positives where the regex would match
+# the street number (e.g. "14160 Dallas Parkway, ..." -> 14160 is NOT a
+# ZIP code).
+_ZIP_AT_END_RE = re.compile(
+    r"(?:\bTX|\bTEXAS|,)\s*(\d{5})\b\s*$",
+    re.IGNORECASE,
+)
+
+
+def _extract_zip_code(captured: str) -> Optional[str]:
+    """Return the 5-digit ZIP of a property-address candidate, or None.
+
+    Anchors on "TX <zip>" / "Texas <zip>" / trailing-comma <zip> at end
+    of string so the street number isn't mistaken for a ZIP.
+    """
+    if not captured:
+        return None
+    m = _ZIP_AT_END_RE.search(captured)
+    if m:
+        return m.group(1)
+    return None
+
+
+def _is_valid_address(captured: str) -> bool:
+    """Reject obviously-garbled or wrong-county property-address candidates.
+
+    Fixes:
+        * Adama case (record_id=315561580) — the substitute trustee's
+          El Paso office "7730 Market Center Ave, El Paso, 79912" was
+          captured instead of the property. ZIP 79912 is in West Texas;
+          the property is at 2828 LAKE VIEW DR, Cedar Hill, ZIP 75104.
+        * Battie case (record_id=315561578) — OCR captured
+          "1442 MA 5: {E)" with three stray symbols (`:`, `{`, `)`)
+          from the watermarked "Commonly known as: 1442 MARLENE PLACE"
+          line.
+
+    Heuristics (intentionally conservative — false rejection here just
+    falls through to the next pattern, which usually yields ``None``;
+    Path A / Path B / Path C / Stage 6.6 can still resolve the record
+    via grantor name or raw_excerpt):
+
+      1. 2+ stray symbols (``:`` ``{`` ``}`` ``<`` ``>`` ``[`` ``]`` ``&``)
+         inside the captured text → reject as garbled.
+      2. ZIP code present (anchored to end of string) but prefix not in
+         ``_LOCAL_ZIP_PREFIXES`` → reject as wrong-county (trustee
+         mailing address leakage).
+    """
+    if not captured:
+        return False
+
+    stray_count = sum(1 for c in captured if c in _ADDRESS_GARBLE_SYMBOLS)
+    if stray_count >= 2:
+        return False
+
+    zip_code = _extract_zip_code(captured)
+    if zip_code:
+        zip_prefix = zip_code[:2]
+        if zip_prefix not in _LOCAL_ZIP_PREFIXES:
+            return False
+
+    return True
 
 
 _MONTH_TO_NUM = {
@@ -422,10 +583,24 @@ def extract_fields_from_text(ocr_text: str) -> ExtractedFields:
         out.warnings.append("hoa_assessment_lien_sale")
         return out
 
-    out.grantor, out.grantor_pattern = _try_patterns(ocr_text, GRANTOR_PATTERNS)
+    # PR 7: grantor extraction now strips leading OCR punctuation (Flores)
+    # and rejects boilerplate single-word captures like "LIABLE" (the
+    # Liable case where the regex caught text from ServiceLink boilerplate
+    # rather than the actual grantor name).
+    out.grantor, out.grantor_pattern = _try_patterns(
+        ocr_text, GRANTOR_PATTERNS,
+        cleaner=_clean_grantor, validator=_is_valid_grantor,
+    )
     out.sale_date_raw, out.sale_date_pattern = _try_patterns(ocr_text, SALE_DATE_PATTERNS)
     out.sale_date_iso = _to_iso_date(out.sale_date_raw) if out.sale_date_raw else None
-    out.property_address, out.address_pattern = _try_patterns(ocr_text, ADDRESS_PATTERNS)
+    # PR 7: property address extraction now rejects candidates with 2+
+    # stray symbols (Battie's "1442 MA 5: {E)") and addresses whose ZIP
+    # is outside Dallas/Tarrant County (Adama's "7730 Market Center Ave,
+    # El Paso, 79912" — the substitute trustee's office).
+    out.property_address, out.address_pattern = _try_patterns(
+        ocr_text, ADDRESS_PATTERNS,
+        validator=_is_valid_address,
+    )
     out.loan_amount, out.loan_amount_pattern = _try_patterns(ocr_text, LOAN_AMOUNT_PATTERNS)
     out.legal_description, out.legal_desc_pattern = _try_patterns(ocr_text, LEGAL_DESC_PATTERNS)
     out.apn, out.apn_pattern = _try_patterns(ocr_text, APN_PATTERNS)

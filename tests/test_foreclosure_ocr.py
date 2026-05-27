@@ -584,3 +584,142 @@ def test_apn_not_in_warnings_when_apn_extracted_but_no_address():
     r = extract_fields_from_text(text)
     assert r.apn is not None
     assert "no_address_or_legal_description" not in r.warnings
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# PR 7 — OCR field validators (boilerplate rejection, garble rejection,
+# leading-punctuation strip, wrong-county-zip filter).
+#
+# Each test below pins a production failure case observed via
+# docs/ocr_forensic/<record_id>/ output. The text fixtures are excerpts
+# of the actual Tesseract output for those records.
+# ═══════════════════════════════════════════════════════════════════════════
+
+
+def test_grantor_boilerplate_liable_rejected():
+    """Liable case (record_id=315562554): the name-as-grantor-borrower
+    regex captured 'LIABLE' from ServiceLink boilerplate
+    "BUT NOT TO OTHERWISE BE LIABLE as Grantor/Borrower".
+    With the boilerplate validator, that capture is rejected and the
+    next pattern is tried."""
+    text = (
+        "WHEREAS, on April 16, 2010, LAPRENSA GRANT AND REGIO D GRAMMY YHFE AND HUSBAND,\n"
+        "WITH HIM JOINING HEREIN TO PERFECT THE SECURITY INTEREST BUT NOT TO OTHERWISE BE\n"
+        "LIABLE as Grantor/Borrower, executed and delivered that certain Deed of Trust"
+    )
+    r = extract_fields_from_text(text)
+    # The OCR-garbled marital anchor (YHFE instead of WIFE) means the
+    # whereas-on-date-marital pattern won't match either; result is
+    # either None or some other non-boilerplate capture. Critical: NOT 'LIABLE'.
+    assert r.grantor != "LIABLE"
+    assert (r.grantor or "").upper() != "LIABLE"
+
+
+def test_grantor_single_word_capture_rejected():
+    """Defense in depth: a single-token grantor capture is almost
+    always boilerplate noise, even when not in the explicit blocklist.
+    Reject and try the next pattern."""
+    text = "ONLYTOKEN as Grantor/Borrower\nMore text follows."
+    r = extract_fields_from_text(text)
+    assert r.grantor != "ONLYTOKEN"
+
+
+def test_grantor_blocklist_other_tokens():
+    """MORTGAGOR / BORROWER / TRUSTEE / etc — same fix as LIABLE."""
+    for noise in ("MORTGAGOR", "BORROWER", "TRUSTEE", "DEBTOR"):
+        text = f"BLAH BLAH BE {noise} as Grantor/Borrower\nMore text."
+        r = extract_fields_from_text(text)
+        assert (r.grantor or "").upper() != noise, (
+            f"grantor should not be the boilerplate token {noise!r}; got {r.grantor!r}"
+        )
+
+
+def test_grantor_leading_pipe_stripped():
+    """Flores case (record_id=315562562): OCR captured
+    'Grantor(s): | JAIME O. FLORES AND MARIE G. FLORES, HUSBAND AND WIFE'
+    The leading '| ' is OCR garbage from a table border."""
+    text = "Grantor(s): | JAIME O. FLORES AND MARIE G. FLORES, HUSBAND AND WIFE"
+    r = extract_fields_from_text(text)
+    assert r.grantor is not None
+    # The pipe and surrounding whitespace must be stripped
+    assert not r.grantor.startswith("|"), f"leading pipe not stripped: {r.grantor!r}"
+    assert r.grantor.startswith("JAIME"), f"got: {r.grantor!r}"
+
+
+def test_grantor_legitimate_capture_unaffected():
+    """Regression: a real grantor extraction shouldn't trip any validator."""
+    text = "Grantor(s): JANE DOE AND JOHN DOE, HUSBAND AND WIFE"
+    r = extract_fields_from_text(text)
+    assert r.grantor is not None
+    assert "JANE DOE" in r.grantor
+
+
+def test_address_wrong_county_zip_rejected():
+    """Adama case (record_id=315561580): the substitute trustee's
+    El Paso office was captured because page 1's labeled property
+    address had its 'TX 75' OCR-dropped. ZIP 79912 is El Paso —
+    must be rejected so a wrong-property address isn't shipped."""
+    text = (
+        "Substitute Trustees:\n"
+        "7730 Market Center Ave, El Paso, TX 79912\n"
+    )
+    r = extract_fields_from_text(text)
+    assert r.property_address != "7730 Market Center Ave, El Paso, 79912"
+    # Conservative: validator should reject any address whose anchored ZIP
+    # is non-Dallas/Tarrant. Result here = None (no other pattern matches).
+    if r.property_address:
+        zip_present = any(s.endswith("79912") for s in r.property_address.split())
+        assert not zip_present, f"El Paso ZIP slipped through: {r.property_address!r}"
+
+
+def test_address_dallas_county_zip_accepted():
+    """Regression: 75xxx (Dallas County) and 76xxx (Tarrant) must still
+    pass the validator. Cedar Hill = 75104; Fort Worth = 76102."""
+    for zip_code, prefix_name in [("75104", "Cedar Hill"), ("76102", "Fort Worth")]:
+        text = f"Property Address: 1234 Main Street, City, TX {zip_code}\n"
+        r = extract_fields_from_text(text)
+        assert r.property_address is not None, f"{prefix_name} ZIP {zip_code} rejected!"
+        assert zip_code in r.property_address
+
+
+def test_address_garbled_symbols_rejected():
+    """Battie case (record_id=315561578): OCR captured
+    'Commonly known as: 1442 MA 5: {E)' from the watermarked address line.
+    With three stray symbols (':', '{', ')'), the candidate is garbled
+    and must be rejected."""
+    text = "Commonly known as: 1442 MA 5: {E) DESOTO, TX 75115\n"
+    r = extract_fields_from_text(text)
+    # The garbled capture should be rejected
+    if r.property_address:
+        garble_count = sum(1 for c in r.property_address if c in ":{}<>[]&")
+        assert garble_count < 2, (
+            f"garbled address slipped through: {r.property_address!r}"
+        )
+
+
+def test_address_single_ampersand_still_accepted():
+    """Edge: a single stray symbol shouldn't reject — only 2+ counts as
+    garbled. This is the Cox case ('3031 CREST RIDGE D &') where Stage 6.6
+    will correct it via the page tiebreaker; OCR layer shouldn't suppress
+    it entirely."""
+    text = "Property Address: 3031 CREST RIDGE D &, DALLAS, TX 75228\n"
+    r = extract_fields_from_text(text)
+    # 1 stray symbol ('&'): accepted by the validator (falls through to
+    # Stage 6.6 for correction rather than being silently dropped here)
+    assert r.property_address is not None
+    assert "75228" in r.property_address
+
+
+def test_address_street_number_not_treated_as_zip():
+    """Regression: '14160 Dallas Parkway, Dallas, TX 75254' — the street
+    number 14160 is a 5-digit run but it's NOT the ZIP. ZIP is 75254.
+    Validator must anchor on the TX/Texas marker, not the first 5-digit run."""
+    text = (
+        "NOTICE OF FORECLOSURE\n"
+        "14160 Dallas Parkway\n"
+        "Dallas, TX 75254\n"
+    )
+    r = extract_fields_from_text(text)
+    assert r.property_address is not None
+    assert "75254" in r.property_address
+    assert "14160" in r.property_address
