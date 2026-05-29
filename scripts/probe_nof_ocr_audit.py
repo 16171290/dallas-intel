@@ -89,6 +89,11 @@ def main() -> int:
                     help="Explicit NOF record_ids to audit")
     ap.add_argument("--only-unresolved", action="store_true",
                     help="Audit only NOF records with no dcad_account")
+    ap.add_argument("--resolve", action="store_true",
+                    help="Close the loop: feed each NOF's freshly-OCR'd legal "
+                         "description through the real legal_resolver against "
+                         "DCAD and report whether it now resolves (needs the "
+                         "DCAD ZIP, cached like main.py).")
     args = ap.parse_args()
 
     records = load_records(args.records_json)
@@ -191,9 +196,54 @@ def main() -> int:
                 "fresh_sale_date": fields.sale_date_iso if fields else None,
                 "fresh_loan": fields.loan_amount if fields else None,
                 "fresh_legal": fields.legal_description if fields else None,
+                "stored_raw_excerpt": rec.get("raw_excerpt"),
                 "flags": flags,
                 "cap_warnings": cap_warn,
             })
+
+    # ---- Optional: close the loop through the real legal_resolver ----
+    # Reproduce enrich_foreclosure_records' raw_excerpt stashing (foreclosure_
+    # ocr.py ~1413-1437), then run the SAME resolver the pipeline runs, so we
+    # can see end-to-end whether the OCR'd legal description now resolves to a
+    # real DCAD property — without a full main.py run.
+    if args.resolve:
+        from scraper import dcad_bulk, legal_resolver
+        from scraper.foreclosure_ocr import _legal_desc_to_snippet
+
+        logger.info("--resolve: loading DCAD (cached if available)...")
+        dcad_tables = dcad_bulk.parse_dcad_tables(dcad_bulk.fetch_dcad_zip())
+
+        def reproduce_raw_excerpt(legal_desc, existing):
+            """Mirror enrich_foreclosure_records' snippet stashing."""
+            existing = existing or ""
+            snippet = _legal_desc_to_snippet(legal_desc) if legal_desc else None
+            if snippet and "Subdivision - Name:" not in existing:
+                prefix = existing.split("|", 1)[0].strip() if existing else ""
+                return (f"{prefix} {snippet}".strip()
+                        if prefix else snippet.lstrip("| ").lstrip())[:500]
+            if legal_desc and "LOT" not in existing.upper():
+                return (f"{existing} | {legal_desc}").strip(" |")[:500]
+            return existing
+
+        for a in audit:
+            synthetic = {
+                "record_id": a["record_id"],
+                "dallas_code": "NOF",
+                "source": "publicsearch.us",
+                "dcad_account": None,
+                "address_normalized": None,
+                "raw_excerpt": reproduce_raw_excerpt(
+                    a.get("fresh_legal"), a.get("stored_raw_excerpt")),
+            }
+            try:
+                legal_resolver.resolve_legal_descriptions(
+                    [synthetic], dcad_tables, always_run=True)
+            except Exception as e:
+                a["resolve_error"] = str(e)
+            a["resolved_raw_excerpt"] = synthetic["raw_excerpt"]
+            a["resolved_after_fix"] = bool(synthetic.get("dcad_account"))
+            a["resolved_account"] = synthetic.get("dcad_account")
+            a["resolved_address"] = synthetic.get("address_normalized")
 
     # Save full audit JSON
     (args.dump_dir / "_audit.json").write_text(
@@ -217,6 +267,12 @@ def main() -> int:
         print(f"  {n:>3}  {f}")
     print()
 
+    if args.resolve:
+        newly = sum(1 for a in audit if a.get("resolved_after_fix"))
+        print(f"LEGAL-DESC -> DCAD (with fix): {newly}/{len(audit)} resolve "
+              f"via legal description")
+        print()
+
     for a in audit:
         status = "RESOLVED" if a["resolved"] else "UNRESOLVED"
         print(f"── {a['record_id']}  [{status}]  ocr_len={a['ocr_len']}  "
@@ -226,6 +282,11 @@ def main() -> int:
         print(f"     OCR grantor : {a['fresh_grantor']!r}  ({a['fresh_grantor_pattern']})")
         if a["fresh_sale_date"] or a["fresh_loan"]:
             print(f"     sale_date={a['fresh_sale_date']}  loan={a['fresh_loan']}")
+        if "resolved_after_fix" in a:
+            mark = "RESOLVES ->" if a["resolved_after_fix"] else "still unresolved"
+            print(f"     legal->DCAD : {mark} {a.get('resolved_address') or ''}"
+                  f"  (acct {a.get('resolved_account')})")
+            print(f"        snippet  : {a.get('resolved_raw_excerpt')!r}")
         if a["cap_warnings"]:
             print(f"     cap_warnings: {a['cap_warnings']}")
         print()
