@@ -133,6 +133,23 @@ def browser_context() -> Iterator:
 # Public API
 # ═══════════════════════════════════════════════════════════════════════════
 
+def _filing_date_in_window(
+    filing_date: Optional[str], date_from: date, date_to: date,
+) -> bool:
+    """True if ``filing_date`` (``YYYY-MM-DD``) falls within
+    ``[date_from, date_to]`` inclusive. Missing or unparseable dates return
+    True — the window guard only drops records we can positively prove are
+    outside the requested range, never records we simply can't date-check.
+    """
+    if not filing_date:
+        return True
+    try:
+        fd = date.fromisoformat(filing_date)
+    except ValueError:
+        return True
+    return date_from <= fd <= date_to
+
+
 def scrape_all(
     date_from: date,
     date_to: date,
@@ -150,6 +167,7 @@ def scrape_all(
     breaker = CircuitBreaker()
     seen_ids: set[str] = set()
     out: list[PublicSearchRecord] = []
+    out_of_window = 0  # records dropped by the date-window guard below
 
     target_categories = categories or list(config.INSTRUMENT_CODES.keys())
 
@@ -185,12 +203,29 @@ def scrape_all(
                 for rec in batch:
                     if rec.record_id in seen_ids:
                         continue
+                    # Defense-in-depth date-window guard. If the advanced-
+                    # search Recorded-Date filter ever silently fails to apply
+                    # (publicsearch falls back to its 01/01/1800 default — the
+                    # 2026-05-29 embargo flood), drop anything outside the
+                    # requested [date_from, date_to] so we can never re-ingest
+                    # years of history. A correctly-filtered search returns
+                    # only in-window records, so this is a no-op then.
+                    if not _filing_date_in_window(rec.filing_date, date_from, date_to):
+                        out_of_window += 1
+                        continue
                     seen_ids.add(rec.record_id)
                     rec.harris_category = (
                         normalize.dallas_code_to_category(rec.dallas_code)
                     )
                     out.append(rec)
 
+    if out_of_window:
+        logger.warning(
+            "publicsearch.us: dropped %d out-of-window records (filing_date "
+            "outside %s..%s). The Recorded-Date filter likely did not apply — "
+            "see the Property-Records embargo note in main.py.",
+            out_of_window, date_from, date_to,
+        )
     logger.info(
         "publicsearch.us scrape complete: %d unique records across %d categories",
         len(out), len(target_categories),
