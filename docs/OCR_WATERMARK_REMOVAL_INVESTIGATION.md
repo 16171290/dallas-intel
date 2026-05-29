@@ -374,8 +374,9 @@ information is gone, and cleaning the image cannot invent it back.**
 
 We then tested a *different category* — reading the document with a
 context-aware multimodal model — and it **recovered every hard field that
-both cv2 and DE-GAN failed on**, and additionally exposed a data-quality
-bug ("Liable" is a misparse, not a name).
+both cv2 and DE-GAN failed on**, including the real grantors on the
+"Liable" record (LAPRENA GRANT & REGINALD GRANT) that the regex layer can
+only reject, not recover.
 
 **Revised recommendation:** stop pursuing the watermark-*removal* family.
 The fix is a context-aware **extraction** pass (vision-LLM / cloud
@@ -455,15 +456,30 @@ Read the *same* failing pages with a context-aware multimodal model
 The multimodal read recovered **every** hard field both pixel approaches
 missed — because it reasons about document structure, not just pixels.
 
-### Data-quality bug surfaced: the "Liable" misparse
+### The "Liable" record — already guarded, but illustrates the recovery gap
 
-`315562554`'s production grantor `'Liable'` is **not a name**. The page
-reads: *"…LAPRENA GRANT and REGINALD GRANT, WIFE AND HUSBAND, WITH HIM
+`315562554`'s *stale* production grantor `'Liable'` is **not a name**. The
+page reads: *"…LAPRENA GRANT and REGINALD GRANT, WIFE AND HUSBAND, WITH HIM
 JOINING HEREIN TO PERFECT THE SECURITY INTEREST BUT NOT TO OTHERWISE BE
-**LIABLE** as Grantor/Borrower…"*. The extractor's regex grabbed "LIABLE"
-because it preceded "as Grantor/Borrower." True grantors: **LAPRENA GRANT
-and REGINALD GRANT**. This is independent of the watermark and worth
-fixing in the regex layer regardless of OCR strategy.
+**LIABLE** as Grantor/Borrower…"*. A regex grabbed "LIABLE" because it
+preceded "as Grantor/Borrower."
+
+**This is already fixed.** PR 7's `_is_valid_grantor`
+(`scraper/foreclosure_ocr.py:394`) rejects single-token boilerplate like
+"LIABLE". Running today's extraction code against the actual (watermark-
+garbled) OCR text returns `grantor=None`, **not** "Liable". A scan of the
+2026-05-29 run (961 records) found **0** boilerplate/single-token grantors.
+The old "Liable" value was pre-PR7 stale data.
+
+What the regex layer **cannot** do is *recover* the real names. The
+watermark shredded the marital anchor — OCR reads *"LAPRENSA GRANT AND
+REGIO D GRAMMY **YHFE** AND HUSBAND"* ("WIFE"→"YHFE") — so the good
+`whereas-on-date-name-marital` pattern can't fire, and the record falls to
+a null grantor. This run had **3 null-grantor records, all watermarked
+NOFs** (316689877, 316730745, 316730746). That residual gap is a *recovery*
+problem, not a correctness bug — and it is exactly what a context-aware
+extraction pass addresses (the multimodal read recovers LAPRENA/REGINALD
+GRANT cleanly). No further regex work is warranted here.
 
 ## Complexity reality-check (vision-LLM extraction module)
 
@@ -492,8 +508,10 @@ Grade: basic version ≈ an afternoon; production-grade ≈ moderate.
    (boilerplate / garbled / wrong-zip) — the original Option B trigger
    logic, returning structured fields with a confidence/abstain signal,
    kept behind Stage 6.6.
-3. **Fix the "Liable" regex misparse** in the extraction layer (separate
-   from OCR strategy).
+3. The "Liable" misparse is **already guarded** (PR 7 `_is_valid_grantor`);
+   current code emits a null grantor, not garbage. No further regex work
+   needed — the residual (3 null NOF grantors this run) is a recovery gap
+   the extraction path closes.
 
 ## Reproduction (this addendum)
 
