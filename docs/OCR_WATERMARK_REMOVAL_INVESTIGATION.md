@@ -352,3 +352,153 @@ cleaned = cv2.inpaint(img, mask, 3, cv2.INPAINT_TELEA)
 - [ ] Set monthly billing alert at $5 (any cost beyond that means
       something is wrong with the trigger logic).
 - [ ] Emit `WARN_CLOUD_OCR_USED` per record so operator sees provenance.
+
+---
+
+# Addendum — Follow-up evaluation (2026-05-29)
+
+**Branch:** `claude/kind-lovelace-J7RSf`
+**Trigger:** Operator asked whether off-the-shelf GitHub "watermark remover"
+projects are worth wiring into the scraper. Also clarified that
+publicsearch.us **NOFs are fully enabled** — so the watermark issue is
+**live in production**, not dormant (this weakens the original Option-C
+"it's only cosmetic" rationale).
+
+## TL;DR of the follow-up
+
+We evaluated four public watermark-remover repos plus one
+document-specific GAN (DE-GAN), and ran DE-GAN end-to-end against the
+forensic case set. **Every pixel-based remover hits the same wall the
+original investigation found: at bold ink-on-ink overlap the character
+information is gone, and cleaning the image cannot invent it back.**
+
+We then tested a *different category* — reading the document with a
+context-aware multimodal model — and it **recovered every hard field that
+both cv2 and DE-GAN failed on**, and additionally exposed a data-quality
+bug ("Liable" is a misparse, not a name).
+
+**Revised recommendation:** stop pursuing the watermark-*removal* family.
+The fix is a context-aware **extraction** pass (vision-LLM / cloud
+document-OCR), gated behind the existing validators — essentially the
+original Option B, but stronger.
+
+## Repos evaluated
+
+| Repo | Method | Verdict |
+|---|---|---|
+| `braindotai/Watermark-Removal-Pytorch` | Deep Image Prior (per-image GPU optimization, needs mask) | Reject — same fill-from-neighbors ceiling as cv2, far more expensive, outputs image not text |
+| `SamurAIGPT/seedance-2.0-watermark-remover` | Video corner-badge removal (frame-averaging + cv2 TELEA / optional LaMa) | Reject — built for video; our docs are single-page; core trick (temporal averaging) doesn't apply |
+| `ZingZing001/WaterMarkRemovalTool` | (a) pikepdf layer-strip, (b) RGB/HSV color threshold | Reject — we receive flattened **raster PNGs** (no PDF layer to strip); thresholding already failed in Step 2 (watermark = same blackness as text) |
+| `watermarkremover.io` (SaaS) | Deep-learning inpainting | Reject — proprietary version of Option A; cleans image not text; external paid dependency |
+| `dali92002/DE-GAN` | Conditional GAN, **document-specific**, text-preserving, no mask | **Tested in depth** (closest match) — see below |
+
+**Pattern:** all four are *image cleaners*. Our bottleneck is *text
+recovery* from overlap. Wrong category.
+
+## DE-GAN deep test
+
+DE-GAN (TPAMI 2020) was the only document-and-text-aware tool. We ran it
+for real:
+
+- TF1.13 → ported to TensorFlow 2.16 (model code was already
+  `tensorflow.keras`; patched removed `scipy.misc` import). U-Net
+  generator, ~15.8M params, `biggest_layer=512`, weights
+  `watermark_rem_weights.h5` (63 MB).
+- Inference tiles the page into 256×256 patches → handles our large page
+  sizes with no per-size template (advantage over the cv2 Option-A plan).
+- Sanity check on DE-GAN's own sample (`960.png`) recovered text →
+  pipeline validated.
+
+### Forensic bake-off (page_01, keyword recovery vs raw Tesseract)
+
+| Case | Keyword | Raw | DE-GAN | Note |
+|---|---|---|---|---|
+| Montgomery (315561589) | NICOLE | ✗ | ✗ | cv2 recovered this; DE-GAN did not |
+| Montgomery | BEAUMONT | ✗ | ✗ | — |
+| Cox (315561585) | LAURA / COX / CREST RIDGE | ✓ | ✓ | already fine |
+| Battie (315561578) | BATTIE | ✓ | ✓ | — |
+| Battie | MARLENE | ✗ | ✗ | — |
+| Betancourt (315561574) | VANGUARD | ✓ | ✓ | — |
+| Betancourt | BETANCOURT | ✗ | ✗ | name not on page 1 (test-scope artifact) |
+| Velasquez (315561570) | NOHEMY / GRANADOS / GRENOBLE | ✓ | ✓ | DE-GAN did **not** regress GRANADOS (cv2 did) |
+| Liable (315562554) | LIABLE | ✓ | ✗ | DE-GAN regressed — but see below, "LIABLE" was garbage |
+| Flores (315562562) | FLORES / MATHIS | ✓ | ✓ | — |
+
+**Tally: 0 keyword wins, 1 regression.** Versus cv2 (Step 6): 1 win
+(NICOLE), 1 regression (GRANADOS). So **DE-GAN is no better than cv2** —
+arguably marginally worse — on the canonical hard cases.
+
+Why DE-GAN looked promising on one ad-hoc sample but not here: it lifts
+the watermark off **normal-weight body text** well, but the forensic
+keywords are all **bold grantor names at peak watermark overlap**, where
+stock weights have nothing to reconstruct from. Same wall as cv2.
+
+Caveats: stock weights were trained on a *different* (faint book-page)
+watermark; fine-tuning on synthetic "Unofficial Copy" pairs *might* help
+(the watermark is pixel-stable per page size, so synthetic pairs are
+easy), but it needs a GPU and the overlap problem is fundamental, so the
+expected payoff is low.
+
+## Three-way comparison — the decisive result
+
+Read the *same* failing pages with a context-aware multimodal model
+(vision-LLM reading the PNG directly):
+
+| Case | Field | Raw Tesseract | DE-GAN | Multimodal LLM |
+|---|---|---|---|---|
+| Montgomery | grantor | ✗ "COLE" | ✗ | ✅ NICOLE A. MONTGOMERY |
+| Montgomery | address | ✗ "BEA OS REEF" | ✗ | ✅ 2206 BEAUMONT STREET |
+| Battie | address | ✗ | ✗ | ✅ 1442 MARLENE PLACE |
+| Betancourt | address | ✓ | ✓ | ✅ 43 Vanguard Way |
+| Liable | grantor | ✗ "LIABLE" (garbage) | ✗ | ✅ LAPRENA GRANT & REGINALD GRANT |
+
+The multimodal read recovered **every** hard field both pixel approaches
+missed — because it reasons about document structure, not just pixels.
+
+### Data-quality bug surfaced: the "Liable" misparse
+
+`315562554`'s production grantor `'Liable'` is **not a name**. The page
+reads: *"…LAPRENA GRANT and REGINALD GRANT, WIFE AND HUSBAND, WITH HIM
+JOINING HEREIN TO PERFECT THE SECURITY INTEREST BUT NOT TO OTHERWISE BE
+**LIABLE** as Grantor/Borrower…"*. The extractor's regex grabbed "LIABLE"
+because it preceded "as Grantor/Borrower." True grantors: **LAPRENA GRANT
+and REGINALD GRANT**. This is independent of the watermark and worth
+fixing in the regex layer regardless of OCR strategy.
+
+## Complexity reality-check (vision-LLM extraction module)
+
+Concern raised: an LLM extraction module sounds "extremely advanced." It
+is **not** — it is one of the *simpler* options:
+
+- The scraper already captures the PNG and already does HTTP + JSON. The
+  module is: base64 the image → POST with a "return grantor/address/dates
+  as JSON" prompt → parse JSON. ~100–150 lines.
+- **No GPU, no weights, no TensorFlow, no TF1→TF2 port, no tiling, no
+  second OCR/regex pass** — i.e. strictly less machinery than the DE-GAN
+  path we just exercised.
+- The non-trivial part is *responsibility*, not code: hallucination
+  guardrails, keeping it behind Stage 6.6 cross-checks + an abstain path,
+  cost/caching/retry plumbing. Careful engineering, not research.
+
+Grade: basic version ≈ an afternoon; production-grade ≈ moderate.
+
+## Revised decision
+
+1. **Drop the watermark-removal family** (the 4 repos + DE-GAN). cv2 and
+   DE-GAN independently confirm: cleaning the image does not recover
+   bold-text overlap.
+2. **Pursue context-aware extraction** (vision-LLM or cloud document-OCR),
+   triggered only on records that trip the existing validators
+   (boilerplate / garbled / wrong-zip) — the original Option B trigger
+   logic, returning structured fields with a confidence/abstain signal,
+   kept behind Stage 6.6.
+3. **Fix the "Liable" regex misparse** in the extraction layer (separate
+   from OCR strategy).
+
+## Reproduction (this addendum)
+
+Harness committed under `scripts/ocr_watermark_bakeoff/`
+(`run_bakeoff.py`, `forensic_bakeoff.py`). Both expect to run from a clone
+of `dali92002/DE-GAN` with `weights/watermark_rem_weights.h5` in place and
+`tesseract` on PATH. See that folder's `README.md`. DE-GAN weights are not
+redistributed here (GPL-3.0, academic-use); fetch from the upstream repo.
