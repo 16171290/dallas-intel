@@ -25,5 +25,12 @@ python-dotenv>=1.0,<2.0
 pytesseract>=0.3.10,<1.0
 Pillow>=10.0,<13.0
 
+# Vision-LLM extraction fallback for watermark-garbled NOF pages
+# (scraper/llm_ocr.py). Only used when FORECLOSURE_LLM_OCR_ENABLED=true and a
+# record's grantor/address survive regex extraction as null. Needs
+# ANTHROPIC_API_KEY at runtime. anthropic pulls in pydantic, used for the
+# structured-output schema.
+anthropic>=0.105,<1.0
+
 # Test dependencies (kept here for single-source pinning).
 pytest>=8.0,<9.0

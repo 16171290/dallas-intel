@@ -49,6 +49,7 @@ Thumbs.db
 # ─── Project caches ────────────────────────────────────────────────────────
 .dcad_cache/
 *.tmp.json
+data/cache/llm_ocr/
 
 # ─── Local secrets — MUST NEVER BE COMMITTED ───────────────────────────────
 .env
