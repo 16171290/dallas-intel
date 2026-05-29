@@ -1124,6 +1124,33 @@
       return loc ? `${m.address} (${loc})` : m.address;
     }
 
+    /* Property-Address table column, record-type aware. PB records show the
+       decedent's DCAD-owned parcels (probateOwnedProperties). For NOF (and
+       any other DCAD-resolved record) the property address is the filing's
+       own address — we show the full `address` (with city/zip) rather than
+       the street-only `address_normalized` that the Address column shows.
+       Returns a display string, or "" when nothing is available. */
+    function propertyAddressCell(rec) {
+      if (rec.dallas_code === "PB") return probateOwnedProperties(rec).join(" | ");
+      return rec.address || rec.address_normalized || "";
+    }
+
+    /* Mailing-Address table column, record-type aware. PB records show the
+       applicant's high-confidence mailing address (applicantMailing). For
+       NOF (and other DCAD-resolved records) we show the DCAD-stamped owner
+       mailing address; when it differs from the property address the owner
+       is absentee — a stronger motivated-seller signal. The DCAD mailing
+       street can contain an embedded newline (e.g. "ESTATE OF X\n123 MAIN");
+       collapse it to a single line for the cell. Returns "" when absent. */
+    function mailingAddressCell(rec) {
+      if (rec.dallas_code === "PB") return applicantMailing(rec);
+      const street = (rec.dcad_mailing_address || "").replace(/\s*\n\s*/g, ", ").trim();
+      if (!street) return "";
+      const loc = [rec.dcad_mailing_city, rec.dcad_mailing_state, rec.dcad_mailing_zip]
+        .filter(Boolean).join(" ");
+      return loc ? `${street} (${loc})` : street;
+    }
+
     /* Commercial-entity detector. Returns true if dcad_owner contains
        a commercial-entity token as a whole word. */
     function isCommercialEntity(rec) {
@@ -1379,8 +1406,8 @@
             r.address, r.address_normalized, r.grantee, r.grantor,
             r.dcad_owner, r.instrument_num,
             wfEntry.phone, wfEntry.notes,
-            ...probateOwnedProperties(r),
-            applicantMailing(r),
+            propertyAddressCell(r),
+            mailingAddressCell(r),
           ].filter(Boolean).join(" ").toLowerCase();
           if (!hay.includes(q)) return false;
         }
@@ -1486,13 +1513,11 @@
             <td class="cell-address" title="${escapeHtml(r.address_normalized || r.address || '')}">${escapeHtml(r.address_normalized || r.address || '--')}</td>
             <td class="cell-grantee" title="${escapeHtml(ownerName(r))}">${escapeHtml(ownerName(r) || '--')}</td>
             <td class="cell-decedent" title="${escapeHtml(decedentName(r))}">${escapeHtml(decedentName(r) || '--')}</td>
-            <td class="cell-property-address" title="${escapeHtml(probateOwnedProperties(r).join('\n'))}">${
-              probateOwnedProperties(r).length
-                ? escapeHtml(probateOwnedProperties(r).join(' | '))
-                : '--'
+            <td class="cell-property-address" title="${escapeHtml(propertyAddressCell(r))}">${
+              propertyAddressCell(r) ? escapeHtml(propertyAddressCell(r)) : '--'
             }</td>
-            <td class="cell-mailing-address" title="${escapeHtml(applicantMailing(r))}">${
-              applicantMailing(r) ? escapeHtml(applicantMailing(r)) : '--'
+            <td class="cell-mailing-address" title="${escapeHtml(mailingAddressCell(r))}">${
+              mailingAddressCell(r) ? escapeHtml(mailingAddressCell(r)) : '--'
             }</td>
             <td><span class="badge">${escapeHtml(r.category || r.dallas_code || '--')}</span></td>
             <td class="cell-mono" title="When this record first appeared in the pipeline (not the legal filing date)">${escapeHtml(r.first_seen || '--')}</td>
