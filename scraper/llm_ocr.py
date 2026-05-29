@@ -37,6 +37,12 @@ CONFIDENCE_FLOOR = float(os.getenv("LLM_OCR_CONFIDENCE_FLOOR", "0.5"))
 # Only the first pages carry grantor + property address; cap to bound cost.
 MAX_PAGES = int(os.getenv("LLM_OCR_MAX_PAGES", "2"))
 CACHE_DIR = Path(os.getenv("LLM_OCR_CACHE_DIR", "data/cache/llm_ocr"))
+# Adaptive thinking improves recovery on heavily-garbled text but spends
+# output tokens. Set LLM_OCR_THINKING=disabled to hard-cap token spend (the
+# extraction is simple enough that the loss is usually small).
+_THINKING_OFF = os.getenv("LLM_OCR_THINKING", "adaptive").strip().lower() in (
+    "disabled", "off", "none", "false", "0",
+)
 
 _SYSTEM = (
     "You transcribe Texas foreclosure 'Notice of Substitute Trustee Sale' "
@@ -184,7 +190,7 @@ def extract(record_id: str, page_pngs: list[bytes]) -> Optional[LLMFields]:
                 "text": _SYSTEM,
                 "cache_control": {"type": "ephemeral"},
             }],
-            thinking={"type": "adaptive"},
+            thinking={"type": "disabled"} if _THINKING_OFF else {"type": "adaptive"},
             messages=[{"role": "user", "content": content}],
             output_format=_schema(),
         )
