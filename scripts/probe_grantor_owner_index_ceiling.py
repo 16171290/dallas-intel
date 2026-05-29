@@ -61,6 +61,32 @@ DEFAULT_RECORDS = REPO_ROOT / "data" / "records.json"
 # that regex, so strip them here.
 _DECD_RE = re.compile(r"\b(DECD|DECEASED|DEC'D|ESTATE|EST)\b", re.IGNORECASE)
 
+# Non-person grantors: governments, companies, churches, etc. These match
+# DCAD owner keys but are never motivated-seller leads (a city lien or a
+# corporate filing is not a deceased homeowner). NOTE: "ESTATE" is NOT here
+# — "<NAME> DECD ESTATE" is exactly our target (a deceased person's estate).
+_ENTITY_RE = re.compile(
+    r"\b(CITY|COUNTY|STATE\s+OF|INC|L\.?L\.?C|LTD|CORP|COMPANY|"
+    r"BANK|ASSN|ASSOCIATION|CHURCH|MINISTR|FOUNDATION|PARTNERS|"
+    r"HOLDINGS|PROPERTIES|INVESTMENT|HOMEOWNERS|DBA|TRUST|FUND|"
+    r"CARE\s+CENTER|HOSPITAL|SCHOOL|DISTRICT|AUTHORITY|DEPT|"
+    r"DEPARTMENT|UNITED\s+STATES|USA|TEXAS\b)\b",
+    re.IGNORECASE,
+)
+
+# High-confidence tiers — the surname is pinned by first+ tokens, not a
+# bare-surname guess. surname_only is deliberately excluded.
+_HIGH_CONF_TIERS = {"exact", "no_middle", "initial_form", "double_initial"}
+
+
+def is_entity(name: str | None) -> bool:
+    return bool(name and _ENTITY_RE.search(name))
+
+
+def filing_year(rec: dict) -> str:
+    fd = rec.get("filing_date") or ""
+    return fd[:4] if len(fd) >= 4 else "?"
+
 
 def clean_and_commaify(grantor_raw: str | None) -> str | None:
     """Rebuild a publicsearch 'LAST FIRST MIDDLE [SUFFIX] DECD' grantor as
@@ -122,6 +148,11 @@ def main() -> int:
     # collect matched samples (corrected form) per code
     samples: dict[str, list] = defaultdict(list)
 
+    # VALIDATED-RECOVERABLE classification (corrected form only).
+    # quality buckets per code; plus a year-bucketed high-confidence count.
+    quality: dict[str, Counter] = defaultdict(Counter)
+    high_conf_by_year: dict[str, Counter] = defaultdict(Counter)  # code -> {year: n}
+
     for rec in targets:
         code = rec.get("dallas_code")
 
@@ -136,23 +167,38 @@ def main() -> int:
             m = match_decedent_to_dcad(name, owner_index)
             if m is None:
                 results[form][code]["no_match"] += 1
+                continue
+            results[form][code][f"matched:{m.tier}"] += 1
+            if form != "corrected":
+                continue
+
+            # --- classify match quality (corrected form) ---
+            n_acct = len(m.accounts)
+            if is_entity(corrected_name) or is_entity(rec.get("grantor_raw")):
+                quality[code]["entity_excluded"] += 1
+            elif m.tier in _HIGH_CONF_TIERS and n_acct == 1:
+                quality[code]["HIGH (high-tier, single acct)"] += 1
+                high_conf_by_year[code][filing_year(rec)] += 1
+            elif m.tier in _HIGH_CONF_TIERS and n_acct <= 3:
+                quality[code]["MEDIUM (high-tier, 2-3 acct)"] += 1
             else:
-                results[form][code][f"matched:{m.tier}"] += 1
-                if form == "corrected" and len(samples[code]) < args.samples:
-                    acct = m.accounts[0] if m.accounts else None
-                    addr = account_index.get(acct, {}) if acct else {}
-                    samples[code].append({
-                        "grantor_raw": rec.get("grantor_raw"),
-                        "fed": name,
-                        "matched_name": m.matched_name,
-                        "tier": m.tier,
-                        "n_accounts": len(m.accounts),
-                        "account": acct,
-                        "address": addr.get("address_normalized"),
-                        "city": addr.get("address_city"),
-                        "filing_date": rec.get("filing_date"),
-                        "warning": m.warning,
-                    })
+                quality[code]["LOW (surname_only or 4+ acct)"] += 1
+
+            if len(samples[code]) < args.samples:
+                acct = m.accounts[0] if m.accounts else None
+                addr = account_index.get(acct, {}) if acct else {}
+                samples[code].append({
+                    "grantor_raw": rec.get("grantor_raw"),
+                    "fed": name,
+                    "matched_name": m.matched_name,
+                    "tier": m.tier,
+                    "n_accounts": len(m.accounts),
+                    "account": acct,
+                    "address": addr.get("address_normalized"),
+                    "city": addr.get("address_city"),
+                    "filing_date": rec.get("filing_date"),
+                    "warning": m.warning,
+                })
 
     # ---- Report ----
     def matched_total(counter: Counter) -> int:
@@ -200,13 +246,58 @@ def main() -> int:
                   f"{'  ⚠ '+s['warning'] if s['warning'] else ''}")
         print()
 
+    # ---- VALIDATED RECOVERABLE: the defensible number ----
+    print("=" * 78)
+    print("VALIDATED RECOVERABLE  (corrected form, quality-classified)")
+    print("=" * 78)
+    print("HIGH   = high-confidence tier (exact/no_middle/initial) + single DCAD account")
+    print("MEDIUM = high-confidence tier but 2-3 accounts (needs a tiebreaker)")
+    print("LOW    = surname_only OR 4+ accounts (common-name pollution)")
+    print("entity = non-person grantor (city/INC/DBA/church/etc.) — never a lead")
+    print()
+    grand_high = 0
+    for code in args.codes:
+        q = quality[code]
+        tot = sum(q.values())
+        if tot == 0:
+            continue
+        high = q.get("HIGH (high-tier, single acct)", 0)
+        grand_high += high
+        print(f"   {code}:  (of {tot} corrected-form matches)")
+        for label in ("HIGH (high-tier, single acct)",
+                      "MEDIUM (high-tier, 2-3 acct)",
+                      "LOW (surname_only or 4+ acct)",
+                      "entity_excluded"):
+            if q.get(label):
+                print(f"        {q[label]:>4}  {label}")
+    print()
+    print(f"   GRAND TOTAL HIGH-confidence recoverable: {grand_high} "
+          f"(of {len(targets)} unresolved targets)")
+    print()
+
+    # High-confidence recoveries split by filing year — the flood (2020-22)
+    # vs the records that are actually fresh leads (2026).
+    print("   HIGH-confidence recoveries by filing year (recent = real leads):")
+    all_years = sorted({y for c in args.codes for y in high_conf_by_year[c]})
+    for code in args.codes:
+        if not high_conf_by_year[code]:
+            continue
+        spread = ", ".join(f"{y}:{high_conf_by_year[code][y]}"
+                           for y in sorted(high_conf_by_year[code]))
+        print(f"        {code}: {spread}")
+    recent = sum(high_conf_by_year[c].get("2026", 0) for c in args.codes)
+    print(f"   HIGH-confidence on 2026 (fresh-lead) records: {recent}")
+    print()
+
     print("Interpretation:")
     print("  - PRODUCTION rate = what un-gating Path A as-is would yield")
     print("    (publicsearch grantor parser mis-orders names → likely low).")
-    print("  - CORRECTED rate = ceiling once name ordering is also fixed.")
-    print("  - Spot-check samples: does the DCAD owner/address look like the")
-    print("    decedent's actual property? surname_only + multi-acct = lower")
-    print("    confidence; exact/no_middle = high confidence.")
+    print("  - CORRECTED rate = raw ceiling once name ordering is fixed, but")
+    print("    INFLATED by surname-only / common-name / entity noise.")
+    print("  - VALIDATED RECOVERABLE (HIGH) = the defensible win: high-tier,")
+    print("    single-account, person grantors. This is what the production")
+    print("    fix should stamp as primary; MEDIUM needs a tiebreaker, LOW")
+    print("    and entity should be alternates/flagged or dropped.")
     return 0
 
 
