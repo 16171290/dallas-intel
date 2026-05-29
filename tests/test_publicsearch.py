@@ -127,6 +127,34 @@ class TestDateWindows:
 
 
 # ═══════════════════════════════════════════════════════════════════════════
+# Date-window guard (defense against the 2026-05-29 embargo flood)
+# ═══════════════════════════════════════════════════════════════════════════
+
+class TestFilingDateInWindow:
+    FROM = date(2026, 5, 22)
+    TO = date(2026, 5, 29)
+
+    def test_in_window_inclusive(self):
+        assert publicsearch._filing_date_in_window("2026-05-22", self.FROM, self.TO)
+        assert publicsearch._filing_date_in_window("2026-05-25", self.FROM, self.TO)
+        assert publicsearch._filing_date_in_window("2026-05-29", self.FROM, self.TO)
+
+    def test_before_window_dropped(self):
+        # The flood: a 2020 record when we asked for the last 7 days.
+        assert not publicsearch._filing_date_in_window("2020-07-09", self.FROM, self.TO)
+        assert not publicsearch._filing_date_in_window("2026-05-21", self.FROM, self.TO)
+
+    def test_after_window_dropped(self):
+        assert not publicsearch._filing_date_in_window("2026-05-30", self.FROM, self.TO)
+
+    def test_missing_or_unparseable_kept(self):
+        # Never drop a record we can't positively date-check.
+        assert publicsearch._filing_date_in_window(None, self.FROM, self.TO)
+        assert publicsearch._filing_date_in_window("", self.FROM, self.TO)
+        assert publicsearch._filing_date_in_window("N/A", self.FROM, self.TO)
+
+
+# ═══════════════════════════════════════════════════════════════════════════
 # Record dataclass
 # ═══════════════════════════════════════════════════════════════════════════
 

@@ -108,6 +108,32 @@ def _publicsearch_enabled() -> bool:
     )
 
 
+def _publicsearch_property_records_enabled() -> bool:
+    """Gate for the publicsearch.us Property-Records advanced-search scrape
+    (Stage 3: LP / TXL / PB / BR / SZS / REL / RLP via the doc-type +
+    Recorded-Date filter). Defaults to False.
+
+    DISABLED 2026-05-29. publicsearch.us now embargoes the Property-Records
+    department: the Recorded-Date range cannot be set within ~7 days of
+    today (the "Certified through <date>" cutoff). Our daily 7-day window
+    lands entirely in the embargoed zone, so the date filter silently fails
+    to apply and the search falls back to its 01/01/1800 default —
+    ingesting all of recorded history (the 2026-05-29 flood: 917 records
+    back to 2020).
+
+    NOFs are UNAFFECTED: they come from the Foreclosures department
+    (Stage 3.5, foreclosures_ps.py) via URL date params, which are not
+    embargoed and cannot silently no-op.
+
+    Re-enabling requires first shifting the window to END at the certified
+    date (not today) so the filter actually applies; until then this stays
+    off. Set PUBLICSEARCH_PROPERTY_RECORDS_ENABLED=true to override.
+    """
+    return os.getenv(
+        "PUBLICSEARCH_PROPERTY_RECORDS_ENABLED", "false"
+    ).strip().lower() in ("true", "1", "yes", "on")
+
+
 def _foreclosure_pdf_enabled() -> bool:
     """Read the FORECLOSURE_PDF_ENABLED env var. Defaults to False.
 
@@ -402,6 +428,16 @@ def _run_pipeline() -> int:
             "publicsearch.us SKIPPED - PUBLICSEARCH_ENABLED env var not set. "
             "Disabled 2026-05-14 pending Phase 1 (Odyssey) replacement. "
             "Set PUBLICSEARCH_ENABLED=true to re-enable."
+        )
+    elif not _publicsearch_property_records_enabled():
+        logger.info(
+            "publicsearch.us Property-Records scrape SKIPPED - disabled "
+            "2026-05-29. The Property-Records department now embargoes the "
+            "last ~7 days (Certified-through cutoff), so the daily window's "
+            "date filter silently fails and the search floods with all "
+            "history (2020+). NOFs are still scraped via the Foreclosures "
+            "department below. Set PUBLICSEARCH_PROPERTY_RECORDS_ENABLED=true "
+            "to re-enable (only after shifting the window to the certified date)."
         )
     else:
         # Non-fatal: publicsearch.us is a third-party SPA aggregator with

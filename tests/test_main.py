@@ -1,8 +1,29 @@
 """Unit tests for scraper.main module-level helpers."""
 from __future__ import annotations
 
-from scraper.main import apply_grantor_fallback_from_dcad_owner
+from scraper.main import (
+    apply_grantor_fallback_from_dcad_owner,
+    _publicsearch_property_records_enabled,
+)
 from scraper.resolution import WARN_GRANTOR_FROM_DCAD, get_warnings
+
+
+class TestPropertyRecordsGate:
+    """The publicsearch Property-Records scrape (LP/TXL/PB/BR/SZS/REL/RLP)
+    is disabled by default after the 2026-05-29 embargo flood; NOFs come
+    from a separate, unembargoed path."""
+
+    def test_disabled_by_default(self, monkeypatch):
+        monkeypatch.delenv("PUBLICSEARCH_PROPERTY_RECORDS_ENABLED", raising=False)
+        assert _publicsearch_property_records_enabled() is False
+
+    def test_enabled_when_set_true(self, monkeypatch):
+        monkeypatch.setenv("PUBLICSEARCH_PROPERTY_RECORDS_ENABLED", "true")
+        assert _publicsearch_property_records_enabled() is True
+
+    def test_garbage_value_stays_disabled(self, monkeypatch):
+        monkeypatch.setenv("PUBLICSEARCH_PROPERTY_RECORDS_ENABLED", "maybe")
+        assert _publicsearch_property_records_enabled() is False
 
 
 class TestGrantorFallbackFromDcadOwner:
