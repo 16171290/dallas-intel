@@ -188,9 +188,60 @@ def main() -> int:
         except Exception:
             pass
 
+        # ───────────────────────── PASS 3 ─────────────────────────
+        # Find a commit strategy where BOTH dates persist after both fields
+        # are filled (the real failure: filling 'end' reverted 'start').
+        # Tests fill-order (start-first vs end-first, since start>end is an
+        # invalid range that reverts) crossed with a commit keystroke (Enter)
+        # and real typing (press_sequentially) vs .fill().
+        note("")
+        note("=" * 78)
+        note("PASS 3 — find the commit strategy that makes BOTH dates persist")
+        note("=" * 78)
+
+        def apply_fill(loc, val):
+            loc.click()
+            loc.press("ControlOrMeta+a")
+            loc.fill(val)
+
+        def apply_type(loc, val):
+            loc.click()
+            loc.press("ControlOrMeta+a")
+            loc.press("Delete")
+            loc.press_sequentially(val, delay=30)
+
+        strategies = [
+            ("start-first, fill + Enter", "start_first", apply_fill),
+            ("end-first,  fill + Enter", "end_first", apply_fill),
+            ("end-first,  type + Enter", "end_first", apply_type),
+            ("start-first, type + Enter", "start_first", apply_type),
+        ]
+
+        for label, order, applier in strategies:
+            try:
+                _open_home(page)
+                _open_advanced_search(page)
+                fields = ([(SEL_END, want_end), (SEL_START, want_start)]
+                          if order == "end_first"
+                          else [(SEL_START, want_start), (SEL_END, want_end)])
+                for sel, val in fields:
+                    loc = page.locator(sel)
+                    applier(loc, val)
+                    loc.press("Enter")
+                    page.wait_for_timeout(200)
+                gs = read_value(page, SEL_START)
+                ge = read_value(page, SEL_END)
+                both = (gs == want_start and ge == want_end)
+                note(f"[{label}] start={gs!r} end={ge!r}  "
+                     f"{'BOTH STUCK ✓' if both else 'reverted ✗'}")
+            except Exception as e:
+                note(f"[{label}] error: {e!r}")
+
     (args.dump_dir / "_report.txt").write_text("\n".join(report), encoding="utf-8")
     print()
     print("Diagnosis guide:")
+    print("  - PASS 3 shows which strategy makes BOTH dates persist — that")
+    print("    becomes the new _fill_date_range (order + commit keystroke).")
     print("  - SELECTOR NOT FOUND / count 0  -> publicsearch renamed the date")
     print("    inputs; update SEL_START/SEL_END in _fill_date_range.")
     print("  - fill sticks in PASS 2 but Escape clears it -> drop/replace the")
