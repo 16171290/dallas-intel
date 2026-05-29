@@ -450,6 +450,40 @@ def test_legal_desc_to_snippet_unparsable_returns_none():
     assert _legal_desc_to_snippet("asdfqwerty") is None
 
 
+def test_legal_desc_to_snippet_no_of_before_subdivision():
+    """NOF audit (record 316730731): the notice reads 'LOT 3, BLOCK 22,
+    PICKETTS SUBDIVISION, AN ADDITION...' — comma, not 'OF', before the
+    subdivision name. The mandatory 'OF' made this unparsable, so path C
+    reported no_subdivision_parsed and the record fell back to a city-only
+    address ('GARLAND'). 'OF' is now optional."""
+    from scraper.foreclosure_ocr import _legal_desc_to_snippet
+    desc = ("LOT 3, BLOCK 22, PICKETTS SUBDIVISION, AN ADDITION TO THE "
+            "CITY OF GARLAND, DALLAS COUNTY, TEXAS")
+    snippet = _legal_desc_to_snippet(desc)
+    assert snippet is not None
+    assert "Subdivision - Name: PICKETTS SUBDIVISION" in snippet
+    assert "Lot: 3" in snippet
+    assert "Block: 22" in snippet
+
+
+def test_is_valid_address_rejects_courthouse_venue():
+    """NOF audit (records 316730723/316730734/316730722): when a notice
+    gives the property only by legal description, the address extractor
+    otherwise grabs the auction venue — 'George Allen Courts Building,
+    600 Commerce Street, Dallas, TX 75202' — as the property, and two
+    records resolved to the courthouse's DCAD account. The venue must be
+    rejected so the record routes to its legal description."""
+    from scraper.foreclosure_ocr import _is_valid_address
+    assert _is_valid_address("600 Commerce Street, Dallas, 75202") is False
+    assert _is_valid_address(
+        "George Allen Courts Building, 600 Commerce Street, Dallas, TX 75202"
+    ) is False
+    assert _is_valid_address("Place of Sale of Property: Commerce Street") is False
+    # Real properties are still accepted.
+    assert _is_valid_address("2639 Lenway Street, Dallas, 75215") is True
+    assert _is_valid_address("5314 SADDLEBACK RD, GARLAND, TX 75043") is True
+
+
 # ============================================================================
 # Fix 3a: legal-desc patterns tolerate OCR double-newlines
 # ============================================================================

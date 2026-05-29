@@ -464,8 +464,21 @@ def _extract_zip_code(captured: str) -> Optional[str]:
     return None
 
 
+# The Dallas County foreclosure-auction venue. Every notice names it as the
+# "Place of Sale" ("George Allen Courts Building, 600 Commerce Street, Dallas,
+# TX 75202"). When a notice gives the property only by legal description, the
+# address extractor otherwise grabs this venue as the property address — which
+# then resolves to the courthouse's DCAD account (a silent wrong match). Reject
+# it so the record falls back to its legal description (path C).
+_VENUE_RE = re.compile(
+    r"\b600\s+COMMERCE\b|GEORGE\s+ALLEN|COURTS?\s+BUILDING|PLACE\s+OF\s+SALE",
+    re.IGNORECASE,
+)
+
+
 def _is_valid_address(captured: str) -> bool:
-    """Reject obviously-garbled or wrong-county property-address candidates.
+    """Reject obviously-garbled, wrong-county, or auction-venue address
+    candidates.
 
     Fixes:
         * Adama case (record_id=315561580) — the substitute trustee's
@@ -476,19 +489,29 @@ def _is_valid_address(captured: str) -> bool:
           "1442 MA 5: {E)" with three stray symbols (`:`, `{`, `)`)
           from the watermarked "Commonly known as: 1442 MARLENE PLACE"
           line.
+        * Courthouse-venue cases (record_ids 316730723/316730734/316730722)
+          — "600 Commerce Street, Dallas, 75202" (the George Allen Courts
+          Building auction venue) was captured as the property and two
+          resolved to the courthouse account. Rejecting it routes the
+          record to its legal description instead.
 
     Heuristics (intentionally conservative — false rejection here just
     falls through to the next pattern, which usually yields ``None``;
     Path A / Path B / Path C / Stage 6.6 can still resolve the record
     via grantor name or raw_excerpt):
 
-      1. 2+ stray symbols (``:`` ``{`` ``}`` ``<`` ``>`` ``[`` ``]`` ``&``)
+      1. The auction-venue address (600 Commerce / George Allen Courts
+         Building / Place of Sale) → reject.
+      2. 2+ stray symbols (``:`` ``{`` ``}`` ``<`` ``>`` ``[`` ``]`` ``&``)
          inside the captured text → reject as garbled.
-      2. ZIP code present (anchored to end of string) but prefix not in
+      3. ZIP code present (anchored to end of string) but prefix not in
          ``_LOCAL_ZIP_PREFIXES`` → reject as wrong-county (trustee
          mailing address leakage).
     """
     if not captured:
+        return False
+
+    if _VENUE_RE.search(captured):
         return False
 
     stray_count = sum(1 for c in captured if c in _ADDRESS_GARBLE_SYMBOLS)
@@ -540,7 +563,7 @@ def _to_iso_date(raw: str) -> Optional[str]:
 # legal descriptions can route through the existing legal_resolver pass.
 _OCR_LEGAL_RE = re.compile(
     r"(?:BEING\s+)?LOT\s+(\d+[A-Z]?)\s*,?\s*(?:IN\s+)?BLOCK\s+([A-Z0-9/\-]+)\s*,?\s+"
-    r"OF\s+([A-Z][A-Z0-9\s\.\-/]+?)"
+    r"(?:OF\s+)?([A-Z][A-Z0-9\s\.\-/]+?)"
     r"(?:,\s+(?:AN?\s+ADDITION|SECTION|PHASE|INSTALLMENT|NO\.|ACCORDING)|\.|\s+ACCORDING|$)",
     re.I,
 )
