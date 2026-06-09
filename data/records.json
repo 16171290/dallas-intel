@@ -1,87 +1,7 @@
 {
-  "generated_at": "2026-06-08",
-  "record_count": 54,
+  "generated_at": "2026-06-09",
+  "record_count": 53,
   "records": [
-    {
-      "record_id": "316809005",
-      "source": "publicsearch.us",
-      "dallas_code": "NOF",
-      "category": "NOTICE",
-      "filing_date": "2026-06-01",
-      "instrument_num": "202600001162",
-      "grantor": "Mary, Digiacomo",
-      "grantee": null,
-      "address": "7830 MEADOW PARK, UNIT 209, DALLAS, TEXAS, 75230",
-      "address_normalized": "7830 MEADOW PARK DR",
-      "dcad_account": "00000706558260000",
-      "dcad_owner": "Digiacomo, Mary",
-      "dcad_market_value": 158880.0,
-      "dcad_homestead": true,
-      "dcad_over65": true,
-      "dcad_disabled": false,
-      "dcad_tax_deferred": false,
-      "dcad_mailing_address": "7830 MEADOW PARK DR APT 208",
-      "dcad_mailing_city": "DALLAS",
-      "dcad_mailing_state": "TEXAS",
-      "dcad_mailing_zip": "752304942",
-      "amount": null,
-      "trustee": null,
-      "sale_date": "2026-07-07",
-      "raw_excerpt": "NOTICE OF FORECLOSURE | 7830 MEADOW PARK, UNIT 209, DALLAS, TEXAS, 75230",
-      "active": false,
-      "release_record_id": null,
-      "signal_metadata": {
-        "confidence_warnings": [
-          "lookup_variant_used",
-          "grantor_from_dcad"
-        ],
-        "resolution_history": [
-          {
-            "path": "path_variant_lookup",
-            "stage": "6.35",
-            "input": "7830 MEADOW PARK",
-            "status": "matched",
-            "skip_reason": null,
-            "tier": null,
-            "dcad_account": "00000706558260000",
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "path_c_legal_resolver",
-            "stage": "6.5",
-            "input": "NOTICE OF FORECLOSURE | 7830 MEADOW PARK, UNIT 209, DALLAS, TEXAS, 75230",
-            "status": "skipped",
-            "skip_reason": "no_subdivision_parsed",
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          }
-        ]
-      },
-      "address_city": null,
-      "address_state": null,
-      "address_zip": null,
-      "source_url": "https://dallas.tx.publicsearch.us/doc/316809005",
-      "score": 65,
-      "score_breakdown": {
-        "base": 30,
-        "category_flag": 10,
-        "value_100k": 15,
-        "new_this_week": 5,
-        "has_address": 5
-      },
-      "parse_warnings": [
-        "hoa_assessment_lien_sale"
-      ],
-      "buy_box_reasons": [],
-      "first_seen": "2026-06-04",
-      "last_seen": "2026-06-08",
-      "in_buy_box": true,
-      "grantor_raw": "DIGIACOMO MARY",
-      "dcad_owner_raw": "DIGIACOMO MARY"
-    },
     {
       "record_id": "316817057",
       "source": "publicsearch.us",
@@ -169,7 +89,7 @@
         "no_address_or_legal_description"
       ],
       "first_seen": "2026-06-04",
-      "last_seen": "2026-06-08",
+      "last_seen": "2026-06-09",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "PRICE OLYNTHIA BARRON",
@@ -262,7 +182,7 @@
         "no_address_or_legal_description"
       ],
       "first_seen": "2026-06-04",
-      "last_seen": "2026-06-08",
+      "last_seen": "2026-06-09",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "ABRON TANEKA & RONNIE",
@@ -306,7 +226,9 @@
           "apn_pattern": null,
           "apn": null,
           "pages_captured": 4,
-          "capture_warnings": []
+          "capture_warnings": [
+            "initial_load_hung_reloading"
+          ]
         },
         "resolution_history": [
           {
@@ -358,7 +280,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-06",
-      "last_seen": "2026-06-08",
+      "last_seen": "2026-06-09",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "LEON SPI A YARRIED MAN AND BERTHA LEE WOODS AN UNMARRIED WOMAN",
@@ -402,9 +324,7 @@
           "apn_pattern": null,
           "apn": null,
           "pages_captured": 3,
-          "capture_warnings": [
-            "recovered_on_attempt_2"
-          ]
+          "capture_warnings": []
         },
         "resolution_history": [
           {
@@ -480,7 +400,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-06",
-      "last_seen": "2026-06-08",
+      "last_seen": "2026-06-09",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "TIMOTHY NEAL ODOM",
@@ -601,7 +521,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-06",
-      "last_seen": "2026-06-08",
+      "last_seen": "2026-06-09",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "Pedro Gomez and wife, Ninfa Gomez",
@@ -697,7 +617,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-06",
-      "last_seen": "2026-06-08",
+      "last_seen": "2026-06-09",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "HOLLY J BURDITT A SINGLE WOMAN",
@@ -789,7 +709,7 @@
         "no_address_or_legal_description"
       ],
       "first_seen": "2026-06-06",
-      "last_seen": "2026-06-08",
+      "last_seen": "2026-06-09",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "BATEMAN FATESTA S",
@@ -879,7 +799,7 @@
         "no_grantor_extracted"
       ],
       "first_seen": "2026-06-06",
-      "last_seen": "2026-06-08",
+      "last_seen": "2026-06-09",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "SANDOVAL FRANCISCO M",
@@ -975,7 +895,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-06",
-      "last_seen": "2026-06-08",
+      "last_seen": "2026-06-09",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "DERRYL J YANCY, AN UM HA, BREE DNVOMAN",
@@ -1094,7 +1014,7 @@
         "no_address_or_legal_description"
       ],
       "first_seen": "2026-06-06",
-      "last_seen": "2026-06-08",
+      "last_seen": "2026-06-09",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "ROSA MENDEZ",
@@ -1185,7 +1105,7 @@
         "no_address_or_legal_description"
       ],
       "first_seen": "2026-06-06",
-      "last_seen": "2026-06-08",
+      "last_seen": "2026-06-09",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "SINGH UPINDER K EST OF",
@@ -1277,7 +1197,7 @@
         "no_sale_date_extracted"
       ],
       "first_seen": "2026-06-06",
-      "last_seen": "2026-06-08",
+      "last_seen": "2026-06-09",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "BLANK HOLLY",
@@ -1367,7 +1287,7 @@
         "no_grantor_extracted"
       ],
       "first_seen": "2026-06-06",
-      "last_seen": "2026-06-08",
+      "last_seen": "2026-06-09",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "HUMPHRIES STACY",
@@ -1470,7 +1390,7 @@
         "no_sale_date_extracted"
       ],
       "first_seen": "2026-06-05",
-      "last_seen": "2026-06-08",
+      "last_seen": "2026-06-09",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "BRYAN MARTINEZ",
@@ -1582,7 +1502,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-05",
-      "last_seen": "2026-06-08",
+      "last_seen": "2026-06-09",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "CHAWEDA Y. ALLEN",
@@ -1668,21 +1588,25 @@
           {
             "path": "stage_6_6_agreement",
             "stage": "6.6",
-            "input": null,
-            "status": "skipped",
-            "skip_reason": "tiebreak_inconclusive",
+            "input": "3315 SHELLEY BLVD DALLAS TEXAS 75211",
+            "status": "matched",
+            "skip_reason": null,
             "tier": null,
-            "dcad_account": null,
+            "dcad_account": "00000462343000000",
             "alternates": [
-              "00000462343000000",
               "42209650060040000"
             ],
-            "warnings": []
+            "warnings": [
+              "tiebroken_by_page"
+            ]
           }
         ],
         "confidence_warnings": [
           "path_disagreement",
-          "page_tiebreak_inconclusive"
+          "tiebroken_by_page"
+        ],
+        "alternate_accounts": [
+          "42209650060040000"
         ]
       },
       "address_city": null,
@@ -1699,7 +1623,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-05",
-      "last_seen": "2026-06-08",
+      "last_seen": "2026-06-09",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "LENABEL COMPIAN as",
@@ -1798,7 +1722,7 @@
         "no_address_or_legal_description"
       ],
       "first_seen": "2026-06-05",
-      "last_seen": "2026-06-08",
+      "last_seen": "2026-06-09",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "Juan C De La Torre Muro, a Single Man",
@@ -1889,7 +1813,7 @@
         "no_sale_date_extracted"
       ],
       "first_seen": "2026-06-05",
-      "last_seen": "2026-06-08",
+      "last_seen": "2026-06-09",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "LITTLE DON C EST OF",
@@ -1933,7 +1857,9 @@
           "apn_pattern": null,
           "apn": null,
           "pages_captured": 3,
-          "capture_warnings": []
+          "capture_warnings": [
+            "initial_load_hung_reloading"
+          ]
         },
         "resolution_history": [
           {
@@ -1980,7 +1906,7 @@
         "no_sale_date_extracted"
       ],
       "first_seen": "2026-06-05",
-      "last_seen": "2026-06-08",
+      "last_seen": "2026-06-09",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "BELYEU SELENA ALYSON",
@@ -2024,7 +1950,9 @@
           "apn_pattern": null,
           "apn": null,
           "pages_captured": 4,
-          "capture_warnings": []
+          "capture_warnings": [
+            "initial_load_hung_reloading"
+          ]
         },
         "resolution_history": [
           {
@@ -2092,7 +2020,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-05",
-      "last_seen": "2026-06-08",
+      "last_seen": "2026-06-09",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "Kathryn Ann Bradley",
@@ -2188,7 +2116,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-05",
-      "last_seen": "2026-06-08",
+      "last_seen": "2026-06-09",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "ANDREA TUBBS, AN UNMARRIED WOMAN",
@@ -2289,7 +2217,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-05",
-      "last_seen": "2026-06-08",
+      "last_seen": "2026-06-09",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "7/9/2021 DEANNA ORTIZ AND CARLOS ORTIZ, WIFE AND",
@@ -2387,7 +2315,7 @@
         "no_sale_date_extracted"
       ],
       "first_seen": "2026-06-05",
-      "last_seen": "2026-06-08",
+      "last_seen": "2026-06-09",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "David Devillier, a single man",
@@ -2431,9 +2359,7 @@
           "apn_pattern": null,
           "apn": null,
           "pages_captured": 4,
-          "capture_warnings": [
-            "initial_load_hung_reloading"
-          ]
+          "capture_warnings": []
         },
         "resolution_history": [
           {
@@ -2479,7 +2405,7 @@
         "no_grantor_extracted"
       ],
       "first_seen": "2026-06-05",
-      "last_seen": "2026-06-08",
+      "last_seen": "2026-06-09",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "MARQUEZ ALEXANDER",
@@ -2523,9 +2449,7 @@
           "apn_pattern": null,
           "apn": null,
           "pages_captured": 3,
-          "capture_warnings": [
-            "initial_load_hung_reloading"
-          ]
+          "capture_warnings": []
         },
         "resolution_history": [
           {
@@ -2577,7 +2501,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-05",
-      "last_seen": "2026-06-08",
+      "last_seen": "2026-06-09",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "JANETH STEPHANIE ESCOBAR, AN UNMAR “ ERSON",
@@ -2675,7 +2599,7 @@
         "no_sale_date_extracted"
       ],
       "first_seen": "2026-06-05",
-      "last_seen": "2026-06-08",
+      "last_seen": "2026-06-09",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "Chelsea Chiu and",
@@ -2719,7 +2643,9 @@
           "apn_pattern": null,
           "apn": null,
           "pages_captured": 3,
-          "capture_warnings": []
+          "capture_warnings": [
+            "initial_load_hung_reloading"
+          ]
         },
         "resolution_history": [
           {
@@ -2776,7 +2702,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-05",
-      "last_seen": "2026-06-08",
+      "last_seen": "2026-06-09",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "Janaka L Johnson",
@@ -2866,7 +2792,7 @@
         "no_grantor_extracted"
       ],
       "first_seen": "2026-06-05",
-      "last_seen": "2026-06-08",
+      "last_seen": "2026-06-09",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "SALZMAN SARAH JEAN",
@@ -2957,7 +2883,7 @@
         "no_sale_date_extracted"
       ],
       "first_seen": "2026-06-05",
-      "last_seen": "2026-06-08",
+      "last_seen": "2026-06-09",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "STUCKEY ALEXIA SELISE BUCHANAN",
@@ -3071,7 +2997,7 @@
         "no_sale_date_extracted"
       ],
       "first_seen": "2026-06-05",
-      "last_seen": "2026-06-08",
+      "last_seen": "2026-06-09",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "Julia Hernandez, A single Woman and Judy Flores Hetns dez, A single Man",
@@ -3169,7 +3095,7 @@
         "no_sale_date_extracted"
       ],
       "first_seen": "2026-06-05",
-      "last_seen": "2026-06-08",
+      "last_seen": "2026-06-09",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "_ © DANIEL K HARDY I], A SINGLE PERSON",
@@ -3270,7 +3196,7 @@
         "no_sale_date_extracted"
       ],
       "first_seen": "2026-06-05",
-      "last_seen": "2026-06-08",
+      "last_seen": "2026-06-09",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "KYLE AFFOON, A SINGLE WOMAN",
@@ -3394,7 +3320,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-05",
-      "last_seen": "2026-06-08",
+      "last_seen": "2026-06-09",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "PATSY L. CHAPMAN, Trustee of THE PA L. CAAPMAN REVOCABLE LIVING",
@@ -3517,7 +3443,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-05",
-      "last_seen": "2026-06-08",
+      "last_seen": "2026-06-09",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "Robert Martinez, unmarried",
@@ -3615,7 +3541,7 @@
         "no_address_or_legal_description"
       ],
       "first_seen": "2026-06-06",
-      "last_seen": "2026-06-08",
+      "last_seen": "2026-06-09",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "Jose Wilfredo Vasquez \\",
@@ -3755,7 +3681,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-06",
-      "last_seen": "2026-06-08",
+      "last_seen": "2026-06-09",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "Jose Antonio Vasquez Jr. \\",
@@ -3856,7 +3782,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-06",
-      "last_seen": "2026-06-08",
+      "last_seen": "2026-06-09",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "SIDNEY R. CLAYTON",
@@ -3951,7 +3877,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-05",
-      "last_seen": "2026-06-08",
+      "last_seen": "2026-06-09",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "3/6/2020 DONALD GRAHAM CARTER, A SINGLE MAN",
@@ -4046,7 +3972,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-05",
-      "last_seen": "2026-06-08",
+      "last_seen": "2026-06-09",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "10/25/2013 MARCO A RODRIDGUEZ VARGAS, AN UNMARRIED MAN",
@@ -4150,7 +4076,7 @@
         "no_address_or_legal_description"
       ],
       "first_seen": "2026-06-05",
-      "last_seen": "2026-06-08",
+      "last_seen": "2026-06-09",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "RAUL A. ORTIZ, A MARRIED PERSON, JO NI",
@@ -4245,7 +4171,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-05",
-      "last_seen": "2026-06-08",
+      "last_seen": "2026-06-09",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "4/8/2005 LAWANDA STRHAN, AN UNMARRIED PERSON",
@@ -4334,7 +4260,7 @@
         "no_grantor_extracted"
       ],
       "first_seen": "2026-06-05",
-      "last_seen": "2026-06-08",
+      "last_seen": "2026-06-09",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "DIMOULAKIS NICK",
@@ -4419,7 +4345,7 @@
         "no_grantor_extracted"
       ],
       "first_seen": "2026-06-06",
-      "last_seen": "2026-06-08",
+      "last_seen": "2026-06-09",
       "in_buy_box": true,
       "buy_box_reasons": []
     },
@@ -4511,7 +4437,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-06",
-      "last_seen": "2026-06-08",
+      "last_seen": "2026-06-09",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "DESMOND KANE AND ERON WESTON CHRISTENSEN, HUSBAND AND"
@@ -4595,7 +4521,7 @@
         "no_grantor_extracted"
       ],
       "first_seen": "2026-06-06",
-      "last_seen": "2026-06-08",
+      "last_seen": "2026-06-09",
       "in_buy_box": true,
       "buy_box_reasons": []
     },
@@ -4687,7 +4613,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-06",
-      "last_seen": "2026-06-08",
+      "last_seen": "2026-06-09",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "RAYMOND RODRIGUEZ, AN UNMARRIED PERSON"
@@ -4730,9 +4656,7 @@
           "apn_pattern": null,
           "apn": null,
           "pages_captured": 4,
-          "capture_warnings": [
-            "recovered_on_attempt_2"
-          ]
+          "capture_warnings": []
         },
         "resolution_history": [
           {
@@ -4782,7 +4706,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-05",
-      "last_seen": "2026-06-08",
+      "last_seen": "2026-06-09",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "Tracie Rowles, a single woman"
@@ -4875,7 +4799,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-05",
-      "last_seen": "2026-06-08",
+      "last_seen": "2026-06-09",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "Essie Lavine, single person as"
@@ -4959,7 +4883,7 @@
         "no_grantor_extracted"
       ],
       "first_seen": "2026-06-05",
-      "last_seen": "2026-06-08",
+      "last_seen": "2026-06-09",
       "in_buy_box": true,
       "buy_box_reasons": []
     },
@@ -5051,7 +4975,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-05",
-      "last_seen": "2026-06-08",
+      "last_seen": "2026-06-09",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "Semiko Ussery Green, A Single Woman"
@@ -5125,7 +5049,7 @@
         "no_sale_date_extracted"
       ],
       "first_seen": "2026-06-05",
-      "last_seen": "2026-06-08",
+      "last_seen": "2026-06-09",
       "in_buy_box": true,
       "buy_box_reasons": []
     },
@@ -5198,7 +5122,7 @@
       ],
       "buy_box_reasons": [],
       "first_seen": "2026-06-05",
-      "last_seen": "2026-06-08",
+      "last_seen": "2026-06-09",
       "in_buy_box": true
     },
     {
@@ -5270,7 +5194,7 @@
       ],
       "buy_box_reasons": [],
       "first_seen": "2026-06-05",
-      "last_seen": "2026-06-08",
+      "last_seen": "2026-06-09",
       "in_buy_box": true
     }
   ]
