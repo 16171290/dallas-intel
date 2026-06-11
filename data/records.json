@@ -1,100 +1,7 @@
 {
-  "generated_at": "2026-06-10",
-  "record_count": 52,
+  "generated_at": "2026-06-11",
+  "record_count": 56,
   "records": [
-    {
-      "record_id": "316840162",
-      "source": "publicsearch.us",
-      "dallas_code": "NOF",
-      "category": "NOTICE",
-      "filing_date": "2026-06-03",
-      "instrument_num": "202600001164",
-      "grantor": "Taneka, Abron & Ronnie",
-      "grantee": null,
-      "address": "1944 CHURCHILL DOWNS, SEAGOVILLE, TEXAS, 75159",
-      "address_normalized": "1944 CHURCHILL DOWNS DR",
-      "dcad_account": "500464400D0090000",
-      "dcad_owner": "Abron, Taneka & Abron, Ronnie",
-      "dcad_market_value": 316310.0,
-      "dcad_homestead": true,
-      "dcad_over65": false,
-      "dcad_disabled": false,
-      "dcad_tax_deferred": false,
-      "dcad_mailing_address": "1944 CHURCHILL DOWNS DR",
-      "dcad_mailing_city": "SEAGOVILLE",
-      "dcad_mailing_state": "TEXAS",
-      "dcad_mailing_zip": "751591728",
-      "amount": null,
-      "trustee": null,
-      "sale_date": "2026-08-04",
-      "raw_excerpt": "NOTICE OF FORECLOSURE | 1944 CHURCHILL DOWNS, SEAGOVILLE, TEXAS, 75159",
-      "active": true,
-      "release_record_id": null,
-      "signal_metadata": {
-        "ocr": {
-          "grantor_pattern": null,
-          "sale_date_pattern": null,
-          "address_pattern": null,
-          "loan_amount_pattern": null,
-          "legal_desc_pattern": null,
-          "apn_pattern": null,
-          "apn": null,
-          "pages_captured": 3,
-          "capture_warnings": []
-        },
-        "confidence_warnings": [
-          "lookup_variant_used",
-          "grantor_from_dcad"
-        ],
-        "resolution_history": [
-          {
-            "path": "path_variant_lookup",
-            "stage": "6.35",
-            "input": "1944 CHURCHILL DOWNS",
-            "status": "matched",
-            "skip_reason": null,
-            "tier": null,
-            "dcad_account": "500464400D0090000",
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "path_c_legal_resolver",
-            "stage": "6.5",
-            "input": "NOTICE OF FORECLOSURE | 1944 CHURCHILL DOWNS, SEAGOVILLE, TEXAS, 75159",
-            "status": "skipped",
-            "skip_reason": "no_subdivision_parsed",
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          }
-        ]
-      },
-      "address_city": null,
-      "address_state": null,
-      "address_zip": null,
-      "source_url": "https://dallas.tx.publicsearch.us/doc/316840162",
-      "score": 65,
-      "score_breakdown": {
-        "base": 30,
-        "category_flag": 10,
-        "value_100k": 15,
-        "new_this_week": 5,
-        "has_address": 5
-      },
-      "parse_warnings": [
-        "no_grantor_extracted",
-        "no_sale_date_extracted",
-        "no_address_or_legal_description"
-      ],
-      "first_seen": "2026-06-04",
-      "last_seen": "2026-06-10",
-      "in_buy_box": true,
-      "buy_box_reasons": [],
-      "grantor_raw": "ABRON TANEKA & RONNIE",
-      "dcad_owner_raw": "ABRON TANEKA & RONNIE"
-    },
     {
       "record_id": "316861838",
       "source": "publicsearch.us",
@@ -185,7 +92,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-06",
-      "last_seen": "2026-06-10",
+      "last_seen": "2026-06-11",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "LEON SPI A YARRIED MAN AND BERTHA LEE WOODS AN UNMARRIED WOMAN",
@@ -305,7 +212,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-06",
-      "last_seen": "2026-06-10",
+      "last_seen": "2026-06-11",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "TIMOTHY NEAL ODOM",
@@ -426,7 +333,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-06",
-      "last_seen": "2026-06-10",
+      "last_seen": "2026-06-11",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "Pedro Gomez and wife, Ninfa Gomez",
@@ -522,7 +429,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-06",
-      "last_seen": "2026-06-10",
+      "last_seen": "2026-06-11",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "HOLLY J BURDITT A SINGLE WOMAN",
@@ -614,7 +521,7 @@
         "no_address_or_legal_description"
       ],
       "first_seen": "2026-06-06",
-      "last_seen": "2026-06-10",
+      "last_seen": "2026-06-11",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "BATEMAN FATESTA S",
@@ -704,7 +611,7 @@
         "no_grantor_extracted"
       ],
       "first_seen": "2026-06-06",
-      "last_seen": "2026-06-10",
+      "last_seen": "2026-06-11",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "SANDOVAL FRANCISCO M",
@@ -800,7 +707,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-06",
-      "last_seen": "2026-06-10",
+      "last_seen": "2026-06-11",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "DERRYL J YANCY, AN UM HA, BREE DNVOMAN",
@@ -919,7 +826,7 @@
         "no_address_or_legal_description"
       ],
       "first_seen": "2026-06-06",
-      "last_seen": "2026-06-10",
+      "last_seen": "2026-06-11",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "ROSA MENDEZ",
@@ -1010,7 +917,7 @@
         "no_address_or_legal_description"
       ],
       "first_seen": "2026-06-06",
-      "last_seen": "2026-06-10",
+      "last_seen": "2026-06-11",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "SINGH UPINDER K EST OF",
@@ -1054,9 +961,7 @@
           "apn_pattern": null,
           "apn": null,
           "pages_captured": 3,
-          "capture_warnings": [
-            "initial_load_hung_reloading"
-          ]
+          "capture_warnings": []
         },
         "confidence_warnings": [
           "lookup_variant_used",
@@ -1104,7 +1009,7 @@
         "no_sale_date_extracted"
       ],
       "first_seen": "2026-06-06",
-      "last_seen": "2026-06-10",
+      "last_seen": "2026-06-11",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "BLANK HOLLY",
@@ -1196,7 +1101,7 @@
         "no_grantor_extracted"
       ],
       "first_seen": "2026-06-06",
-      "last_seen": "2026-06-10",
+      "last_seen": "2026-06-11",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "HUMPHRIES STACY",
@@ -1299,7 +1204,7 @@
         "no_sale_date_extracted"
       ],
       "first_seen": "2026-06-05",
-      "last_seen": "2026-06-10",
+      "last_seen": "2026-06-11",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "BRYAN MARTINEZ",
@@ -1411,7 +1316,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-05",
-      "last_seen": "2026-06-10",
+      "last_seen": "2026-06-11",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "CHAWEDA Y. ALLEN",
@@ -1532,7 +1437,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-05",
-      "last_seen": "2026-06-10",
+      "last_seen": "2026-06-11",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "LENABEL COMPIAN as",
@@ -1576,9 +1481,7 @@
           "apn_pattern": null,
           "apn": null,
           "pages_captured": 4,
-          "capture_warnings": [
-            "initial_load_hung_reloading"
-          ]
+          "capture_warnings": []
         },
         "resolution_history": [
           {
@@ -1633,7 +1536,7 @@
         "no_address_or_legal_description"
       ],
       "first_seen": "2026-06-05",
-      "last_seen": "2026-06-10",
+      "last_seen": "2026-06-11",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "Juan C De La Torre Muro, a Single Man",
@@ -1724,7 +1627,7 @@
         "no_sale_date_extracted"
       ],
       "first_seen": "2026-06-05",
-      "last_seen": "2026-06-10",
+      "last_seen": "2026-06-11",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "LITTLE DON C EST OF",
@@ -1815,7 +1718,7 @@
         "no_sale_date_extracted"
       ],
       "first_seen": "2026-06-05",
-      "last_seen": "2026-06-10",
+      "last_seen": "2026-06-11",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "BELYEU SELENA ALYSON",
@@ -1927,7 +1830,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-05",
-      "last_seen": "2026-06-10",
+      "last_seen": "2026-06-11",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "Kathryn Ann Bradley",
@@ -2023,7 +1926,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-05",
-      "last_seen": "2026-06-10",
+      "last_seen": "2026-06-11",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "ANDREA TUBBS, AN UNMARRIED WOMAN",
@@ -2124,7 +2027,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-05",
-      "last_seen": "2026-06-10",
+      "last_seen": "2026-06-11",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "7/9/2021 DEANNA ORTIZ AND CARLOS ORTIZ, WIFE AND",
@@ -2168,9 +2071,7 @@
           "apn_pattern": null,
           "apn": null,
           "pages_captured": 4,
-          "capture_warnings": [
-            "initial_load_hung_reloading"
-          ]
+          "capture_warnings": []
         },
         "resolution_history": [
           {
@@ -2224,7 +2125,7 @@
         "no_sale_date_extracted"
       ],
       "first_seen": "2026-06-05",
-      "last_seen": "2026-06-10",
+      "last_seen": "2026-06-11",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "David Devillier, a single man",
@@ -2314,7 +2215,7 @@
         "no_grantor_extracted"
       ],
       "first_seen": "2026-06-05",
-      "last_seen": "2026-06-10",
+      "last_seen": "2026-06-11",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "MARQUEZ ALEXANDER",
@@ -2358,9 +2259,7 @@
           "apn_pattern": null,
           "apn": null,
           "pages_captured": 3,
-          "capture_warnings": [
-            "initial_load_hung_reloading"
-          ]
+          "capture_warnings": []
         },
         "resolution_history": [
           {
@@ -2412,7 +2311,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-05",
-      "last_seen": "2026-06-10",
+      "last_seen": "2026-06-11",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "JANETH STEPHANIE ESCOBAR, AN UNMAR “ ERSON",
@@ -2510,7 +2409,7 @@
         "no_sale_date_extracted"
       ],
       "first_seen": "2026-06-05",
-      "last_seen": "2026-06-10",
+      "last_seen": "2026-06-11",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "Chelsea Chiu and",
@@ -2611,7 +2510,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-05",
-      "last_seen": "2026-06-10",
+      "last_seen": "2026-06-11",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "Janaka L Johnson",
@@ -2701,7 +2600,7 @@
         "no_grantor_extracted"
       ],
       "first_seen": "2026-06-05",
-      "last_seen": "2026-06-10",
+      "last_seen": "2026-06-11",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "SALZMAN SARAH JEAN",
@@ -2792,7 +2691,7 @@
         "no_sale_date_extracted"
       ],
       "first_seen": "2026-06-05",
-      "last_seen": "2026-06-10",
+      "last_seen": "2026-06-11",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "STUCKEY ALEXIA SELISE BUCHANAN",
@@ -2906,11 +2805,109 @@
         "no_sale_date_extracted"
       ],
       "first_seen": "2026-06-05",
-      "last_seen": "2026-06-10",
+      "last_seen": "2026-06-11",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "Julia Hernandez, A single Woman and Judy Flores Hetns dez, A single Man",
       "dcad_owner_raw": "HERNANDEZ JULIA"
+    },
+    {
+      "record_id": "316861807",
+      "source": "publicsearch.us",
+      "dallas_code": "NOF",
+      "category": "NOTICE",
+      "filing_date": "2026-06-04",
+      "instrument_num": "202600001218",
+      "grantor": "© Daniel K Hardy I], A",
+      "grantee": null,
+      "address": "2029 BUFFALO HILL DR, MESQUITE, TX 75149",
+      "address_normalized": "2029 BUFFALO HILL DR",
+      "dcad_account": "381112500B0210000",
+      "dcad_owner": "Hardy, Daniel K II",
+      "dcad_market_value": 319550.0,
+      "dcad_homestead": true,
+      "dcad_over65": false,
+      "dcad_disabled": false,
+      "dcad_tax_deferred": false,
+      "dcad_mailing_address": "2029 BUFFALO HILL DR",
+      "dcad_mailing_city": "MESQUITE",
+      "dcad_mailing_state": "TEXAS",
+      "dcad_mailing_zip": "751493138",
+      "amount": "302,000.00",
+      "trustee": null,
+      "sale_date": "2026-07-07",
+      "raw_excerpt": "NOTICE OF FORECLOSURE | 2029 BUFFALO HILL DRIVE, MESQUITE, TEXAS, 75149",
+      "active": true,
+      "release_record_id": null,
+      "signal_metadata": {
+        "ocr": {
+          "grantor_pattern": "labeled-grantor",
+          "sale_date_pattern": null,
+          "address_pattern": "reported-address",
+          "loan_amount_pattern": "labeled-original-principal",
+          "legal_desc_pattern": null,
+          "apn_pattern": null,
+          "apn": null,
+          "pages_captured": 3,
+          "capture_warnings": []
+        },
+        "resolution_history": [
+          {
+            "path": "path_variant_lookup",
+            "stage": "6.35",
+            "input": "2029 BUFFALO HILL DR",
+            "status": "matched",
+            "skip_reason": null,
+            "tier": null,
+            "dcad_account": "381112500B0210000",
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_a_grantor_owner_index",
+            "stage": "6.45",
+            "input": "_ © DANIEL K HARDY I], A SINGLE PERSON",
+            "status": "no_match",
+            "skip_reason": null,
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_c_legal_resolver",
+            "stage": "6.5",
+            "input": "NOTICE OF FORECLOSURE | 2029 BUFFALO HILL DRIVE, MESQUITE, TEXAS, 75149",
+            "status": "skipped",
+            "skip_reason": "no_subdivision_parsed",
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          }
+        ]
+      },
+      "address_city": null,
+      "address_state": null,
+      "address_zip": null,
+      "source_url": "https://dallas.tx.publicsearch.us/doc/316861807",
+      "score": 65,
+      "score_breakdown": {
+        "base": 30,
+        "category_flag": 10,
+        "value_100k": 15,
+        "new_this_week": 5,
+        "has_address": 5
+      },
+      "parse_warnings": [
+        "no_sale_date_extracted"
+      ],
+      "first_seen": "2026-06-11",
+      "last_seen": "2026-06-11",
+      "in_buy_box": true,
+      "buy_box_reasons": [],
+      "grantor_raw": "_ © DANIEL K HARDY I], A SINGLE PERSON",
+      "dcad_owner_raw": "HARDY DANIEL K II"
     },
     {
       "record_id": "316861801",
@@ -3007,11 +3004,134 @@
         "no_sale_date_extracted"
       ],
       "first_seen": "2026-06-05",
-      "last_seen": "2026-06-10",
+      "last_seen": "2026-06-11",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "KYLE AFFOON, A SINGLE WOMAN",
       "dcad_owner_raw": "ROXTON TEEYANA KALISE PATRICIA"
+    },
+    {
+      "record_id": "316861806",
+      "source": "publicsearch.us",
+      "dallas_code": "NOF",
+      "category": "NOTICE",
+      "filing_date": "2026-06-04",
+      "instrument_num": "202600001200",
+      "grantor": "Martinez, Robert",
+      "grantee": null,
+      "address": "8367 Transit Street, Dallas, TX 75217",
+      "address_normalized": "8367 TRANSIT ST",
+      "dcad_account": "00000572059000000",
+      "dcad_owner": "Martinez, Robert",
+      "dcad_market_value": 176970.0,
+      "dcad_homestead": true,
+      "dcad_over65": true,
+      "dcad_disabled": false,
+      "dcad_tax_deferred": false,
+      "dcad_mailing_address": "8367 TRANSIT ST",
+      "dcad_mailing_city": "DALLAS",
+      "dcad_mailing_state": "TEXAS",
+      "dcad_mailing_zip": "752177047",
+      "amount": "90,750.00",
+      "trustee": null,
+      "sale_date": "2026-07-07",
+      "raw_excerpt": "NOTICE OF FORECLOSURE | Subdivision - Name: Revised Plat df GLENDBALE PARK Lot: 18 Block: 6351",
+      "active": true,
+      "release_record_id": null,
+      "signal_metadata": {
+        "ocr": {
+          "grantor_pattern": "labeled-grantor",
+          "sale_date_pattern": "bare-date-word",
+          "address_pattern": "property-address-two-line",
+          "loan_amount_pattern": "labeled-original-principal",
+          "legal_desc_pattern": "being-lot",
+          "apn_pattern": null,
+          "apn": null,
+          "pages_captured": 4,
+          "capture_warnings": []
+        },
+        "resolution_history": [
+          {
+            "path": "path_variant_lookup",
+            "stage": "6.35",
+            "input": "8367 TRANSIT ST",
+            "status": "matched",
+            "skip_reason": null,
+            "tier": null,
+            "dcad_account": "00000572059000000",
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_a_grantor_owner_index",
+            "stage": "6.45",
+            "input": "Robert Martinez, unmarried",
+            "status": "multi_match",
+            "skip_reason": null,
+            "tier": "surname_only",
+            "dcad_account": "44001530100010000",
+            "alternates": [
+              "99171106180000000"
+            ],
+            "warnings": [
+              "multi_account",
+              "surname_only_tier"
+            ]
+          },
+          {
+            "path": "path_c_legal_resolver",
+            "stage": "6.5",
+            "input": "Revised Plat df GLENDBALE PARK",
+            "status": "no_match",
+            "skip_reason": null,
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "stage_6_6_agreement",
+            "stage": "6.6",
+            "input": "8367 TRANSIT STREET DALLAS TEXAS 75217",
+            "status": "matched",
+            "skip_reason": null,
+            "tier": null,
+            "dcad_account": "00000572059000000",
+            "alternates": [
+              "44001530100010000"
+            ],
+            "warnings": [
+              "tiebroken_by_page"
+            ]
+          }
+        ],
+        "confidence_warnings": [
+          "path_disagreement",
+          "tiebroken_by_page"
+        ],
+        "alternate_accounts": [
+          "44001530100010000"
+        ]
+      },
+      "address_city": null,
+      "address_state": null,
+      "address_zip": null,
+      "source_url": "https://dallas.tx.publicsearch.us/doc/316861806",
+      "score": 65,
+      "score_breakdown": {
+        "base": 30,
+        "category_flag": 10,
+        "value_100k": 15,
+        "new_this_week": 5,
+        "has_address": 5
+      },
+      "parse_warnings": [],
+      "first_seen": "2026-06-05",
+      "last_seen": "2026-06-11",
+      "in_buy_box": true,
+      "buy_box_reasons": [],
+      "grantor_raw": "Robert Martinez, unmarried",
+      "dcad_owner_raw": "MARTINEZ ROBERT"
     },
     {
       "record_id": "316861796",
@@ -3131,134 +3251,11 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-05",
-      "last_seen": "2026-06-10",
+      "last_seen": "2026-06-11",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "PATSY L. CHAPMAN, Trustee of THE PA L. CAAPMAN REVOCABLE LIVING",
       "dcad_owner_raw": "CHAPMAN ARCHIE T REVOCABLE"
-    },
-    {
-      "record_id": "316861806",
-      "source": "publicsearch.us",
-      "dallas_code": "NOF",
-      "category": "NOTICE",
-      "filing_date": "2026-06-04",
-      "instrument_num": "202600001200",
-      "grantor": "Martinez, Robert",
-      "grantee": null,
-      "address": "8367 Transit Street, Dallas, TX 75217",
-      "address_normalized": "8367 TRANSIT ST",
-      "dcad_account": "00000572059000000",
-      "dcad_owner": "Martinez, Robert",
-      "dcad_market_value": 176970.0,
-      "dcad_homestead": true,
-      "dcad_over65": true,
-      "dcad_disabled": false,
-      "dcad_tax_deferred": false,
-      "dcad_mailing_address": "8367 TRANSIT ST",
-      "dcad_mailing_city": "DALLAS",
-      "dcad_mailing_state": "TEXAS",
-      "dcad_mailing_zip": "752177047",
-      "amount": "90,750.00",
-      "trustee": null,
-      "sale_date": "2026-07-07",
-      "raw_excerpt": "NOTICE OF FORECLOSURE | Subdivision - Name: Revised Plat df GLENDBALE PARK Lot: 18 Block: 6351",
-      "active": true,
-      "release_record_id": null,
-      "signal_metadata": {
-        "ocr": {
-          "grantor_pattern": "labeled-grantor",
-          "sale_date_pattern": "bare-date-word",
-          "address_pattern": "property-address-two-line",
-          "loan_amount_pattern": "labeled-original-principal",
-          "legal_desc_pattern": "being-lot",
-          "apn_pattern": null,
-          "apn": null,
-          "pages_captured": 4,
-          "capture_warnings": []
-        },
-        "resolution_history": [
-          {
-            "path": "path_variant_lookup",
-            "stage": "6.35",
-            "input": "8367 TRANSIT ST",
-            "status": "matched",
-            "skip_reason": null,
-            "tier": null,
-            "dcad_account": "00000572059000000",
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "path_a_grantor_owner_index",
-            "stage": "6.45",
-            "input": "Robert Martinez, unmarried",
-            "status": "multi_match",
-            "skip_reason": null,
-            "tier": "surname_only",
-            "dcad_account": "44001530100010000",
-            "alternates": [
-              "99171106180000000"
-            ],
-            "warnings": [
-              "multi_account",
-              "surname_only_tier"
-            ]
-          },
-          {
-            "path": "path_c_legal_resolver",
-            "stage": "6.5",
-            "input": "Revised Plat df GLENDBALE PARK",
-            "status": "no_match",
-            "skip_reason": null,
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "stage_6_6_agreement",
-            "stage": "6.6",
-            "input": "8367 TRANSIT STREET DALLAS TEXAS 75217",
-            "status": "matched",
-            "skip_reason": null,
-            "tier": null,
-            "dcad_account": "00000572059000000",
-            "alternates": [
-              "44001530100010000"
-            ],
-            "warnings": [
-              "tiebroken_by_page"
-            ]
-          }
-        ],
-        "confidence_warnings": [
-          "path_disagreement",
-          "tiebroken_by_page"
-        ],
-        "alternate_accounts": [
-          "44001530100010000"
-        ]
-      },
-      "address_city": null,
-      "address_state": null,
-      "address_zip": null,
-      "source_url": "https://dallas.tx.publicsearch.us/doc/316861806",
-      "score": 65,
-      "score_breakdown": {
-        "base": 30,
-        "category_flag": 10,
-        "value_100k": 15,
-        "new_this_week": 5,
-        "has_address": 5
-      },
-      "parse_warnings": [],
-      "first_seen": "2026-06-05",
-      "last_seen": "2026-06-10",
-      "in_buy_box": true,
-      "buy_box_reasons": [],
-      "grantor_raw": "Robert Martinez, unmarried",
-      "dcad_owner_raw": "MARTINEZ ROBERT"
     },
     {
       "record_id": "316882954",
@@ -3352,7 +3349,7 @@
         "no_address_or_legal_description"
       ],
       "first_seen": "2026-06-06",
-      "last_seen": "2026-06-10",
+      "last_seen": "2026-06-11",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "Jose Wilfredo Vasquez \\",
@@ -3396,7 +3393,9 @@
           "apn_pattern": null,
           "apn": null,
           "pages_captured": 4,
-          "capture_warnings": []
+          "capture_warnings": [
+            "initial_load_hung_reloading"
+          ]
         },
         "resolution_history": [
           {
@@ -3492,7 +3491,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-06",
-      "last_seen": "2026-06-10",
+      "last_seen": "2026-06-11",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "Jose Antonio Vasquez Jr. \\",
@@ -3536,9 +3535,7 @@
           "apn_pattern": null,
           "apn": null,
           "pages_captured": 2,
-          "capture_warnings": [
-            "initial_load_hung_reloading"
-          ]
+          "capture_warnings": []
         },
         "resolution_history": [
           {
@@ -3595,7 +3592,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-06",
-      "last_seen": "2026-06-10",
+      "last_seen": "2026-06-11",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "SIDNEY R. CLAYTON",
@@ -3690,7 +3687,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-05",
-      "last_seen": "2026-06-10",
+      "last_seen": "2026-06-11",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "3/6/2020 DONALD GRAHAM CARTER, A SINGLE MAN",
@@ -3785,7 +3782,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-05",
-      "last_seen": "2026-06-10",
+      "last_seen": "2026-06-11",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "10/25/2013 MARCO A RODRIDGUEZ VARGAS, AN UNMARRIED MAN",
@@ -3889,7 +3886,7 @@
         "no_address_or_legal_description"
       ],
       "first_seen": "2026-06-05",
-      "last_seen": "2026-06-10",
+      "last_seen": "2026-06-11",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "RAUL A. ORTIZ, A MARRIED PERSON, JO NI",
@@ -3984,7 +3981,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-05",
-      "last_seen": "2026-06-10",
+      "last_seen": "2026-06-11",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "4/8/2005 LAWANDA STRHAN, AN UNMARRIED PERSON",
@@ -4073,11 +4070,101 @@
         "no_grantor_extracted"
       ],
       "first_seen": "2026-06-05",
-      "last_seen": "2026-06-10",
+      "last_seen": "2026-06-11",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "DIMOULAKIS NICK",
       "dcad_owner_raw": "DIMOULAKIS NICK"
+    },
+    {
+      "record_id": "316958953",
+      "source": "publicsearch.us",
+      "dallas_code": "NOF",
+      "category": "NOTICE",
+      "filing_date": "2026-06-10",
+      "instrument_num": "202600001246",
+      "grantor": "Chris, Sanders",
+      "grantee": null,
+      "address": "4101 McEwen Road, Dallas, Texas 75244",
+      "address_normalized": "4101 MCEWEN RD",
+      "dcad_account": "99992310000199750",
+      "dcad_owner": "Sanders, Chris",
+      "dcad_market_value": 3000.0,
+      "dcad_homestead": false,
+      "dcad_over65": false,
+      "dcad_disabled": false,
+      "dcad_tax_deferred": false,
+      "dcad_mailing_address": "ATTN CHRIS SANDERS PRES\nSTE 400\n4101 MCEWEN RD",
+      "dcad_mailing_city": "FARMERS BRANCH",
+      "dcad_mailing_state": "TEXAS",
+      "dcad_mailing_zip": "752445220",
+      "amount": null,
+      "trustee": null,
+      "sale_date": "2026-07-07",
+      "raw_excerpt": "NOTICE OF FORECLOSURE | 8545 MIDPARK ROAD #7, DALLAS, TEXAS",
+      "active": true,
+      "release_record_id": null,
+      "signal_metadata": {
+        "ocr": {
+          "grantor_pattern": null,
+          "sale_date_pattern": null,
+          "address_pattern": "top-of-doc-2line",
+          "loan_amount_pattern": null,
+          "legal_desc_pattern": null,
+          "apn_pattern": null,
+          "apn": null,
+          "pages_captured": 3,
+          "capture_warnings": []
+        },
+        "resolution_history": [
+          {
+            "path": "path_variant_lookup",
+            "stage": "6.35",
+            "input": "4101 MCEWEN RD",
+            "status": "matched",
+            "skip_reason": null,
+            "tier": null,
+            "dcad_account": "99992310000199750",
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_c_legal_resolver",
+            "stage": "6.5",
+            "input": "NOTICE OF FORECLOSURE | 8545 MIDPARK ROAD #7, DALLAS, TEXAS",
+            "status": "skipped",
+            "skip_reason": "no_subdivision_parsed",
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          }
+        ],
+        "confidence_warnings": [
+          "grantor_from_dcad"
+        ]
+      },
+      "address_city": null,
+      "address_state": null,
+      "address_zip": null,
+      "source_url": "https://dallas.tx.publicsearch.us/doc/316958953",
+      "score": 50,
+      "score_breakdown": {
+        "base": 30,
+        "category_flag": 10,
+        "new_this_week": 5,
+        "has_address": 5
+      },
+      "parse_warnings": [
+        "no_grantor_extracted",
+        "no_sale_date_extracted"
+      ],
+      "first_seen": "2026-06-11",
+      "last_seen": "2026-06-11",
+      "in_buy_box": true,
+      "buy_box_reasons": [],
+      "grantor_raw": "SANDERS CHRIS",
+      "dcad_owner_raw": "SANDERS CHRIS"
     },
     {
       "record_id": "316861828",
@@ -4158,7 +4245,7 @@
         "no_grantor_extracted"
       ],
       "first_seen": "2026-06-06",
-      "last_seen": "2026-06-10",
+      "last_seen": "2026-06-11",
       "in_buy_box": true,
       "buy_box_reasons": []
     },
@@ -4250,7 +4337,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-06",
-      "last_seen": "2026-06-10",
+      "last_seen": "2026-06-11",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "DESMOND KANE AND ERON WESTON CHRISTENSEN, HUSBAND AND"
@@ -4293,9 +4380,7 @@
           "apn_pattern": null,
           "apn": null,
           "pages_captured": 2,
-          "capture_warnings": [
-            "initial_load_hung_reloading"
-          ]
+          "capture_warnings": []
         },
         "resolution_history": [
           {
@@ -4336,7 +4421,7 @@
         "no_grantor_extracted"
       ],
       "first_seen": "2026-06-06",
-      "last_seen": "2026-06-10",
+      "last_seen": "2026-06-11",
       "in_buy_box": true,
       "buy_box_reasons": []
     },
@@ -4428,7 +4513,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-06",
-      "last_seen": "2026-06-10",
+      "last_seen": "2026-06-11",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "RAYMOND RODRIGUEZ, AN UNMARRIED PERSON"
@@ -4521,7 +4606,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-05",
-      "last_seen": "2026-06-10",
+      "last_seen": "2026-06-11",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "Tracie Rowles, a single woman"
@@ -4614,7 +4699,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-05",
-      "last_seen": "2026-06-10",
+      "last_seen": "2026-06-11",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "Essie Lavine, single person as"
@@ -4657,7 +4742,9 @@
           "apn_pattern": null,
           "apn": null,
           "pages_captured": 3,
-          "capture_warnings": []
+          "capture_warnings": [
+            "initial_load_hung_reloading"
+          ]
         },
         "resolution_history": [
           {
@@ -4698,7 +4785,7 @@
         "no_grantor_extracted"
       ],
       "first_seen": "2026-06-05",
-      "last_seen": "2026-06-10",
+      "last_seen": "2026-06-11",
       "in_buy_box": true,
       "buy_box_reasons": []
     },
@@ -4790,10 +4877,93 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-05",
-      "last_seen": "2026-06-10",
+      "last_seen": "2026-06-11",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "Semiko Ussery Green, A Single Woman"
+    },
+    {
+      "record_id": "316861830",
+      "source": "publicsearch.us",
+      "dallas_code": "NOF",
+      "category": "NOTICE",
+      "filing_date": "2026-06-04",
+      "instrument_num": "202600001214",
+      "grantor": null,
+      "grantee": null,
+      "address": "DESOTO",
+      "address_normalized": "DESOTO",
+      "dcad_account": null,
+      "dcad_owner": null,
+      "dcad_market_value": null,
+      "dcad_homestead": null,
+      "dcad_over65": null,
+      "dcad_disabled": null,
+      "dcad_tax_deferred": null,
+      "dcad_mailing_address": null,
+      "dcad_mailing_city": null,
+      "dcad_mailing_state": null,
+      "dcad_mailing_zip": null,
+      "amount": "239,779.00",
+      "trustee": null,
+      "sale_date": "2026-08-04",
+      "raw_excerpt": "NOTICE OF FORECLOSURE | DESOTO | LOT 18, BLOCK H, SUMMER MEADOW, sas TION TO THE CITY OF DESOTO, DALLAS COUNTY, TEXAS, ACCORDING EREOF RECORDED IN DOCUMENT NO. 201400214628 OF THE OFFICIAL PUBLIC DALLAS COUNTY, TEXAS",
+      "active": true,
+      "release_record_id": null,
+      "signal_metadata": {
+        "ocr": {
+          "grantor_pattern": null,
+          "sale_date_pattern": "numeric-date-of-sale",
+          "address_pattern": null,
+          "loan_amount_pattern": "original-amount-space-tolerant",
+          "legal_desc_pattern": "labeled-legal-description",
+          "apn_pattern": null,
+          "apn": null,
+          "pages_captured": 3,
+          "capture_warnings": []
+        },
+        "resolution_history": [
+          {
+            "path": "path_b_raw_excerpt",
+            "stage": "6.3",
+            "input": null,
+            "status": "skipped",
+            "skip_reason": "no_clean_address_in_raw_excerpt",
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_c_legal_resolver",
+            "stage": "6.5",
+            "input": "NOTICE OF FORECLOSURE | DESOTO | LOT 18, BLOCK H, SUMMER MEADOW, sas TION TO THE CITY OF DESOTO, DALLAS COUNTY, TEXAS, A",
+            "status": "skipped",
+            "skip_reason": "no_subdivision_parsed",
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          }
+        ]
+      },
+      "address_city": null,
+      "address_state": null,
+      "address_zip": null,
+      "source_url": "https://dallas.tx.publicsearch.us/doc/316861830",
+      "score": 45,
+      "score_breakdown": {
+        "base": 30,
+        "category_flag": 10,
+        "new_this_week": 5
+      },
+      "parse_warnings": [
+        "no_grantor_extracted"
+      ],
+      "first_seen": "2026-06-11",
+      "last_seen": "2026-06-11",
+      "in_buy_box": true,
+      "buy_box_reasons": []
     },
     {
       "record_id": "316861826",
@@ -4864,7 +5034,7 @@
         "no_sale_date_extracted"
       ],
       "first_seen": "2026-06-05",
-      "last_seen": "2026-06-10",
+      "last_seen": "2026-06-11",
       "in_buy_box": true,
       "buy_box_reasons": []
     },
@@ -4937,7 +5107,7 @@
       ],
       "buy_box_reasons": [],
       "first_seen": "2026-06-05",
-      "last_seen": "2026-06-10",
+      "last_seen": "2026-06-11",
       "in_buy_box": true
     },
     {
@@ -5009,7 +5179,7 @@
       ],
       "buy_box_reasons": [],
       "first_seen": "2026-06-05",
-      "last_seen": "2026-06-10",
+      "last_seen": "2026-06-11",
       "in_buy_box": true
     },
     {
@@ -5092,7 +5262,176 @@
         "no_sale_date_extracted"
       ],
       "first_seen": "2026-06-10",
-      "last_seen": "2026-06-10",
+      "last_seen": "2026-06-11",
+      "in_buy_box": true,
+      "buy_box_reasons": []
+    },
+    {
+      "record_id": "316951767",
+      "source": "publicsearch.us",
+      "dallas_code": "NOF",
+      "category": "NOTICE",
+      "filing_date": "2026-06-10",
+      "instrument_num": "202600001244",
+      "grantor": null,
+      "grantee": null,
+      "address": "MESQUITE",
+      "address_normalized": "MESQUITE",
+      "dcad_account": null,
+      "dcad_owner": null,
+      "dcad_market_value": null,
+      "dcad_homestead": null,
+      "dcad_over65": null,
+      "dcad_disabled": null,
+      "dcad_tax_deferred": null,
+      "dcad_mailing_address": null,
+      "dcad_mailing_city": null,
+      "dcad_mailing_state": null,
+      "dcad_mailing_zip": null,
+      "amount": "506,000",
+      "trustee": null,
+      "sale_date": "2026-07-07",
+      "raw_excerpt": "NOTICE OF FORECLOSURE | MESQUITE",
+      "active": true,
+      "release_record_id": null,
+      "signal_metadata": {
+        "ocr": {
+          "grantor_pattern": null,
+          "sale_date_pattern": null,
+          "address_pattern": null,
+          "loan_amount_pattern": "original-principal-amount-of",
+          "legal_desc_pattern": null,
+          "apn_pattern": null,
+          "apn": null,
+          "pages_captured": 6,
+          "capture_warnings": []
+        },
+        "resolution_history": [
+          {
+            "path": "path_b_raw_excerpt",
+            "stage": "6.3",
+            "input": null,
+            "status": "skipped",
+            "skip_reason": "no_clean_address_in_raw_excerpt",
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_c_legal_resolver",
+            "stage": "6.5",
+            "input": "NOTICE OF FORECLOSURE | MESQUITE",
+            "status": "skipped",
+            "skip_reason": "no_subdivision_parsed",
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          }
+        ]
+      },
+      "address_city": null,
+      "address_state": null,
+      "address_zip": null,
+      "source_url": "https://dallas.tx.publicsearch.us/doc/316951767",
+      "score": 45,
+      "score_breakdown": {
+        "base": 30,
+        "category_flag": 10,
+        "new_this_week": 5
+      },
+      "parse_warnings": [
+        "no_grantor_extracted",
+        "no_sale_date_extracted",
+        "no_address_or_legal_description"
+      ],
+      "first_seen": "2026-06-11",
+      "last_seen": "2026-06-11",
+      "in_buy_box": true,
+      "buy_box_reasons": []
+    },
+    {
+      "record_id": "316951769",
+      "source": "publicsearch.us",
+      "dallas_code": "NOF",
+      "category": "NOTICE",
+      "filing_date": "2026-06-10",
+      "instrument_num": "202600001245",
+      "grantor": null,
+      "grantee": null,
+      "address": "DALLAS",
+      "address_normalized": "DALLAS",
+      "dcad_account": null,
+      "dcad_owner": null,
+      "dcad_market_value": null,
+      "dcad_homestead": null,
+      "dcad_over65": null,
+      "dcad_disabled": null,
+      "dcad_tax_deferred": null,
+      "dcad_mailing_address": null,
+      "dcad_mailing_city": null,
+      "dcad_mailing_state": null,
+      "dcad_mailing_zip": null,
+      "amount": "5,325,000.00",
+      "trustee": null,
+      "sale_date": "2026-07-07",
+      "raw_excerpt": "NOTICE OF FORECLOSURE | DALLAS | | Being Lot 5A,: Block B/6930, of WAL-MART ADDITION NO. 949 LOTS 3A, 4A, BLOCK B/6930, an Addition to the City of Dallas, Dallas County, Texas, according to | the Map thereof recorded in Volume 2004228, Page 1, of the Map Record Dallas County, Texas",
+      "active": true,
+      "release_record_id": null,
+      "signal_metadata": {
+        "ocr": {
+          "grantor_pattern": null,
+          "sale_date_pattern": null,
+          "address_pattern": null,
+          "loan_amount_pattern": "original-amount-space-tolerant",
+          "legal_desc_pattern": "labeled-legal-description",
+          "apn_pattern": null,
+          "apn": null,
+          "pages_captured": 4,
+          "capture_warnings": []
+        },
+        "resolution_history": [
+          {
+            "path": "path_b_raw_excerpt",
+            "stage": "6.3",
+            "input": null,
+            "status": "skipped",
+            "skip_reason": "no_clean_address_in_raw_excerpt",
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_c_legal_resolver",
+            "stage": "6.5",
+            "input": "NOTICE OF FORECLOSURE | DALLAS | | Being Lot 5A,: Block B/6930, of WAL-MART ADDITION NO. 949 LOTS 3A, 4A, BLOCK B/6930, ",
+            "status": "skipped",
+            "skip_reason": "no_subdivision_parsed",
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          }
+        ]
+      },
+      "address_city": null,
+      "address_state": null,
+      "address_zip": null,
+      "source_url": "https://dallas.tx.publicsearch.us/doc/316951769",
+      "score": 45,
+      "score_breakdown": {
+        "base": 30,
+        "category_flag": 10,
+        "new_this_week": 5
+      },
+      "parse_warnings": [
+        "no_grantor_extracted",
+        "no_sale_date_extracted"
+      ],
+      "first_seen": "2026-06-11",
+      "last_seen": "2026-06-11",
       "in_buy_box": true,
       "buy_box_reasons": []
     }
