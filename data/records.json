@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-06-13",
-  "record_count": 57,
+  "generated_at": "2026-06-14",
+  "record_count": 53,
   "records": [
     {
       "record_id": "316987093",
@@ -95,7 +95,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-13",
+      "last_seen": "2026-06-14",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "Jules J. Palmer and",
@@ -191,7 +191,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-13",
+      "last_seen": "2026-06-14",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "Angelina Castro Tapia. |",
@@ -292,7 +292,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-13",
+      "last_seen": "2026-06-14",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "AZADEH AJAMI",
@@ -390,7 +390,7 @@
         "no_sale_date_extracted"
       ],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-13",
+      "last_seen": "2026-06-14",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "SUSAN ORTEGA",
@@ -502,7 +502,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-13",
+      "last_seen": "2026-06-14",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "PALEMON PEREZ YEPEZ, WO ARRYED MAN",
@@ -605,7 +605,7 @@
         "no_sale_date_extracted"
       ],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-13",
+      "last_seen": "2026-06-14",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "CHARLES W URIAS AND KELB URNS, HUSBAND AND WIFE",
@@ -727,7 +727,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-13",
+      "last_seen": "2026-06-14",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "a Shuath, foined herein pro forma by ber spouse Nizar Shuaib",
@@ -828,7 +828,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-13",
+      "last_seen": "2026-06-14",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "SUSAN CATTERSON",
@@ -872,9 +872,7 @@
           "apn_pattern": null,
           "apn": null,
           "pages_captured": 4,
-          "capture_warnings": [
-            "initial_load_hung_reloading"
-          ]
+          "capture_warnings": []
         },
         "confidence_warnings": [
           "path_b_used_alternate",
@@ -944,7 +942,7 @@
         "no_grantor_extracted"
       ],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-13",
+      "last_seen": "2026-06-14",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "LEWIS RITA KAY",
@@ -1042,7 +1040,7 @@
         "no_address_or_legal_description"
       ],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-13",
+      "last_seen": "2026-06-14",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "Cerey Howe, a single man and Rébacca John, e woman",
@@ -1143,7 +1141,7 @@
         "no_sale_date_extracted"
       ],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-13",
+      "last_seen": "2026-06-14",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "MELCHOR PEREZ-ZUNIGA, A",
@@ -1187,7 +1185,9 @@
           "apn_pattern": null,
           "apn": null,
           "pages_captured": 3,
-          "capture_warnings": []
+          "capture_warnings": [
+            "recovered_on_attempt_2"
+          ]
         },
         "resolution_history": [
           {
@@ -1234,7 +1234,7 @@
         "no_sale_date_extracted"
       ],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-13",
+      "last_seen": "2026-06-14",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "HOWARD EDNEA",
@@ -1283,7 +1283,7 @@
         "confidence_warnings": [
           "path_b_used_alternate",
           "path_disagreement",
-          "tiebroken_by_page"
+          "page_tiebreak_inconclusive"
         ],
         "resolution_history": [
           {
@@ -1338,21 +1338,17 @@
           {
             "path": "stage_6_6_agreement",
             "stage": "6.6",
-            "input": "1130 MAY COURT LANCASTER TEXAS 75146",
-            "status": "matched",
-            "skip_reason": null,
+            "input": null,
+            "status": "skipped",
+            "skip_reason": "tiebreak_inconclusive",
             "tier": null,
-            "dcad_account": "870013000F0370000",
+            "dcad_account": null,
             "alternates": [
+              "870013000F0370000",
               "60084501170060000"
             ],
-            "warnings": [
-              "tiebroken_by_page"
-            ]
+            "warnings": []
           }
-        ],
-        "alternate_accounts": [
-          "60084501170060000"
         ]
       },
       "address_city": null,
@@ -1369,7 +1365,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-13",
+      "last_seen": "2026-06-14",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "SHELBY L, RAYNOR AND SONJA M. RAYNOR, ©",
@@ -1413,9 +1409,7 @@
           "apn_pattern": null,
           "apn": null,
           "pages_captured": 4,
-          "capture_warnings": [
-            "initial_load_hung_reloading"
-          ]
+          "capture_warnings": []
         },
         "resolution_history": [
           {
@@ -1467,7 +1461,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-13",
+      "last_seen": "2026-06-14",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "Carlos Castellanos and Angela Doring Gate huShand and wife",
@@ -1581,7 +1575,7 @@
         "no_sale_date_extracted"
       ],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-13",
+      "last_seen": "2026-06-14",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "OSCAR ROBERTO VASQUEZ",
@@ -1703,7 +1697,7 @@
         "no_sale_date_extracted"
       ],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-13",
+      "last_seen": "2026-06-14",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "CHARLES RAYVELLE ALLEN",
@@ -1806,7 +1800,7 @@
         "no_sale_date_extracted"
       ],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-13",
+      "last_seen": "2026-06-14",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "CHRISTOPHER AVERETTE",
@@ -1898,7 +1892,7 @@
         "no_address_or_legal_description"
       ],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-13",
+      "last_seen": "2026-06-14",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "SCARBOROUGH DOROTHEA ALICE",
@@ -1942,9 +1936,7 @@
           "apn_pattern": null,
           "apn": null,
           "pages_captured": 3,
-          "capture_warnings": [
-            "initial_load_hung_reloading"
-          ]
+          "capture_warnings": []
         },
         "resolution_history": [
           {
@@ -2024,7 +2016,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-13",
+      "last_seen": "2026-06-14",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "ANA VELIA ALONSO, UNMARRIED WOMAN",
@@ -2120,7 +2112,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-13",
+      "last_seen": "2026-06-14",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "=RICARDO ROMAN, A MARRIED MAN AND MARICELA ROMAN, HIS WIFE",
@@ -2164,7 +2156,9 @@
           "apn_pattern": null,
           "apn": null,
           "pages_captured": 3,
-          "capture_warnings": []
+          "capture_warnings": [
+            "initial_load_hung_reloading"
+          ]
         },
         "confidence_warnings": [
           "path_b_used_alternate",
@@ -2246,7 +2240,7 @@
         "no_sale_date_extracted"
       ],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-13",
+      "last_seen": "2026-06-14",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "DONESH LUCKEY",
@@ -2364,7 +2358,7 @@
         "no_sale_date_extracted"
       ],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-13",
+      "last_seen": "2026-06-14",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "KIARA M WILLIAMS",
@@ -2455,7 +2449,7 @@
         "no_sale_date_extracted"
       ],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-13",
+      "last_seen": "2026-06-14",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "RUBIO SIMONA",
@@ -2556,7 +2550,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-13",
+      "last_seen": "2026-06-14",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "12/3/2024 NATHANIEL ODELL AND KOLETTE O'DELL, HUSBAND",
@@ -2654,7 +2648,7 @@
         "no_sale_date_extracted"
       ],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-13",
+      "last_seen": "2026-06-14",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "ROBYNN FELDER",
@@ -2755,7 +2749,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-13",
+      "last_seen": "2026-06-14",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "6/8/2023 ERIKA ONEYDA CRUZ, MANZANARES JOINED HEREIN",
@@ -2858,126 +2852,11 @@
         "no_sale_date_extracted"
       ],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-13",
+      "last_seen": "2026-06-14",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "ROHAN CHANG AND ROBYN CHANG",
       "dcad_owner_raw": "CHANG ROHAN & ROBYN"
-    },
-    {
-      "record_id": "316978623",
-      "source": "publicsearch.us",
-      "dallas_code": "NOF",
-      "category": "NOTICE",
-      "filing_date": "2026-06-11",
-      "instrument_num": "202600001260",
-      "grantor": "Anairis, Fernandezleyva",
-      "grantee": null,
-      "address": "600 Commerce Street, Dallas, 75202",
-      "address_normalized": "4518 MEADOWVIEW DR",
-      "dcad_account": "38120800100210000",
-      "dcad_owner": "Fernandezleyva, Anairis",
-      "dcad_market_value": 380960.0,
-      "dcad_homestead": true,
-      "dcad_over65": false,
-      "dcad_disabled": false,
-      "dcad_tax_deferred": false,
-      "dcad_mailing_address": "4518 MEADOWVIEW DR",
-      "dcad_mailing_city": "MESQUITE",
-      "dcad_mailing_state": "TEXAS",
-      "dcad_mailing_zip": "751502984",
-      "amount": "20020.00",
-      "trustee": null,
-      "sale_date": "2026-07-07",
-      "raw_excerpt": "NOTICE OF FORECLOSURE | 4518 MEADOWVIEW DRIVE, MESQUITE, TEXAS, 75150 | of Property to be she BE! 1, IN BLOCK 10 OF MEADOWVIEW FARMS, AN ADDITION TO THE CITY OF ME Tk, DY OUNTY, TEXAS, ACCORDING TO THE MAP THEREOF RECORDED IN VO, Pp OINRAGE 1824, OF THE MAP RECORDS OF DALLAS COUNTY, TEXAS; AS AMENDED BY CBRTIPICATBOFCORRECTION OF ERROR FILED APRIL 25, 1983, RECORDED IN VOLUME 83082/RAGE 1834, DEED RECORDS, DALLAS COUNTY, TEXAS",
-      "active": true,
-      "release_record_id": null,
-      "signal_metadata": {
-        "ocr": {
-          "grantor_pattern": null,
-          "sale_date_pattern": null,
-          "address_pattern": "mixed-case-one-line",
-          "loan_amount_pattern": "original-amount-space-tolerant",
-          "legal_desc_pattern": "labeled-legal-description",
-          "apn_pattern": null,
-          "apn": null,
-          "pages_captured": 3,
-          "capture_warnings": []
-        },
-        "confidence_warnings": [
-          "path_b_used_alternate",
-          "path_agreement",
-          "grantor_from_dcad"
-        ],
-        "resolution_history": [
-          {
-            "path": "path_b_raw_excerpt",
-            "stage": "6.3",
-            "input": "4518 MEADOWVIEW DRIVE, MESQUITE, TEXAS, 75150",
-            "status": "matched",
-            "skip_reason": null,
-            "tier": null,
-            "dcad_account": "38120800100210000",
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "path_variant_lookup",
-            "stage": "6.35",
-            "input": "4518 MEADOWVIEW DR",
-            "status": "matched",
-            "skip_reason": null,
-            "tier": null,
-            "dcad_account": "38120800100210000",
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "path_c_legal_resolver",
-            "stage": "6.5",
-            "input": "NOTICE OF FORECLOSURE | 4518 MEADOWVIEW DRIVE, MESQUITE, TEXAS, 75150 | of Property to be she BE! 1, IN BLOCK 10 OF MEAD",
-            "status": "skipped",
-            "skip_reason": "no_subdivision_parsed",
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "stage_6_6_agreement",
-            "stage": "6.6",
-            "input": "path_b_raw_excerpt|path_variant_lookup",
-            "status": "matched",
-            "skip_reason": null,
-            "tier": null,
-            "dcad_account": "38120800100210000",
-            "alternates": [],
-            "warnings": []
-          }
-        ]
-      },
-      "address_city": null,
-      "address_state": null,
-      "address_zip": null,
-      "source_url": "https://dallas.tx.publicsearch.us/doc/316978623",
-      "score": 65,
-      "score_breakdown": {
-        "base": 30,
-        "category_flag": 10,
-        "value_100k": 15,
-        "new_this_week": 5,
-        "has_address": 5
-      },
-      "parse_warnings": [
-        "no_grantor_extracted",
-        "no_sale_date_extracted"
-      ],
-      "first_seen": "2026-06-12",
-      "last_seen": "2026-06-13",
-      "in_buy_box": true,
-      "buy_box_reasons": [],
-      "grantor_raw": "FERNANDEZLEYVA ANAIRIS",
-      "dcad_owner_raw": "FERNANDEZLEYVA ANAIRIS"
     },
     {
       "record_id": "316978616",
@@ -3071,44 +2950,44 @@
         "no_sale_date_extracted"
       ],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-13",
+      "last_seen": "2026-06-14",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "AISHA ANNA NIANG",
       "dcad_owner_raw": "NIANG NDEYE"
     },
     {
-      "record_id": "316978627",
+      "record_id": "316978625",
       "source": "publicsearch.us",
       "dallas_code": "NOF",
       "category": "NOTICE",
       "filing_date": "2026-06-11",
-      "instrument_num": "202600001274",
-      "grantor": "Miranda, Tim",
+      "instrument_num": "202600001276",
+      "grantor": "A, Ollie M. Futrell",
       "grantee": null,
-      "address": "DALLAS",
-      "address_normalized": "536 WINDY LN",
-      "dcad_account": "16006500050280100",
-      "dcad_owner": "Tim & Leahs Trust The",
-      "dcad_market_value": 514210.0,
+      "address": "GARLAND",
+      "address_normalized": "622 PINE VLY",
+      "dcad_account": "42209650060040000",
+      "dcad_owner": "As Revocable Trust The",
+      "dcad_market_value": 503930.0,
       "dcad_homestead": true,
-      "dcad_over65": true,
+      "dcad_over65": false,
       "dcad_disabled": false,
       "dcad_tax_deferred": false,
-      "dcad_mailing_address": "536 WINDY LN",
-      "dcad_mailing_city": "CEDAR HILL",
+      "dcad_mailing_address": "622 PINE VLY",
+      "dcad_mailing_city": "RICHARDSON",
       "dcad_mailing_state": "TEXAS",
-      "dcad_mailing_zip": "751043737",
-      "amount": "208,000.00",
+      "dcad_mailing_zip": "750815138",
+      "amount": "368,427.00",
       "trustee": null,
-      "sale_date": "2026-08-04",
-      "raw_excerpt": "NOTICE OF FORECLOSURE | DALLAS | © i BEING LOT 17 IN BLOCK 37 B3NQ O PARKDALE ADDITION, FOURTH INSTALLMENT, AN ADDITION TO THE CITY @&\\DALALLAS XAS, ACCORDING TO THE REVISED MAP THEREOF RECORDED IN VOLUME VASa ISS OKRPHE MAP RECORDS OF DALLAS COUNTY, TEXAS",
+      "sale_date": "2026-07-07",
+      "raw_excerpt": "NOTICE OF FORECLOSURE | GARLAND | LOT 21, BLOCK 5 OF EMBRALD 2A ADDITION TO THE CITY OF GARLAND, DALLAS COUNTY, TEXAS, ACCORD (6 AT THEREOF RECORDED IN VOLUME 2003044, PAGE 26, MAP RECORDS, DALLA’ GUNTRY, TEXAS",
       "active": true,
       "release_record_id": null,
       "signal_metadata": {
         "ocr": {
           "grantor_pattern": "inline-with-grantor",
-          "sale_date_pattern": null,
+          "sale_date_pattern": "numeric-date-of-sale",
           "address_pattern": null,
           "loan_amount_pattern": "original-amount-space-tolerant",
           "legal_desc_pattern": "labeled-legal-description",
@@ -3132,20 +3011,21 @@
           {
             "path": "path_a_grantor_owner_index",
             "stage": "6.45",
-            "input": "Tim Miranda, a single man as",
+            "input": "Ollie M. Futrell a single person as",
             "status": "matched",
             "skip_reason": null,
             "tier": "surname_only",
-            "dcad_account": "16006500050280100",
+            "dcad_account": "42209650060040000",
             "alternates": [],
             "warnings": [
-              "surname_only_tier"
+              "surname_only_tier",
+              "surname_drift"
             ]
           },
           {
             "path": "path_c_legal_resolver",
             "stage": "6.5",
-            "input": "NOTICE OF FORECLOSURE | DALLAS | © i BEING LOT 17 IN BLOCK 37 B3NQ O PARKDALE ADDITION, FOURTH INSTALLMENT, AN ADDITION ",
+            "input": "NOTICE OF FORECLOSURE | GARLAND | LOT 21, BLOCK 5 OF EMBRALD 2A ADDITION TO THE CITY OF GARLAND, DALLAS COUNTY, TEXAS, A",
             "status": "skipped",
             "skip_reason": "no_subdivision_parsed",
             "tier": null,
@@ -3155,13 +3035,14 @@
           }
         ],
         "confidence_warnings": [
-          "surname_only_tier"
+          "surname_only_tier",
+          "surname_drift"
         ]
       },
       "address_city": null,
       "address_state": null,
       "address_zip": null,
-      "source_url": "https://dallas.tx.publicsearch.us/doc/316978627",
+      "source_url": "https://dallas.tx.publicsearch.us/doc/316978625",
       "score": 65,
       "score_breakdown": {
         "base": 30,
@@ -3170,15 +3051,13 @@
         "new_this_week": 5,
         "has_address": 5
       },
-      "parse_warnings": [
-        "no_sale_date_extracted"
-      ],
+      "parse_warnings": [],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-13",
+      "last_seen": "2026-06-14",
       "in_buy_box": true,
       "buy_box_reasons": [],
-      "grantor_raw": "Tim Miranda, a single man as",
-      "dcad_owner_raw": "TIM & LEAHS TRUST THE"
+      "grantor_raw": "Ollie M. Futrell a single person as",
+      "dcad_owner_raw": "AS REVOCABLE TRUST THE"
     },
     {
       "record_id": "316978611",
@@ -3311,44 +3190,44 @@
         "no_sale_date_extracted"
       ],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-13",
+      "last_seen": "2026-06-14",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "ROBERT KELTON, A MARRIED MAN",
       "dcad_owner_raw": "KELTON ROBERT"
     },
     {
-      "record_id": "316978625",
+      "record_id": "316978627",
       "source": "publicsearch.us",
       "dallas_code": "NOF",
       "category": "NOTICE",
       "filing_date": "2026-06-11",
-      "instrument_num": "202600001276",
-      "grantor": "A, Ollie M. Futrell",
+      "instrument_num": "202600001274",
+      "grantor": "Miranda, Tim",
       "grantee": null,
-      "address": "GARLAND",
-      "address_normalized": "622 PINE VLY",
-      "dcad_account": "42209650060040000",
-      "dcad_owner": "As Revocable Trust The",
-      "dcad_market_value": 503930.0,
+      "address": "DALLAS",
+      "address_normalized": "536 WINDY LN",
+      "dcad_account": "16006500050280100",
+      "dcad_owner": "Tim & Leahs Trust The",
+      "dcad_market_value": 514210.0,
       "dcad_homestead": true,
-      "dcad_over65": false,
+      "dcad_over65": true,
       "dcad_disabled": false,
       "dcad_tax_deferred": false,
-      "dcad_mailing_address": "622 PINE VLY",
-      "dcad_mailing_city": "RICHARDSON",
+      "dcad_mailing_address": "536 WINDY LN",
+      "dcad_mailing_city": "CEDAR HILL",
       "dcad_mailing_state": "TEXAS",
-      "dcad_mailing_zip": "750815138",
-      "amount": "368,427.00",
+      "dcad_mailing_zip": "751043737",
+      "amount": "208,000.00",
       "trustee": null,
-      "sale_date": "2026-07-07",
-      "raw_excerpt": "NOTICE OF FORECLOSURE | GARLAND | LOT 21, BLOCK 5 OF EMBRALD 2A ADDITION TO THE CITY OF GARLAND, DALLAS COUNTY, TEXAS, ACCORD (6 AT THEREOF RECORDED IN VOLUME 2003044, PAGE 26, MAP RECORDS, DALLA’ GUNTRY, TEXAS",
+      "sale_date": "2026-08-04",
+      "raw_excerpt": "NOTICE OF FORECLOSURE | DALLAS | © i BEING LOT 17 IN BLOCK 37 B3NQ O PARKDALE ADDITION, FOURTH INSTALLMENT, AN ADDITION TO THE CITY @&\\DALALLAS XAS, ACCORDING TO THE REVISED MAP THEREOF RECORDED IN VOLUME VASa ISS OKRPHE MAP RECORDS OF DALLAS COUNTY, TEXAS",
       "active": true,
       "release_record_id": null,
       "signal_metadata": {
         "ocr": {
           "grantor_pattern": "inline-with-grantor",
-          "sale_date_pattern": "numeric-date-of-sale",
+          "sale_date_pattern": null,
           "address_pattern": null,
           "loan_amount_pattern": "original-amount-space-tolerant",
           "legal_desc_pattern": "labeled-legal-description",
@@ -3372,21 +3251,20 @@
           {
             "path": "path_a_grantor_owner_index",
             "stage": "6.45",
-            "input": "Ollie M. Futrell a single person as",
+            "input": "Tim Miranda, a single man as",
             "status": "matched",
             "skip_reason": null,
             "tier": "surname_only",
-            "dcad_account": "42209650060040000",
+            "dcad_account": "16006500050280100",
             "alternates": [],
             "warnings": [
-              "surname_only_tier",
-              "surname_drift"
+              "surname_only_tier"
             ]
           },
           {
             "path": "path_c_legal_resolver",
             "stage": "6.5",
-            "input": "NOTICE OF FORECLOSURE | GARLAND | LOT 21, BLOCK 5 OF EMBRALD 2A ADDITION TO THE CITY OF GARLAND, DALLAS COUNTY, TEXAS, A",
+            "input": "NOTICE OF FORECLOSURE | DALLAS | © i BEING LOT 17 IN BLOCK 37 B3NQ O PARKDALE ADDITION, FOURTH INSTALLMENT, AN ADDITION ",
             "status": "skipped",
             "skip_reason": "no_subdivision_parsed",
             "tier": null,
@@ -3396,14 +3274,13 @@
           }
         ],
         "confidence_warnings": [
-          "surname_only_tier",
-          "surname_drift"
+          "surname_only_tier"
         ]
       },
       "address_city": null,
       "address_state": null,
       "address_zip": null,
-      "source_url": "https://dallas.tx.publicsearch.us/doc/316978625",
+      "source_url": "https://dallas.tx.publicsearch.us/doc/316978627",
       "score": 65,
       "score_breakdown": {
         "base": 30,
@@ -3412,13 +3289,15 @@
         "new_this_week": 5,
         "has_address": 5
       },
-      "parse_warnings": [],
+      "parse_warnings": [
+        "no_sale_date_extracted"
+      ],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-13",
+      "last_seen": "2026-06-14",
       "in_buy_box": true,
       "buy_box_reasons": [],
-      "grantor_raw": "Ollie M. Futrell a single person as",
-      "dcad_owner_raw": "AS REVOCABLE TRUST THE"
+      "grantor_raw": "Tim Miranda, a single man as",
+      "dcad_owner_raw": "TIM & LEAHS TRUST THE"
     },
     {
       "record_id": "316958953",
@@ -3504,7 +3383,7 @@
         "no_sale_date_extracted"
       ],
       "first_seen": "2026-06-11",
-      "last_seen": "2026-06-13",
+      "last_seen": "2026-06-14",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "SANDERS CHRIS",
@@ -3593,7 +3472,7 @@
         "no_grantor_extracted"
       ],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-13",
+      "last_seen": "2026-06-14",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "DIMOULAKIS NICK",
@@ -3688,7 +3567,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-13",
-      "last_seen": "2026-06-13",
+      "last_seen": "2026-06-14",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "8/17/2023 JOHNNY PARKER, A SINGLE MAN",
@@ -3783,7 +3662,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-13",
+      "last_seen": "2026-06-14",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "6/29/2018 OMAR R. DAGHLAS AND MARIA DAGHLAS, HUSBAND",
@@ -3869,94 +3748,7 @@
         "no_sale_date_extracted"
       ],
       "first_seen": "2026-06-10",
-      "last_seen": "2026-06-13",
-      "in_buy_box": true,
-      "buy_box_reasons": []
-    },
-    {
-      "record_id": "316951767",
-      "source": "publicsearch.us",
-      "dallas_code": "NOF",
-      "category": "NOTICE",
-      "filing_date": "2026-06-10",
-      "instrument_num": "202600001244",
-      "grantor": null,
-      "grantee": null,
-      "address": "MESQUITE",
-      "address_normalized": "MESQUITE",
-      "dcad_account": null,
-      "dcad_owner": null,
-      "dcad_market_value": null,
-      "dcad_homestead": null,
-      "dcad_over65": null,
-      "dcad_disabled": null,
-      "dcad_tax_deferred": null,
-      "dcad_mailing_address": null,
-      "dcad_mailing_city": null,
-      "dcad_mailing_state": null,
-      "dcad_mailing_zip": null,
-      "amount": "506,000",
-      "trustee": null,
-      "sale_date": "2026-07-07",
-      "raw_excerpt": "NOTICE OF FORECLOSURE | MESQUITE",
-      "active": true,
-      "release_record_id": null,
-      "signal_metadata": {
-        "ocr": {
-          "grantor_pattern": null,
-          "sale_date_pattern": null,
-          "address_pattern": null,
-          "loan_amount_pattern": "original-principal-amount-of",
-          "legal_desc_pattern": null,
-          "apn_pattern": null,
-          "apn": null,
-          "pages_captured": 6,
-          "capture_warnings": [
-            "initial_load_hung_reloading"
-          ]
-        },
-        "resolution_history": [
-          {
-            "path": "path_b_raw_excerpt",
-            "stage": "6.3",
-            "input": null,
-            "status": "skipped",
-            "skip_reason": "no_clean_address_in_raw_excerpt",
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "path_c_legal_resolver",
-            "stage": "6.5",
-            "input": "NOTICE OF FORECLOSURE | MESQUITE",
-            "status": "skipped",
-            "skip_reason": "no_subdivision_parsed",
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          }
-        ]
-      },
-      "address_city": null,
-      "address_state": null,
-      "address_zip": null,
-      "source_url": "https://dallas.tx.publicsearch.us/doc/316951767",
-      "score": 45,
-      "score_breakdown": {
-        "base": 30,
-        "category_flag": 10,
-        "new_this_week": 5
-      },
-      "parse_warnings": [
-        "no_grantor_extracted",
-        "no_sale_date_extracted",
-        "no_address_or_legal_description"
-      ],
-      "first_seen": "2026-06-11",
-      "last_seen": "2026-06-13",
+      "last_seen": "2026-06-14",
       "in_buy_box": true,
       "buy_box_reasons": []
     },
@@ -4040,7 +3832,92 @@
         "no_sale_date_extracted"
       ],
       "first_seen": "2026-06-11",
-      "last_seen": "2026-06-13",
+      "last_seen": "2026-06-14",
+      "in_buy_box": true,
+      "buy_box_reasons": []
+    },
+    {
+      "record_id": "316951767",
+      "source": "publicsearch.us",
+      "dallas_code": "NOF",
+      "category": "NOTICE",
+      "filing_date": "2026-06-10",
+      "instrument_num": "202600001244",
+      "grantor": null,
+      "grantee": null,
+      "address": "MESQUITE",
+      "address_normalized": "MESQUITE",
+      "dcad_account": null,
+      "dcad_owner": null,
+      "dcad_market_value": null,
+      "dcad_homestead": null,
+      "dcad_over65": null,
+      "dcad_disabled": null,
+      "dcad_tax_deferred": null,
+      "dcad_mailing_address": null,
+      "dcad_mailing_city": null,
+      "dcad_mailing_state": null,
+      "dcad_mailing_zip": null,
+      "amount": "506,000",
+      "trustee": null,
+      "sale_date": "2026-07-07",
+      "raw_excerpt": "NOTICE OF FORECLOSURE | MESQUITE",
+      "active": true,
+      "release_record_id": null,
+      "signal_metadata": {
+        "ocr": {
+          "grantor_pattern": null,
+          "sale_date_pattern": null,
+          "address_pattern": null,
+          "loan_amount_pattern": "original-principal-amount-of",
+          "legal_desc_pattern": null,
+          "apn_pattern": null,
+          "apn": null,
+          "pages_captured": 6,
+          "capture_warnings": []
+        },
+        "resolution_history": [
+          {
+            "path": "path_b_raw_excerpt",
+            "stage": "6.3",
+            "input": null,
+            "status": "skipped",
+            "skip_reason": "no_clean_address_in_raw_excerpt",
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_c_legal_resolver",
+            "stage": "6.5",
+            "input": "NOTICE OF FORECLOSURE | MESQUITE",
+            "status": "skipped",
+            "skip_reason": "no_subdivision_parsed",
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          }
+        ]
+      },
+      "address_city": null,
+      "address_state": null,
+      "address_zip": null,
+      "source_url": "https://dallas.tx.publicsearch.us/doc/316951767",
+      "score": 45,
+      "score_breakdown": {
+        "base": 30,
+        "category_flag": 10,
+        "new_this_week": 5
+      },
+      "parse_warnings": [
+        "no_grantor_extracted",
+        "no_sale_date_extracted",
+        "no_address_or_legal_description"
+      ],
+      "first_seen": "2026-06-11",
+      "last_seen": "2026-06-14",
       "in_buy_box": true,
       "buy_box_reasons": []
     },
@@ -4123,7 +4000,7 @@
         "no_grantor_extracted"
       ],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-13",
+      "last_seen": "2026-06-14",
       "in_buy_box": true,
       "buy_box_reasons": []
     },
@@ -4208,7 +4085,7 @@
         "no_address_or_legal_description"
       ],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-13",
+      "last_seen": "2026-06-14",
       "in_buy_box": true,
       "buy_box_reasons": []
     },
@@ -4291,7 +4168,7 @@
         "no_grantor_extracted"
       ],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-13",
+      "last_seen": "2026-06-14",
       "in_buy_box": true,
       "buy_box_reasons": []
     },
@@ -4383,7 +4260,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-13",
+      "last_seen": "2026-06-14",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "8/15/2019 ROSARIO REYES AND JESUS ARVIZU GARZA, WIFE AND"
@@ -4468,7 +4345,7 @@
         "no_sale_date_extracted"
       ],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-13",
+      "last_seen": "2026-06-14",
       "in_buy_box": true,
       "buy_box_reasons": []
     },
@@ -4552,7 +4429,7 @@
         "no_sale_date_extracted"
       ],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-13",
+      "last_seen": "2026-06-14",
       "in_buy_box": true,
       "buy_box_reasons": []
     },
@@ -4644,7 +4521,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-13",
-      "last_seen": "2026-06-13",
+      "last_seen": "2026-06-14",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "4/29/2019 SHAUN W JESTER SR., SINGLE MAN"
@@ -4737,187 +4614,10 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-13",
+      "last_seen": "2026-06-14",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "Jose Antonio Zetina and Adriana Ortiz Zetina, Husand-andWw s"
-    },
-    {
-      "record_id": "316978612",
-      "source": "publicsearch.us",
-      "dallas_code": "NOF",
-      "category": "NOTICE",
-      "filing_date": "2026-06-11",
-      "instrument_num": "202600001253",
-      "grantor": "3/11/2004 Jose L. Gonzalez, A",
-      "grantee": null,
-      "address": "GARLAND",
-      "address_normalized": "GARLAND",
-      "dcad_account": null,
-      "dcad_owner": null,
-      "dcad_market_value": null,
-      "dcad_homestead": null,
-      "dcad_over65": null,
-      "dcad_disabled": null,
-      "dcad_tax_deferred": null,
-      "dcad_mailing_address": null,
-      "dcad_mailing_city": null,
-      "dcad_mailing_state": null,
-      "dcad_mailing_zip": null,
-      "amount": null,
-      "trustee": null,
-      "sale_date": "2026-07-07",
-      "raw_excerpt": "NOTICE OF FORECLOSURE | GARLAND | BEING LOT 13, IN BLOCK K OF VILLAGE MEADOWS, FIRST SECTION, AN tO. eS GARLAND, DALLAS COUNTY, TEXAS ACCORDING TO THE MAP THEREOF RECORDED IN VOLUME 72121, PAGE 1196 OF THB ECORDSOF DALLAS COUNTY, TEXAS",
-      "active": true,
-      "release_record_id": null,
-      "signal_metadata": {
-        "ocr": {
-          "grantor_pattern": "labeled-grantor-mortgagor",
-          "sale_date_pattern": "numeric-date-of-sale",
-          "address_pattern": null,
-          "loan_amount_pattern": null,
-          "legal_desc_pattern": "labeled-legal-description",
-          "apn_pattern": null,
-          "apn": null,
-          "pages_captured": 2,
-          "capture_warnings": []
-        },
-        "resolution_history": [
-          {
-            "path": "path_b_raw_excerpt",
-            "stage": "6.3",
-            "input": null,
-            "status": "skipped",
-            "skip_reason": "no_clean_address_in_raw_excerpt",
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "path_a_grantor_owner_index",
-            "stage": "6.45",
-            "input": "3/11/2004 JOSE L. GONZALEZ, A MARRIED PERSON AND MARIA A",
-            "status": "no_match",
-            "skip_reason": null,
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "path_c_legal_resolver",
-            "stage": "6.5",
-            "input": "NOTICE OF FORECLOSURE | GARLAND | BEING LOT 13, IN BLOCK K OF VILLAGE MEADOWS, FIRST SECTION, AN tO. eS GARLAND, DALLAS ",
-            "status": "skipped",
-            "skip_reason": "no_subdivision_parsed",
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          }
-        ]
-      },
-      "address_city": null,
-      "address_state": null,
-      "address_zip": null,
-      "source_url": "https://dallas.tx.publicsearch.us/doc/316978612",
-      "score": 45,
-      "score_breakdown": {
-        "base": 30,
-        "category_flag": 10,
-        "new_this_week": 5
-      },
-      "parse_warnings": [],
-      "first_seen": "2026-06-12",
-      "last_seen": "2026-06-13",
-      "in_buy_box": true,
-      "buy_box_reasons": [],
-      "grantor_raw": "3/11/2004 JOSE L. GONZALEZ, A MARRIED PERSON AND MARIA A"
-    },
-    {
-      "record_id": "316978622",
-      "source": "publicsearch.us",
-      "dallas_code": "NOF",
-      "category": "NOTICE",
-      "filing_date": "2026-06-11",
-      "instrument_num": "202600001263",
-      "grantor": null,
-      "grantee": null,
-      "address": "GRAND PRAIRIE",
-      "address_normalized": "GRAND PRAIRIE",
-      "dcad_account": null,
-      "dcad_owner": null,
-      "dcad_market_value": null,
-      "dcad_homestead": null,
-      "dcad_over65": null,
-      "dcad_disabled": null,
-      "dcad_tax_deferred": null,
-      "dcad_mailing_address": null,
-      "dcad_mailing_city": null,
-      "dcad_mailing_state": null,
-      "dcad_mailing_zip": null,
-      "amount": "194,925.00",
-      "trustee": null,
-      "sale_date": "2026-08-04",
-      "raw_excerpt": "NOTICE OF FORECLOSURE | GRAND PRAIRIE",
-      "active": true,
-      "release_record_id": null,
-      "signal_metadata": {
-        "ocr": {
-          "grantor_pattern": null,
-          "sale_date_pattern": "word-section1-date",
-          "address_pattern": null,
-          "loan_amount_pattern": "original-amount-space-tolerant",
-          "legal_desc_pattern": null,
-          "apn_pattern": null,
-          "apn": null,
-          "pages_captured": 3,
-          "capture_warnings": []
-        },
-        "resolution_history": [
-          {
-            "path": "path_b_raw_excerpt",
-            "stage": "6.3",
-            "input": null,
-            "status": "skipped",
-            "skip_reason": "no_clean_address_in_raw_excerpt",
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "path_c_legal_resolver",
-            "stage": "6.5",
-            "input": "NOTICE OF FORECLOSURE | GRAND PRAIRIE",
-            "status": "skipped",
-            "skip_reason": "no_subdivision_parsed",
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          }
-        ]
-      },
-      "address_city": null,
-      "address_state": null,
-      "address_zip": null,
-      "source_url": "https://dallas.tx.publicsearch.us/doc/316978622",
-      "score": 45,
-      "score_breakdown": {
-        "base": 30,
-        "category_flag": 10,
-        "new_this_week": 5
-      },
-      "parse_warnings": [
-        "no_grantor_extracted",
-        "no_address_or_legal_description"
-      ],
-      "first_seen": "2026-06-12",
-      "last_seen": "2026-06-13",
-      "in_buy_box": true,
-      "buy_box_reasons": []
     },
     {
       "record_id": "316978638",
@@ -5009,93 +4709,10 @@
         "no_address_or_legal_description"
       ],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-13",
+      "last_seen": "2026-06-14",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "CHRISTOPHER WILLIAMS AND ANGELA iialys BAND"
-    },
-    {
-      "record_id": "316978628",
-      "source": "publicsearch.us",
-      "dallas_code": "NOF",
-      "category": "NOTICE",
-      "filing_date": "2026-06-11",
-      "instrument_num": "202600001277",
-      "grantor": null,
-      "grantee": null,
-      "address": "DALLAS",
-      "address_normalized": "DALLAS",
-      "dcad_account": null,
-      "dcad_owner": null,
-      "dcad_market_value": null,
-      "dcad_homestead": null,
-      "dcad_over65": null,
-      "dcad_disabled": null,
-      "dcad_tax_deferred": null,
-      "dcad_mailing_address": null,
-      "dcad_mailing_city": null,
-      "dcad_mailing_state": null,
-      "dcad_mailing_zip": null,
-      "amount": "479,000.00",
-      "trustee": null,
-      "sale_date": "2026-07-07",
-      "raw_excerpt": "NOTICE OF FORECLOSURE | DALLAS | © BEING LOT 28, BLOCK 3387 S NO. 4 ADDITION, AN ADDITION TO THE CITY OF DALLAS, DALLAS CO ACCORDING TO THE PLAT THEREOF RECORDED UNDER CC#201500132789, E RECORDS, DALLAS COUNTY, TEXAS",
-      "active": true,
-      "release_record_id": null,
-      "signal_metadata": {
-        "ocr": {
-          "grantor_pattern": null,
-          "sale_date_pattern": "numeric-date-of-sale",
-          "address_pattern": null,
-          "loan_amount_pattern": "original-amount-space-tolerant",
-          "legal_desc_pattern": "labeled-legal-description",
-          "apn_pattern": null,
-          "apn": null,
-          "pages_captured": 3,
-          "capture_warnings": []
-        },
-        "resolution_history": [
-          {
-            "path": "path_b_raw_excerpt",
-            "stage": "6.3",
-            "input": null,
-            "status": "skipped",
-            "skip_reason": "no_clean_address_in_raw_excerpt",
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "path_c_legal_resolver",
-            "stage": "6.5",
-            "input": "NOTICE OF FORECLOSURE | DALLAS | © BEING LOT 28, BLOCK 3387 S NO. 4 ADDITION, AN ADDITION TO THE CITY OF DALLAS, DALLAS ",
-            "status": "skipped",
-            "skip_reason": "no_subdivision_parsed",
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          }
-        ]
-      },
-      "address_city": null,
-      "address_state": null,
-      "address_zip": null,
-      "source_url": "https://dallas.tx.publicsearch.us/doc/316978628",
-      "score": 45,
-      "score_breakdown": {
-        "base": 30,
-        "category_flag": 10,
-        "new_this_week": 5
-      },
-      "parse_warnings": [
-        "no_grantor_extracted"
-      ],
-      "first_seen": "2026-06-12",
-      "last_seen": "2026-06-13",
-      "in_buy_box": true,
-      "buy_box_reasons": []
     },
     {
       "record_id": "316978634",
@@ -5176,21 +4793,21 @@
         "no_grantor_extracted"
       ],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-13",
+      "last_seen": "2026-06-14",
       "in_buy_box": true,
       "buy_box_reasons": []
     },
     {
-      "record_id": "316978617",
+      "record_id": "316978622",
       "source": "publicsearch.us",
       "dallas_code": "NOF",
       "category": "NOTICE",
       "filing_date": "2026-06-11",
-      "instrument_num": "202600001254",
-      "grantor": "Matthews, { 10/20/2021 Ronald Travis & Spouse, Jorge Luis",
+      "instrument_num": "202600001263",
+      "grantor": null,
       "grantee": null,
-      "address": "DALLAS",
-      "address_normalized": "DALLAS",
+      "address": "GRAND PRAIRIE",
+      "address_normalized": "GRAND PRAIRIE",
       "dcad_account": null,
       "dcad_owner": null,
       "dcad_market_value": null,
@@ -5202,22 +4819,22 @@
       "dcad_mailing_city": null,
       "dcad_mailing_state": null,
       "dcad_mailing_zip": null,
-      "amount": null,
+      "amount": "194,925.00",
       "trustee": null,
-      "sale_date": "2026-09-01",
-      "raw_excerpt": "NOTICE OF FORECLOSURE | DALLAS | LOT FIVE (5), BLOCK A/152, OF FARMERS MARKET TOWNHOME NO, | ADRITION (Ao) ON T@’THE CITY OF DALLAS, DALLAS COUNTY TEXAS, ACCORDING TO THE PLAT THEREOF RECORDED IN CLERK'S FILEPNO' 2606 -264220, OF THE MAP RECORDS, DALLAS COUNTY, TEXAS",
+      "sale_date": "2026-08-04",
+      "raw_excerpt": "NOTICE OF FORECLOSURE | GRAND PRAIRIE",
       "active": true,
       "release_record_id": null,
       "signal_metadata": {
         "ocr": {
-          "grantor_pattern": "labeled-grantor-mortgagor",
-          "sale_date_pattern": "numeric-date-of-sale",
+          "grantor_pattern": null,
+          "sale_date_pattern": "word-section1-date",
           "address_pattern": null,
-          "loan_amount_pattern": null,
-          "legal_desc_pattern": "labeled-legal-description",
+          "loan_amount_pattern": "original-amount-space-tolerant",
+          "legal_desc_pattern": null,
           "apn_pattern": null,
           "apn": null,
-          "pages_captured": 2,
+          "pages_captured": 3,
           "capture_warnings": []
         },
         "resolution_history": [
@@ -5233,20 +4850,9 @@
             "warnings": []
           },
           {
-            "path": "path_a_grantor_owner_index",
-            "stage": "6.45",
-            "input": "{ 10/20/2021 RONALD TRAVIS MATTHEWS AND SPOUSE, JORGE LUIS",
-            "status": "no_match",
-            "skip_reason": null,
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          },
-          {
             "path": "path_c_legal_resolver",
             "stage": "6.5",
-            "input": "NOTICE OF FORECLOSURE | DALLAS | LOT FIVE (5), BLOCK A/152, OF FARMERS MARKET TOWNHOME NO, | ADRITION (Ao) ON T@’THE CIT",
+            "input": "NOTICE OF FORECLOSURE | GRAND PRAIRIE",
             "status": "skipped",
             "skip_reason": "no_subdivision_parsed",
             "tier": null,
@@ -5259,19 +4865,21 @@
       "address_city": null,
       "address_state": null,
       "address_zip": null,
-      "source_url": "https://dallas.tx.publicsearch.us/doc/316978617",
+      "source_url": "https://dallas.tx.publicsearch.us/doc/316978622",
       "score": 45,
       "score_breakdown": {
         "base": 30,
         "category_flag": 10,
         "new_this_week": 5
       },
-      "parse_warnings": [],
+      "parse_warnings": [
+        "no_grantor_extracted",
+        "no_address_or_legal_description"
+      ],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-13",
+      "last_seen": "2026-06-14",
       "in_buy_box": true,
-      "buy_box_reasons": [],
-      "grantor_raw": "{ 10/20/2021 RONALD TRAVIS MATTHEWS AND SPOUSE, JORGE LUIS"
+      "buy_box_reasons": []
     },
     {
       "record_id": "316978626",
@@ -5363,7 +4971,7 @@
         "no_address_or_legal_description"
       ],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-13",
+      "last_seen": "2026-06-14",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "5/18/2015 DARSHUNDA OSIOH, A SINGLE PERSON"
@@ -5450,7 +5058,7 @@
         "no_sale_date_extracted"
       ],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-13",
+      "last_seen": "2026-06-14",
       "in_buy_box": true,
       "buy_box_reasons": []
     },
@@ -5535,7 +5143,7 @@
         "no_address_or_legal_description"
       ],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-13",
+      "last_seen": "2026-06-14",
       "in_buy_box": true,
       "buy_box_reasons": []
     },
@@ -5619,7 +5227,7 @@
         "no_address_or_legal_description"
       ],
       "first_seen": "2026-06-13",
-      "last_seen": "2026-06-13",
+      "last_seen": "2026-06-14",
       "in_buy_box": true,
       "buy_box_reasons": []
     }
