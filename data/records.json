@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-06-16",
-  "record_count": 94,
+  "generated_at": "2026-06-17",
+  "record_count": 108,
   "records": [
     {
       "record_id": "316987093",
@@ -95,7 +95,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "Jules J. Palmer and",
@@ -191,7 +191,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "Angelina Castro Tapia. |",
@@ -235,7 +235,9 @@
           "apn_pattern": null,
           "apn": null,
           "pages_captured": 2,
-          "capture_warnings": []
+          "capture_warnings": [
+            "initial_load_hung_reloading"
+          ]
         },
         "resolution_history": [
           {
@@ -292,7 +294,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "AZADEH AJAMI",
@@ -390,7 +392,7 @@
         "no_sale_date_extracted"
       ],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "SUSAN ORTEGA",
@@ -434,9 +436,7 @@
           "apn_pattern": null,
           "apn": null,
           "pages_captured": 4,
-          "capture_warnings": [
-            "recovered_on_attempt_2"
-          ]
+          "capture_warnings": []
         },
         "resolution_history": [
           {
@@ -504,7 +504,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "PALEMON PEREZ YEPEZ, WO ARRYED MAN",
@@ -607,7 +607,7 @@
         "no_sale_date_extracted"
       ],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "CHARLES W URIAS AND KELB URNS, HUSBAND AND WIFE",
@@ -651,9 +651,7 @@
           "apn_pattern": null,
           "apn": null,
           "pages_captured": 4,
-          "capture_warnings": [
-            "initial_load_hung_reloading"
-          ]
+          "capture_warnings": []
         },
         "confidence_warnings": [
           "path_b_used_alternate",
@@ -731,7 +729,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "a Shuath, foined herein pro forma by ber spouse Nizar Shuaib",
@@ -832,7 +830,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "SUSAN CATTERSON",
@@ -876,7 +874,9 @@
           "apn_pattern": null,
           "apn": null,
           "pages_captured": 4,
-          "capture_warnings": []
+          "capture_warnings": [
+            "recovered_on_attempt_2"
+          ]
         },
         "confidence_warnings": [
           "path_b_used_alternate",
@@ -946,7 +946,7 @@
         "no_grantor_extracted"
       ],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "LEWIS RITA KAY",
@@ -1044,7 +1044,7 @@
         "no_address_or_legal_description"
       ],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "Cerey Howe, a single man and Rébacca John, e woman",
@@ -1145,7 +1145,7 @@
         "no_sale_date_extracted"
       ],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "MELCHOR PEREZ-ZUNIGA, A",
@@ -1236,7 +1236,7 @@
         "no_sale_date_extracted"
       ],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "HOWARD EDNEA",
@@ -1371,7 +1371,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "SHELBY L, RAYNOR AND SONJA M. RAYNOR, ©",
@@ -1467,7 +1467,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "Carlos Castellanos and Angela Doring Gate huShand and wife",
@@ -1581,7 +1581,7 @@
         "no_sale_date_extracted"
       ],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "OSCAR ROBERTO VASQUEZ",
@@ -1684,7 +1684,7 @@
         "no_sale_date_extracted"
       ],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "CHRISTOPHER AVERETTE",
@@ -1776,7 +1776,7 @@
         "no_address_or_legal_description"
       ],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "SCARBOROUGH DOROTHEA ALICE",
@@ -1900,7 +1900,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "ANA VELIA ALONSO, UNMARRIED WOMAN",
@@ -1944,9 +1944,7 @@
           "apn_pattern": null,
           "apn": null,
           "pages_captured": 3,
-          "capture_warnings": [
-            "initial_load_hung_reloading"
-          ]
+          "capture_warnings": []
         },
         "resolution_history": [
           {
@@ -1998,7 +1996,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "=RICARDO ROMAN, A MARRIED MAN AND MARICELA ROMAN, HIS WIFE",
@@ -2124,7 +2122,7 @@
         "no_sale_date_extracted"
       ],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "DONESH LUCKEY",
@@ -2242,7 +2240,7 @@
         "no_sale_date_extracted"
       ],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "KIARA M WILLIAMS",
@@ -2286,9 +2284,7 @@
           "apn_pattern": null,
           "apn": null,
           "pages_captured": 3,
-          "capture_warnings": [
-            "initial_load_hung_reloading"
-          ]
+          "capture_warnings": []
         },
         "resolution_history": [
           {
@@ -2335,7 +2331,7 @@
         "no_sale_date_extracted"
       ],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "RUBIO SIMONA",
@@ -2436,860 +2432,11 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "12/3/2024 NATHANIEL ODELL AND KOLETTE O'DELL, HUSBAND",
       "dcad_owner_raw": "ODELL NATHANIEL"
-    },
-    {
-      "record_id": "316978637",
-      "source": "publicsearch.us",
-      "dallas_code": "NOF",
-      "category": "NOTICE",
-      "filing_date": "2026-06-11",
-      "instrument_num": "202600001279",
-      "grantor": "Felder, Robynn",
-      "grantee": null,
-      "address": "130 GRAYSTONE PLACE, DUNCANVILLE, TEXAS, 75137",
-      "address_normalized": "130 GRAYSTONE PL",
-      "dcad_account": "22074770000260000",
-      "dcad_owner": "Felder, Robynn Carol",
-      "dcad_market_value": 187830.0,
-      "dcad_homestead": false,
-      "dcad_over65": false,
-      "dcad_disabled": false,
-      "dcad_tax_deferred": false,
-      "dcad_mailing_address": "130 GRAYSTONE PL",
-      "dcad_mailing_city": "DUNCANVILLE",
-      "dcad_mailing_state": "TEXAS",
-      "dcad_mailing_zip": "751373242",
-      "amount": null,
-      "trustee": null,
-      "sale_date": "2026-07-07",
-      "raw_excerpt": "NOTICE OF FORECLOSURE | 130 GRAYSTONE PLACE, DUNCANVILLE, TEXAS, 75137 | Let 26, Block of Graystone,\\an™Adgttion to the City of Duncanville, Dallas Con Texas, according to the plat thereof recorded in Volume 81186,\\Rage 1638, Map Records, Dallas County, Texas",
-      "active": true,
-      "release_record_id": null,
-      "signal_metadata": {
-        "ocr": {
-          "grantor_pattern": "labeled-grantor",
-          "sale_date_pattern": null,
-          "address_pattern": null,
-          "loan_amount_pattern": null,
-          "legal_desc_pattern": "labeled-legal-description",
-          "apn_pattern": null,
-          "apn": null,
-          "pages_captured": 4,
-          "capture_warnings": []
-        },
-        "resolution_history": [
-          {
-            "path": "path_variant_lookup",
-            "stage": "6.35",
-            "input": "130 GRAYSTONE PL",
-            "status": "matched",
-            "skip_reason": null,
-            "tier": null,
-            "dcad_account": "22074770000260000",
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "path_a_grantor_owner_index",
-            "stage": "6.45",
-            "input": "ROBYNN FELDER",
-            "status": "no_match",
-            "skip_reason": null,
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "path_c_legal_resolver",
-            "stage": "6.5",
-            "input": "NOTICE OF FORECLOSURE | 130 GRAYSTONE PLACE, DUNCANVILLE, TEXAS, 75137 | Let 26, Block of Graystone,\\an™Adgttion to the ",
-            "status": "skipped",
-            "skip_reason": "no_subdivision_parsed",
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          }
-        ]
-      },
-      "address_city": null,
-      "address_state": null,
-      "address_zip": null,
-      "source_url": "https://dallas.tx.publicsearch.us/doc/316978637",
-      "score": 65,
-      "score_breakdown": {
-        "base": 30,
-        "category_flag": 10,
-        "value_100k": 15,
-        "new_this_week": 5,
-        "has_address": 5
-      },
-      "parse_warnings": [
-        "no_sale_date_extracted"
-      ],
-      "first_seen": "2026-06-12",
-      "last_seen": "2026-06-16",
-      "in_buy_box": true,
-      "buy_box_reasons": [],
-      "grantor_raw": "ROBYNN FELDER",
-      "dcad_owner_raw": "FELDER ROBYNN CAROL"
-    },
-    {
-      "record_id": "316978613",
-      "source": "publicsearch.us",
-      "dallas_code": "NOF",
-      "category": "NOTICE",
-      "filing_date": "2026-06-11",
-      "instrument_num": "202600001256",
-      "grantor": "Parker, 8/17/2023 Johnny",
-      "grantee": null,
-      "address": "600 Commerce Street, Dallas, 75202",
-      "address_normalized": "600 COMMERCE ST",
-      "dcad_account": "00000100171000000",
-      "dcad_owner": "Dallas, County Of",
-      "dcad_market_value": 52081580.0,
-      "dcad_homestead": false,
-      "dcad_over65": false,
-      "dcad_disabled": false,
-      "dcad_tax_deferred": false,
-      "dcad_mailing_address": "EXEMPT 1963\n411 ELM ST FL 3",
-      "dcad_mailing_city": "DALLAS",
-      "dcad_mailing_state": "TEXAS",
-      "dcad_mailing_zip": "752023301",
-      "amount": null,
-      "trustee": null,
-      "sale_date": "2026-09-01",
-      "raw_excerpt": "NOTICE OF FORECLOSURE | SEAGOVILLE | BEING LOT 2, BLOCK A, TREDWAY ESTATES PHASE ONE, AN ADDITION TO THE CITY OF sow, ZB, DALLAS COUNTY, TEXAS",
-      "active": true,
-      "release_record_id": null,
-      "signal_metadata": {
-        "ocr": {
-          "grantor_pattern": "labeled-grantor-mortgagor",
-          "sale_date_pattern": "numeric-date-of-sale",
-          "address_pattern": "mixed-case-one-line",
-          "loan_amount_pattern": null,
-          "legal_desc_pattern": "labeled-legal-description",
-          "apn_pattern": null,
-          "apn": null,
-          "pages_captured": 2,
-          "capture_warnings": []
-        },
-        "resolution_history": [
-          {
-            "path": "path_b_raw_excerpt",
-            "stage": "6.3",
-            "input": null,
-            "status": "skipped",
-            "skip_reason": "no_clean_address_in_raw_excerpt",
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "path_a_grantor_owner_index",
-            "stage": "6.45",
-            "input": "8/17/2023 JOHNNY PARKER, A SINGLE MAN",
-            "status": "no_match",
-            "skip_reason": null,
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "path_c_legal_resolver",
-            "stage": "6.5",
-            "input": "NOTICE OF FORECLOSURE | SEAGOVILLE | BEING LOT 2, BLOCK A, TREDWAY ESTATES PHASE ONE, AN ADDITION TO THE CITY OF sow, ZB",
-            "status": "skipped",
-            "skip_reason": "no_subdivision_parsed",
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          }
-        ]
-      },
-      "address_city": null,
-      "address_state": null,
-      "address_zip": null,
-      "source_url": "https://dallas.tx.publicsearch.us/doc/316978613",
-      "score": 65,
-      "score_breakdown": {
-        "base": 30,
-        "category_flag": 10,
-        "value_100k": 15,
-        "new_this_week": 5,
-        "has_address": 5
-      },
-      "parse_warnings": [],
-      "first_seen": "2026-06-16",
-      "last_seen": "2026-06-16",
-      "in_buy_box": true,
-      "buy_box_reasons": [],
-      "grantor_raw": "8/17/2023 JOHNNY PARKER, A SINGLE MAN",
-      "dcad_owner_raw": "DALLAS COUNTY OF"
-    },
-    {
-      "record_id": "316978608",
-      "source": "publicsearch.us",
-      "dallas_code": "NOF",
-      "category": "NOTICE",
-      "filing_date": "2026-06-11",
-      "instrument_num": "202600001258",
-      "grantor": "6/8/2023 Erika Oneyda Cruz, Manzanares Joined Herein",
-      "grantee": null,
-      "address": "DALLAS",
-      "address_normalized": "2535 ELSIE FAYE HEGGINS ST",
-      "dcad_account": "00000188686000000",
-      "dcad_owner": "Manzanares, Erika Oneyda C",
-      "dcad_market_value": 114370.0,
-      "dcad_homestead": false,
-      "dcad_over65": false,
-      "dcad_disabled": false,
-      "dcad_tax_deferred": false,
-      "dcad_mailing_address": "SANCHEZ JOSE MANUEL\n1220 BUCKEYE DR",
-      "dcad_mailing_city": "MESQUITE",
-      "dcad_mailing_state": "TEXAS",
-      "dcad_mailing_zip": "751811260",
-      "amount": null,
-      "trustee": null,
-      "sale_date": "2026-07-07",
-      "raw_excerpt": "NOTICE OF FORECLOSURE | Subdivision - Name: Southern Terrace No Lot: 9 Block: B/1957",
-      "active": true,
-      "release_record_id": null,
-      "signal_metadata": {
-        "ocr": {
-          "grantor_pattern": "labeled-grantor-mortgagor",
-          "sale_date_pattern": "numeric-date-of-sale",
-          "address_pattern": null,
-          "loan_amount_pattern": null,
-          "legal_desc_pattern": "labeled-legal-description",
-          "apn_pattern": null,
-          "apn": null,
-          "pages_captured": 3,
-          "capture_warnings": []
-        },
-        "resolution_history": [
-          {
-            "path": "path_b_raw_excerpt",
-            "stage": "6.3",
-            "input": null,
-            "status": "skipped",
-            "skip_reason": "no_clean_address_in_raw_excerpt",
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "path_a_grantor_owner_index",
-            "stage": "6.45",
-            "input": "6/8/2023 ERIKA ONEYDA CRUZ, MANZANARES JOINED HEREIN",
-            "status": "no_match",
-            "skip_reason": null,
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "path_c_legal_resolver",
-            "stage": "6.5",
-            "input": "Southern Terrace No",
-            "status": "matched",
-            "skip_reason": null,
-            "tier": "fuzzy_subdivision",
-            "dcad_account": "00000188686000000",
-            "alternates": [],
-            "warnings": [
-              "fuzzy_subdivision_match"
-            ]
-          }
-        ],
-        "confidence_warnings": [
-          "fuzzy_subdivision_match"
-        ]
-      },
-      "address_city": null,
-      "address_state": null,
-      "address_zip": null,
-      "source_url": "https://dallas.tx.publicsearch.us/doc/316978608",
-      "score": 65,
-      "score_breakdown": {
-        "base": 30,
-        "category_flag": 10,
-        "value_100k": 15,
-        "new_this_week": 5,
-        "has_address": 5
-      },
-      "parse_warnings": [],
-      "first_seen": "2026-06-12",
-      "last_seen": "2026-06-16",
-      "in_buy_box": true,
-      "buy_box_reasons": [],
-      "grantor_raw": "6/8/2023 ERIKA ONEYDA CRUZ, MANZANARES JOINED HEREIN",
-      "dcad_owner_raw": "MANZANARES ERIKA ONEYDA C"
-    },
-    {
-      "record_id": "316978633",
-      "source": "publicsearch.us",
-      "dallas_code": "NOF",
-      "category": "NOTICE",
-      "filing_date": "2026-06-11",
-      "instrument_num": "202600001270",
-      "grantor": "Chang, Rohan & Chang, Robyn",
-      "grantee": null,
-      "address": "909 Sunni é q ¢ arland, Texas 75044",
-      "address_normalized": "909 SUNNINGDALE CIR",
-      "dcad_account": "26179390040170000",
-      "dcad_owner": "Chang, Rohan & Chang, Robyn",
-      "dcad_market_value": 610010.0,
-      "dcad_homestead": false,
-      "dcad_over65": false,
-      "dcad_disabled": false,
-      "dcad_tax_deferred": false,
-      "dcad_mailing_address": "2610 SHORECREST DR",
-      "dcad_mailing_city": "ROCKWALL",
-      "dcad_mailing_state": "TEXAS",
-      "dcad_mailing_zip": "750870000",
-      "amount": null,
-      "trustee": null,
-      "sale_date": "2026-07-07",
-      "raw_excerpt": "NOTICE OF FORECLOSURE | 909 SUNNINGDALE CIRCLE, GARLAND, TEXAS, 75044 | Lot 17, Block 4, Firewheel Fe RS, aly agidition to the City of Garland, Dallas County, Texa SZ fing to the Map thereof recorded in Volume §§18 Page 2477, of the Map Records of Dallas County, Texas",
-      "active": true,
-      "release_record_id": null,
-      "signal_metadata": {
-        "ocr": {
-          "grantor_pattern": "labeled-grantor",
-          "sale_date_pattern": null,
-          "address_pattern": "commonly-known-as-one-line",
-          "loan_amount_pattern": null,
-          "legal_desc_pattern": "labeled-legal-description",
-          "apn_pattern": null,
-          "apn": null,
-          "pages_captured": 4,
-          "capture_warnings": []
-        },
-        "resolution_history": [
-          {
-            "path": "path_variant_lookup",
-            "stage": "6.35",
-            "input": "909 SUNNI É Q ¢ ARLAND",
-            "status": "no_match",
-            "skip_reason": null,
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "path_a_grantor_owner_index",
-            "stage": "6.45",
-            "input": "ROHAN CHANG AND ROBYN CHANG",
-            "status": "matched",
-            "skip_reason": null,
-            "tier": "no_middle",
-            "dcad_account": "26179390040170000",
-            "alternates": [],
-            "warnings": [
-              "surname_drift"
-            ]
-          },
-          {
-            "path": "path_c_legal_resolver",
-            "stage": "6.5",
-            "input": "NOTICE OF FORECLOSURE | 909 SUNNINGDALE CIRCLE, GARLAND, TEXAS, 75044 | Lot 17, Block 4, Firewheel Fe RS, aly agidition ",
-            "status": "skipped",
-            "skip_reason": "no_subdivision_parsed",
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          }
-        ],
-        "confidence_warnings": [
-          "surname_drift"
-        ]
-      },
-      "address_city": null,
-      "address_state": null,
-      "address_zip": null,
-      "source_url": "https://dallas.tx.publicsearch.us/doc/316978633",
-      "score": 65,
-      "score_breakdown": {
-        "base": 30,
-        "category_flag": 10,
-        "value_100k": 15,
-        "new_this_week": 5,
-        "has_address": 5
-      },
-      "parse_warnings": [
-        "no_sale_date_extracted"
-      ],
-      "first_seen": "2026-06-12",
-      "last_seen": "2026-06-16",
-      "in_buy_box": true,
-      "buy_box_reasons": [],
-      "grantor_raw": "ROHAN CHANG AND ROBYN CHANG",
-      "dcad_owner_raw": "CHANG ROHAN & ROBYN"
-    },
-    {
-      "record_id": "316978623",
-      "source": "publicsearch.us",
-      "dallas_code": "NOF",
-      "category": "NOTICE",
-      "filing_date": "2026-06-11",
-      "instrument_num": "202600001260",
-      "grantor": "Anairis, Fernandezleyva",
-      "grantee": null,
-      "address": "600 Commerce Street, Dallas, 75202",
-      "address_normalized": "4518 MEADOWVIEW DR",
-      "dcad_account": "38120800100210000",
-      "dcad_owner": "Fernandezleyva, Anairis",
-      "dcad_market_value": 380960.0,
-      "dcad_homestead": true,
-      "dcad_over65": false,
-      "dcad_disabled": false,
-      "dcad_tax_deferred": false,
-      "dcad_mailing_address": "4518 MEADOWVIEW DR",
-      "dcad_mailing_city": "MESQUITE",
-      "dcad_mailing_state": "TEXAS",
-      "dcad_mailing_zip": "751502984",
-      "amount": "20020.00",
-      "trustee": null,
-      "sale_date": "2026-07-07",
-      "raw_excerpt": "NOTICE OF FORECLOSURE | 4518 MEADOWVIEW DRIVE, MESQUITE, TEXAS, 75150 | of Property to be she BE! 1, IN BLOCK 10 OF MEADOWVIEW FARMS, AN ADDITION TO THE CITY OF ME Tk, DY OUNTY, TEXAS, ACCORDING TO THE MAP THEREOF RECORDED IN VO, Pp OINRAGE 1824, OF THE MAP RECORDS OF DALLAS COUNTY, TEXAS; AS AMENDED BY CBRTIPICATBOFCORRECTION OF ERROR FILED APRIL 25, 1983, RECORDED IN VOLUME 83082/RAGE 1834, DEED RECORDS, DALLAS COUNTY, TEXAS",
-      "active": true,
-      "release_record_id": null,
-      "signal_metadata": {
-        "ocr": {
-          "grantor_pattern": null,
-          "sale_date_pattern": null,
-          "address_pattern": "mixed-case-one-line",
-          "loan_amount_pattern": "original-amount-space-tolerant",
-          "legal_desc_pattern": "labeled-legal-description",
-          "apn_pattern": null,
-          "apn": null,
-          "pages_captured": 3,
-          "capture_warnings": []
-        },
-        "confidence_warnings": [
-          "path_b_used_alternate",
-          "path_agreement",
-          "grantor_from_dcad"
-        ],
-        "resolution_history": [
-          {
-            "path": "path_b_raw_excerpt",
-            "stage": "6.3",
-            "input": "4518 MEADOWVIEW DRIVE, MESQUITE, TEXAS, 75150",
-            "status": "matched",
-            "skip_reason": null,
-            "tier": null,
-            "dcad_account": "38120800100210000",
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "path_variant_lookup",
-            "stage": "6.35",
-            "input": "4518 MEADOWVIEW DR",
-            "status": "matched",
-            "skip_reason": null,
-            "tier": null,
-            "dcad_account": "38120800100210000",
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "path_c_legal_resolver",
-            "stage": "6.5",
-            "input": "NOTICE OF FORECLOSURE | 4518 MEADOWVIEW DRIVE, MESQUITE, TEXAS, 75150 | of Property to be she BE! 1, IN BLOCK 10 OF MEAD",
-            "status": "skipped",
-            "skip_reason": "no_subdivision_parsed",
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "stage_6_6_agreement",
-            "stage": "6.6",
-            "input": "path_b_raw_excerpt|path_variant_lookup",
-            "status": "matched",
-            "skip_reason": null,
-            "tier": null,
-            "dcad_account": "38120800100210000",
-            "alternates": [],
-            "warnings": []
-          }
-        ]
-      },
-      "address_city": null,
-      "address_state": null,
-      "address_zip": null,
-      "source_url": "https://dallas.tx.publicsearch.us/doc/316978623",
-      "score": 65,
-      "score_breakdown": {
-        "base": 30,
-        "category_flag": 10,
-        "value_100k": 15,
-        "new_this_week": 5,
-        "has_address": 5
-      },
-      "parse_warnings": [
-        "no_grantor_extracted",
-        "no_sale_date_extracted"
-      ],
-      "first_seen": "2026-06-15",
-      "last_seen": "2026-06-16",
-      "in_buy_box": true,
-      "buy_box_reasons": [],
-      "grantor_raw": "FERNANDEZLEYVA ANAIRIS",
-      "dcad_owner_raw": "FERNANDEZLEYVA ANAIRIS"
-    },
-    {
-      "record_id": "316978611",
-      "source": "publicsearch.us",
-      "dallas_code": "NOF",
-      "category": "NOTICE",
-      "filing_date": "2026-06-11",
-      "instrument_num": "202600001262",
-      "grantor": "Kelton, Robert",
-      "grantee": null,
-      "address": "602 me I ARDSON, TX 75081",
-      "address_normalized": "602 WENTWORTH DR",
-      "dcad_account": "42211700210020000",
-      "dcad_owner": "Kelton, Robert",
-      "dcad_market_value": 452700.0,
-      "dcad_homestead": true,
-      "dcad_over65": false,
-      "dcad_disabled": false,
-      "dcad_tax_deferred": false,
-      "dcad_mailing_address": "602 WENTWORTH DR",
-      "dcad_mailing_city": "RICHARDSON",
-      "dcad_mailing_state": "TEXAS",
-      "dcad_mailing_zip": "750815622",
-      "amount": null,
-      "trustee": null,
-      "sale_date": "2026-08-04",
-      "raw_excerpt": "NOTICE OF FORECLOSURE | 602 WENTWORTH DRIVE, RICHARDSON, TEXAS, 75081",
-      "active": true,
-      "release_record_id": null,
-      "signal_metadata": {
-        "ocr": {
-          "grantor_pattern": "labeled-grantor-mortgagor",
-          "sale_date_pattern": null,
-          "address_pattern": "property-address-one-line",
-          "loan_amount_pattern": null,
-          "legal_desc_pattern": null,
-          "apn_pattern": null,
-          "apn": null,
-          "pages_captured": 4,
-          "capture_warnings": []
-        },
-        "confidence_warnings": [
-          "path_b_used_alternate",
-          "path_disagreement",
-          "tiebroken_by_page"
-        ],
-        "resolution_history": [
-          {
-            "path": "path_b_raw_excerpt",
-            "stage": "6.3",
-            "input": "602 WENTWORTH DRIVE, RICHARDSON, TEXAS, 75081",
-            "status": "matched",
-            "skip_reason": null,
-            "tier": null,
-            "dcad_account": "42211700210020000",
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "path_variant_lookup",
-            "stage": "6.35",
-            "input": "602 WENTWORTH DR",
-            "status": "matched",
-            "skip_reason": null,
-            "tier": null,
-            "dcad_account": "42211700210020000",
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "path_a_grantor_owner_index",
-            "stage": "6.45",
-            "input": "ROBERT KELTON, A MARRIED MAN",
-            "status": "multi_match",
-            "skip_reason": null,
-            "tier": "surname_only",
-            "dcad_account": "44001530100010000",
-            "alternates": [
-              "99171106180000000"
-            ],
-            "warnings": [
-              "multi_account",
-              "surname_only_tier"
-            ]
-          },
-          {
-            "path": "path_c_legal_resolver",
-            "stage": "6.5",
-            "input": "NOTICE OF FORECLOSURE | 602 WENTWORTH DRIVE, RICHARDSON, TEXAS, 75081",
-            "status": "skipped",
-            "skip_reason": "no_subdivision_parsed",
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "stage_6_6_agreement",
-            "stage": "6.6",
-            "input": "602 WENTWORTH DRIVE RICHARDSON TEXAS 75081",
-            "status": "matched",
-            "skip_reason": null,
-            "tier": null,
-            "dcad_account": "42211700210020000",
-            "alternates": [
-              "44001530100010000"
-            ],
-            "warnings": [
-              "tiebroken_by_page"
-            ]
-          }
-        ],
-        "alternate_accounts": [
-          "44001530100010000"
-        ]
-      },
-      "address_city": null,
-      "address_state": null,
-      "address_zip": null,
-      "source_url": "https://dallas.tx.publicsearch.us/doc/316978611",
-      "score": 65,
-      "score_breakdown": {
-        "base": 30,
-        "category_flag": 10,
-        "value_100k": 15,
-        "new_this_week": 5,
-        "has_address": 5
-      },
-      "parse_warnings": [
-        "no_sale_date_extracted"
-      ],
-      "first_seen": "2026-06-12",
-      "last_seen": "2026-06-16",
-      "in_buy_box": true,
-      "buy_box_reasons": [],
-      "grantor_raw": "ROBERT KELTON, A MARRIED MAN",
-      "dcad_owner_raw": "KELTON ROBERT"
-    },
-    {
-      "record_id": "316978627",
-      "source": "publicsearch.us",
-      "dallas_code": "NOF",
-      "category": "NOTICE",
-      "filing_date": "2026-06-11",
-      "instrument_num": "202600001274",
-      "grantor": "Miranda, Tim",
-      "grantee": null,
-      "address": "DALLAS",
-      "address_normalized": "536 WINDY LN",
-      "dcad_account": "16006500050280100",
-      "dcad_owner": "Tim & Leahs Trust The",
-      "dcad_market_value": 514210.0,
-      "dcad_homestead": true,
-      "dcad_over65": true,
-      "dcad_disabled": false,
-      "dcad_tax_deferred": false,
-      "dcad_mailing_address": "536 WINDY LN",
-      "dcad_mailing_city": "CEDAR HILL",
-      "dcad_mailing_state": "TEXAS",
-      "dcad_mailing_zip": "751043737",
-      "amount": "208,000.00",
-      "trustee": null,
-      "sale_date": "2026-08-04",
-      "raw_excerpt": "NOTICE OF FORECLOSURE | DALLAS | © i BEING LOT 17 IN BLOCK 37 B3NQ O PARKDALE ADDITION, FOURTH INSTALLMENT, AN ADDITION TO THE CITY @&\\DALALLAS XAS, ACCORDING TO THE REVISED MAP THEREOF RECORDED IN VOLUME VASa ISS OKRPHE MAP RECORDS OF DALLAS COUNTY, TEXAS",
-      "active": true,
-      "release_record_id": null,
-      "signal_metadata": {
-        "ocr": {
-          "grantor_pattern": "inline-with-grantor",
-          "sale_date_pattern": null,
-          "address_pattern": null,
-          "loan_amount_pattern": "original-amount-space-tolerant",
-          "legal_desc_pattern": "labeled-legal-description",
-          "apn_pattern": null,
-          "apn": null,
-          "pages_captured": 3,
-          "capture_warnings": []
-        },
-        "resolution_history": [
-          {
-            "path": "path_b_raw_excerpt",
-            "stage": "6.3",
-            "input": null,
-            "status": "skipped",
-            "skip_reason": "no_clean_address_in_raw_excerpt",
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "path_a_grantor_owner_index",
-            "stage": "6.45",
-            "input": "Tim Miranda, a single man as",
-            "status": "matched",
-            "skip_reason": null,
-            "tier": "surname_only",
-            "dcad_account": "16006500050280100",
-            "alternates": [],
-            "warnings": [
-              "surname_only_tier"
-            ]
-          },
-          {
-            "path": "path_c_legal_resolver",
-            "stage": "6.5",
-            "input": "NOTICE OF FORECLOSURE | DALLAS | © i BEING LOT 17 IN BLOCK 37 B3NQ O PARKDALE ADDITION, FOURTH INSTALLMENT, AN ADDITION ",
-            "status": "skipped",
-            "skip_reason": "no_subdivision_parsed",
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          }
-        ],
-        "confidence_warnings": [
-          "surname_only_tier"
-        ]
-      },
-      "address_city": null,
-      "address_state": null,
-      "address_zip": null,
-      "source_url": "https://dallas.tx.publicsearch.us/doc/316978627",
-      "score": 65,
-      "score_breakdown": {
-        "base": 30,
-        "category_flag": 10,
-        "value_100k": 15,
-        "new_this_week": 5,
-        "has_address": 5
-      },
-      "parse_warnings": [
-        "no_sale_date_extracted"
-      ],
-      "first_seen": "2026-06-12",
-      "last_seen": "2026-06-16",
-      "in_buy_box": true,
-      "buy_box_reasons": [],
-      "grantor_raw": "Tim Miranda, a single man as",
-      "dcad_owner_raw": "TIM & LEAHS TRUST THE"
-    },
-    {
-      "record_id": "316978607",
-      "source": "publicsearch.us",
-      "dallas_code": "NOF",
-      "category": "NOTICE",
-      "filing_date": "2026-06-11",
-      "instrument_num": "202600001252",
-      "grantor": "Daghlas, 6/29/2018 Omar R. & Daghlas, Maria",
-      "grantee": null,
-      "address": "600 Commerce Street, Dallas, 75202",
-      "address_normalized": "600 COMMERCE ST",
-      "dcad_account": "00000100171000000",
-      "dcad_owner": "Dallas, County Of",
-      "dcad_market_value": 52081580.0,
-      "dcad_homestead": false,
-      "dcad_over65": false,
-      "dcad_disabled": false,
-      "dcad_tax_deferred": false,
-      "dcad_mailing_address": "EXEMPT 1963\n411 ELM ST FL 3",
-      "dcad_mailing_city": "DALLAS",
-      "dcad_mailing_state": "TEXAS",
-      "dcad_mailing_zip": "752023301",
-      "amount": null,
-      "trustee": null,
-      "sale_date": "2026-07-07",
-      "raw_excerpt": "NOTICE OF FORECLOSURE | SACHSE | LOT 25, BLOCK J, WOODBRIDGE, PHASE 6, AN ADDITION TO THE CITY OF SACHSE ASALLAS.QCQUNA , TEXAS",
-      "active": true,
-      "release_record_id": null,
-      "signal_metadata": {
-        "ocr": {
-          "grantor_pattern": "labeled-grantor-mortgagor",
-          "sale_date_pattern": "numeric-date-of-sale",
-          "address_pattern": "mixed-case-one-line",
-          "loan_amount_pattern": null,
-          "legal_desc_pattern": "labeled-legal-description",
-          "apn_pattern": null,
-          "apn": null,
-          "pages_captured": 2,
-          "capture_warnings": []
-        },
-        "resolution_history": [
-          {
-            "path": "path_b_raw_excerpt",
-            "stage": "6.3",
-            "input": null,
-            "status": "skipped",
-            "skip_reason": "no_clean_address_in_raw_excerpt",
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "path_a_grantor_owner_index",
-            "stage": "6.45",
-            "input": "6/29/2018 OMAR R. DAGHLAS AND MARIA DAGHLAS, HUSBAND",
-            "status": "no_match",
-            "skip_reason": null,
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "path_c_legal_resolver",
-            "stage": "6.5",
-            "input": "NOTICE OF FORECLOSURE | SACHSE | LOT 25, BLOCK J, WOODBRIDGE, PHASE 6, AN ADDITION TO THE CITY OF SACHSE ASALLAS.QCQUNA ",
-            "status": "skipped",
-            "skip_reason": "no_subdivision_parsed",
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          }
-        ]
-      },
-      "address_city": null,
-      "address_state": null,
-      "address_zip": null,
-      "source_url": "https://dallas.tx.publicsearch.us/doc/316978607",
-      "score": 65,
-      "score_breakdown": {
-        "base": 30,
-        "category_flag": 10,
-        "value_100k": 15,
-        "new_this_week": 5,
-        "has_address": 5
-      },
-      "parse_warnings": [],
-      "first_seen": "2026-06-12",
-      "last_seen": "2026-06-16",
-      "in_buy_box": true,
-      "buy_box_reasons": [],
-      "grantor_raw": "6/29/2018 OMAR R. DAGHLAS AND MARIA DAGHLAS, HUSBAND",
-      "dcad_owner_raw": "DALLAS COUNTY OF"
     },
     {
       "record_id": "318051197",
@@ -3329,9 +2476,7 @@
           "apn_pattern": null,
           "apn": null,
           "pages_captured": 4,
-          "capture_warnings": [
-            "initial_load_hung_reloading"
-          ]
+          "capture_warnings": []
         },
         "resolution_history": [
           {
@@ -3383,7 +2528,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-16",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "ROGELIO AGUILAR AND ESMERALDA DE LA SOMA ALONSO SBAND AND WIFE",
@@ -3475,7 +2620,7 @@
         "no_address_or_legal_description"
       ],
       "first_seen": "2026-06-16",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "CANGLAMILLA NICHOLAS",
@@ -3565,7 +2710,7 @@
         "no_grantor_extracted"
       ],
       "first_seen": "2026-06-16",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "JAIMEZ MELISSA",
@@ -3609,7 +2754,9 @@
           "apn_pattern": null,
           "apn": null,
           "pages_captured": 4,
-          "capture_warnings": []
+          "capture_warnings": [
+            "initial_load_hung_reloading"
+          ]
         },
         "resolution_history": [
           {
@@ -3655,7 +2802,7 @@
         "no_grantor_extracted"
       ],
       "first_seen": "2026-06-16",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "FOUST JEFFREY & KAREN",
@@ -3751,7 +2898,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-16",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "Arthur Oscar Hamilton and Monica C. Hamilton",
@@ -3843,7 +2990,7 @@
         "no_address_or_legal_description"
       ],
       "first_seen": "2026-06-16",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "ZANELLA DAVIDE",
@@ -3935,7 +3082,7 @@
         "no_sale_date_extracted"
       ],
       "first_seen": "2026-06-16",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "HAWTHORNE CRYSTAL GRAY",
@@ -4036,7 +3183,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-16",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "Danielle Redmon",
@@ -4132,7 +3279,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-16",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "ERIK MORENO, A SINGLE PERSON AND CR RIGS, A SINGLE",
@@ -4224,7 +3371,7 @@
         "no_sale_date_extracted"
       ],
       "first_seen": "2026-06-16",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "ERWIN JOE D & MARY J",
@@ -4325,7 +3472,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-16",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "Daniel A. Sanguino",
@@ -4426,7 +3573,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-16",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "Phiefee Brooks",
@@ -4517,7 +3664,7 @@
         "no_sale_date_extracted"
       ],
       "first_seen": "2026-06-16",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "PETLOCK TIMOTHY SCOTT",
@@ -4607,7 +3754,7 @@
         "no_grantor_extracted"
       ],
       "first_seen": "2026-06-16",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "BISHOP 10TH STREET TOWNHOMES",
@@ -4651,9 +3798,7 @@
           "apn_pattern": null,
           "apn": null,
           "pages_captured": 3,
-          "capture_warnings": [
-            "initial_load_hung_reloading"
-          ]
+          "capture_warnings": []
         },
         "resolution_history": [
           {
@@ -4699,7 +3844,7 @@
         "no_grantor_extracted"
       ],
       "first_seen": "2026-06-16",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "BISHOP 10TH STREET TOWNHOMES",
@@ -4743,9 +3888,7 @@
           "apn_pattern": null,
           "apn": null,
           "pages_captured": 3,
-          "capture_warnings": [
-            "initial_load_hung_reloading"
-          ]
+          "capture_warnings": []
         },
         "resolution_history": [
           {
@@ -4791,7 +3934,7 @@
         "no_grantor_extracted"
       ],
       "first_seen": "2026-06-16",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "HAYWOOD TERRNINA & RONALD LEE",
@@ -4883,7 +4026,7 @@
         "no_address_or_legal_description"
       ],
       "first_seen": "2026-06-16",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "LANE CHRISTOPHER",
@@ -4979,7 +4122,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-16",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "CLS Cattle and HENS",
@@ -5070,7 +4213,7 @@
         "no_sale_date_extracted"
       ],
       "first_seen": "2026-06-16",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "WILLIS OLIVER ISIAH",
@@ -5162,7 +4305,7 @@
         "no_address_or_legal_description"
       ],
       "first_seen": "2026-06-16",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "HICKS KEVIN D",
@@ -5254,7 +4397,7 @@
         "no_address_or_legal_description"
       ],
       "first_seen": "2026-06-16",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "HAGLER MARY ALVIS",
@@ -5345,7 +4488,7 @@
         "no_sale_date_extracted"
       ],
       "first_seen": "2026-06-16",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "HENDERSON LINDA",
@@ -5437,7 +4580,7 @@
         "no_address_or_legal_description"
       ],
       "first_seen": "2026-06-16",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "RUEDA YOLIS",
@@ -5538,7 +4681,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-16",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "PATRICIA E. WRIGHT",
@@ -5636,7 +4779,7 @@
         "no_sale_date_extracted"
       ],
       "first_seen": "2026-06-16",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "Lee Womack and LaShonda Barnett- ck",
@@ -5680,9 +4823,7 @@
           "apn_pattern": null,
           "apn": null,
           "pages_captured": 4,
-          "capture_warnings": [
-            "initial_load_hung_reloading"
-          ]
+          "capture_warnings": []
         },
         "resolution_history": [
           {
@@ -5757,7 +4898,7 @@
         "no_address_or_legal_description"
       ],
       "first_seen": "2026-06-16",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "Albertano Lopez",
@@ -5847,11 +4988,1737 @@
         "no_grantor_extracted"
       ],
       "first_seen": "2026-06-16",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "SARAVIA VALERIA",
       "dcad_owner_raw": "SARAVIA VALERIA"
+    },
+    {
+      "record_id": "318071281",
+      "source": "publicsearch.us",
+      "dallas_code": "NOF",
+      "category": "NOTICE",
+      "filing_date": "2026-06-16",
+      "instrument_num": "202600001414",
+      "grantor": "Gina, Delsy",
+      "grantee": null,
+      "address": "1121 Garden Gate Circle, Garland, Texas 75043",
+      "address_normalized": "1121 GARDENGATE CIR",
+      "dcad_account": "26303500120060000",
+      "dcad_owner": "Delsy, Gina",
+      "dcad_market_value": 311690.0,
+      "dcad_homestead": false,
+      "dcad_over65": false,
+      "dcad_disabled": false,
+      "dcad_tax_deferred": false,
+      "dcad_mailing_address": "RAMOS MENDONZA\n1121 GARDENGATE CIR",
+      "dcad_mailing_city": "GARLAND",
+      "dcad_mailing_state": "TEXAS",
+      "dcad_mailing_zip": "750431602",
+      "amount": null,
+      "trustee": null,
+      "sale_date": "2026-07-07",
+      "raw_excerpt": "NOTICE OF FORECLOSURE | Subdivision - Name: Lakeside Meadows Estates No Lot: 6 Block: 12",
+      "active": true,
+      "release_record_id": null,
+      "signal_metadata": {
+        "ocr": {
+          "grantor_pattern": null,
+          "sale_date_pattern": null,
+          "address_pattern": "commonly-known-as-one-line",
+          "loan_amount_pattern": null,
+          "legal_desc_pattern": "being-lot",
+          "apn_pattern": null,
+          "apn": null,
+          "pages_captured": 3,
+          "capture_warnings": []
+        },
+        "confidence_warnings": [
+          "lookup_variant_used",
+          "path_agreement",
+          "grantor_from_dcad"
+        ],
+        "resolution_history": [
+          {
+            "path": "path_variant_lookup",
+            "stage": "6.35",
+            "input": "1121 GARDEN GATE CIR",
+            "status": "matched",
+            "skip_reason": null,
+            "tier": null,
+            "dcad_account": "26303500120060000",
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_c_legal_resolver",
+            "stage": "6.5",
+            "input": "Lakeside Meadows Estates No",
+            "status": "matched",
+            "skip_reason": null,
+            "tier": "fuzzy_subdivision",
+            "dcad_account": "26303500120060000",
+            "alternates": [],
+            "warnings": [
+              "fuzzy_subdivision_match"
+            ]
+          },
+          {
+            "path": "stage_6_6_agreement",
+            "stage": "6.6",
+            "input": "path_c_legal_resolver|path_variant_lookup",
+            "status": "matched",
+            "skip_reason": null,
+            "tier": null,
+            "dcad_account": "26303500120060000",
+            "alternates": [],
+            "warnings": []
+          }
+        ]
+      },
+      "address_city": null,
+      "address_state": null,
+      "address_zip": null,
+      "source_url": "https://dallas.tx.publicsearch.us/doc/318071281",
+      "score": 65,
+      "score_breakdown": {
+        "base": 30,
+        "category_flag": 10,
+        "value_100k": 15,
+        "new_this_week": 5,
+        "has_address": 5
+      },
+      "parse_warnings": [
+        "no_grantor_extracted",
+        "no_sale_date_extracted"
+      ],
+      "first_seen": "2026-06-17",
+      "last_seen": "2026-06-17",
+      "in_buy_box": true,
+      "buy_box_reasons": [],
+      "grantor_raw": "DELSY GINA",
+      "dcad_owner_raw": "DELSY GINA"
+    },
+    {
+      "record_id": "318071279",
+      "source": "publicsearch.us",
+      "dallas_code": "NOF",
+      "category": "NOTICE",
+      "filing_date": "2026-06-16",
+      "instrument_num": "202600001416",
+      "grantor": "C, Cutz Roberto",
+      "grantee": null,
+      "address": "416 Perdido Drive, Garland, TX 75043",
+      "address_normalized": "416 PERDIDO DR",
+      "dcad_account": "26308600010060000",
+      "dcad_owner": "Cutz, Roberto C",
+      "dcad_market_value": 276470.0,
+      "dcad_homestead": false,
+      "dcad_over65": false,
+      "dcad_disabled": false,
+      "dcad_tax_deferred": false,
+      "dcad_mailing_address": "CUTZ ARTURO I &\n416 PERDIDO DR",
+      "dcad_mailing_city": "GARLAND",
+      "dcad_mailing_state": "TEXAS",
+      "dcad_mailing_zip": "750435122",
+      "amount": null,
+      "trustee": null,
+      "sale_date": "2026-07-07",
+      "raw_excerpt": "NOTICE OF FORECLOSURE | 416 PERDIDO DRIVE, GARLAND, TEXAS, 75043 | Lot 6, Block 1, LA PRADA NO. 1, an Addition to the City of Garland, Dallas County, Texas, according to the Map or Plat thereof recorded in Volume 74013, Page 603, map and Plat Records of Dallas County, Texas",
+      "active": true,
+      "release_record_id": null,
+      "signal_metadata": {
+        "ocr": {
+          "grantor_pattern": null,
+          "sale_date_pattern": null,
+          "address_pattern": "commonly-known-as-one-line",
+          "loan_amount_pattern": null,
+          "legal_desc_pattern": "lot-block",
+          "apn_pattern": null,
+          "apn": null,
+          "pages_captured": 3,
+          "capture_warnings": [
+            "initial_load_hung_reloading"
+          ]
+        },
+        "resolution_history": [
+          {
+            "path": "path_variant_lookup",
+            "stage": "6.35",
+            "input": "416 PERDIDO DR",
+            "status": "matched",
+            "skip_reason": null,
+            "tier": null,
+            "dcad_account": "26308600010060000",
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_c_legal_resolver",
+            "stage": "6.5",
+            "input": "NOTICE OF FORECLOSURE | 416 PERDIDO DRIVE, GARLAND, TEXAS, 75043 | Lot 6, Block 1, LA PRADA NO. 1, an Addition to the Ci",
+            "status": "skipped",
+            "skip_reason": "no_subdivision_parsed",
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          }
+        ],
+        "confidence_warnings": [
+          "grantor_from_dcad"
+        ]
+      },
+      "address_city": null,
+      "address_state": null,
+      "address_zip": null,
+      "source_url": "https://dallas.tx.publicsearch.us/doc/318071279",
+      "score": 65,
+      "score_breakdown": {
+        "base": 30,
+        "category_flag": 10,
+        "value_100k": 15,
+        "new_this_week": 5,
+        "has_address": 5
+      },
+      "parse_warnings": [
+        "no_grantor_extracted",
+        "no_sale_date_extracted"
+      ],
+      "first_seen": "2026-06-17",
+      "last_seen": "2026-06-17",
+      "in_buy_box": true,
+      "buy_box_reasons": [],
+      "grantor_raw": "CUTZ ROBERTO C",
+      "dcad_owner_raw": "CUTZ ROBERTO C"
+    },
+    {
+      "record_id": "318071287",
+      "source": "publicsearch.us",
+      "dallas_code": "NOF",
+      "category": "NOTICE",
+      "filing_date": "2026-06-16",
+      "instrument_num": "202600001421",
+      "grantor": "Julian, Nava & C, Martha",
+      "grantee": null,
+      "address": "651 Ezekial Ave, Dallas, 75217",
+      "address_normalized": "651 EZEKIAL AVE",
+      "dcad_account": "00000553507000000",
+      "dcad_owner": "Nava, Julian & Nava, Martha C",
+      "dcad_market_value": 185820.0,
+      "dcad_homestead": true,
+      "dcad_over65": true,
+      "dcad_disabled": false,
+      "dcad_tax_deferred": false,
+      "dcad_mailing_address": "651 EZEKIAL AVE",
+      "dcad_mailing_city": "DALLAS",
+      "dcad_mailing_state": "TEXAS",
+      "dcad_mailing_zip": "752175159",
+      "amount": null,
+      "trustee": null,
+      "sale_date": "2026-07-07",
+      "raw_excerpt": "NOTICE OF FORECLOSURE | DALLAS | Lot 20, Block 8/6256, HOME GARDENS Unit No. 3, an addition to the City of Dallas, Dallas County, Texas, according to the map or plat thereofrecorded in Volume 6, Page 166, map and/or plat records, Dallas County, Texas",
+      "active": true,
+      "release_record_id": null,
+      "signal_metadata": {
+        "ocr": {
+          "grantor_pattern": null,
+          "sale_date_pattern": null,
+          "address_pattern": "mixed-case-one-line",
+          "loan_amount_pattern": null,
+          "legal_desc_pattern": "lot-block",
+          "apn_pattern": null,
+          "apn": null,
+          "pages_captured": 3,
+          "capture_warnings": []
+        },
+        "resolution_history": [
+          {
+            "path": "path_variant_lookup",
+            "stage": "6.35",
+            "input": "651 EZEKIAL AVE",
+            "status": "matched",
+            "skip_reason": null,
+            "tier": null,
+            "dcad_account": "00000553507000000",
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_c_legal_resolver",
+            "stage": "6.5",
+            "input": "NOTICE OF FORECLOSURE | DALLAS | Lot 20, Block 8/6256, HOME GARDENS Unit No. 3, an addition to the City of Dallas, Dalla",
+            "status": "skipped",
+            "skip_reason": "no_subdivision_parsed",
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          }
+        ],
+        "confidence_warnings": [
+          "grantor_from_dcad"
+        ]
+      },
+      "address_city": null,
+      "address_state": null,
+      "address_zip": null,
+      "source_url": "https://dallas.tx.publicsearch.us/doc/318071287",
+      "score": 65,
+      "score_breakdown": {
+        "base": 30,
+        "category_flag": 10,
+        "value_100k": 15,
+        "new_this_week": 5,
+        "has_address": 5
+      },
+      "parse_warnings": [
+        "no_grantor_extracted",
+        "no_sale_date_extracted"
+      ],
+      "first_seen": "2026-06-17",
+      "last_seen": "2026-06-17",
+      "in_buy_box": true,
+      "buy_box_reasons": [],
+      "grantor_raw": "NAVA JULIAN & MARTHA C",
+      "dcad_owner_raw": "NAVA JULIAN & MARTHA C"
+    },
+    {
+      "record_id": "318071278",
+      "source": "publicsearch.us",
+      "dallas_code": "NOF",
+      "category": "NOTICE",
+      "filing_date": "2026-06-16",
+      "instrument_num": "202600001417",
+      "grantor": "Maria, Monjaraz",
+      "grantee": null,
+      "address": "1731 Caravan Trail, Dallas, 75241",
+      "address_normalized": "1731 CARAVAN TRL",
+      "dcad_account": "00000646993000000",
+      "dcad_owner": "Monjaraz, Maria",
+      "dcad_market_value": 183610.0,
+      "dcad_homestead": false,
+      "dcad_over65": false,
+      "dcad_disabled": false,
+      "dcad_tax_deferred": false,
+      "dcad_mailing_address": "1731 CARAVAN TRL",
+      "dcad_mailing_city": "DALLAS",
+      "dcad_mailing_state": "TEXAS",
+      "dcad_mailing_zip": "752412109",
+      "amount": null,
+      "trustee": null,
+      "sale_date": "2026-07-07",
+      "raw_excerpt": "NOTICE OF FORECLOSURE | DALLAS",
+      "active": true,
+      "release_record_id": null,
+      "signal_metadata": {
+        "ocr": {
+          "grantor_pattern": null,
+          "sale_date_pattern": null,
+          "address_pattern": "mixed-case-one-line",
+          "loan_amount_pattern": null,
+          "legal_desc_pattern": null,
+          "apn_pattern": null,
+          "apn": null,
+          "pages_captured": 3,
+          "capture_warnings": []
+        },
+        "resolution_history": [
+          {
+            "path": "path_variant_lookup",
+            "stage": "6.35",
+            "input": "1731 CARAVAN TRL",
+            "status": "matched",
+            "skip_reason": null,
+            "tier": null,
+            "dcad_account": "00000646993000000",
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_c_legal_resolver",
+            "stage": "6.5",
+            "input": "NOTICE OF FORECLOSURE | DALLAS",
+            "status": "skipped",
+            "skip_reason": "no_subdivision_parsed",
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          }
+        ],
+        "confidence_warnings": [
+          "grantor_from_dcad"
+        ]
+      },
+      "address_city": null,
+      "address_state": null,
+      "address_zip": null,
+      "source_url": "https://dallas.tx.publicsearch.us/doc/318071278",
+      "score": 65,
+      "score_breakdown": {
+        "base": 30,
+        "category_flag": 10,
+        "value_100k": 15,
+        "new_this_week": 5,
+        "has_address": 5
+      },
+      "parse_warnings": [
+        "no_grantor_extracted",
+        "no_sale_date_extracted"
+      ],
+      "first_seen": "2026-06-17",
+      "last_seen": "2026-06-17",
+      "in_buy_box": true,
+      "buy_box_reasons": [],
+      "grantor_raw": "MONJARAZ MARIA",
+      "dcad_owner_raw": "MONJARAZ MARIA"
+    },
+    {
+      "record_id": "318070682",
+      "source": "publicsearch.us",
+      "dallas_code": "NOF",
+      "category": "NOTICE",
+      "filing_date": "2026-06-16",
+      "instrument_num": "202600001411",
+      "grantor": "Conteras, Gustavo Suarez",
+      "grantee": null,
+      "address": "1015 SERNA DR, DALLAS, TEXAS, 75253",
+      "address_normalized": "1015 SERENA DR",
+      "dcad_account": "008816000F0120000",
+      "dcad_owner": "Contreras, Gustavo Suarez",
+      "dcad_market_value": 254330.0,
+      "dcad_homestead": false,
+      "dcad_over65": false,
+      "dcad_disabled": false,
+      "dcad_tax_deferred": false,
+      "dcad_mailing_address": "7777 MANDERVILLE LN APT 1003",
+      "dcad_mailing_city": "DALLAS",
+      "dcad_mailing_state": "TEXAS",
+      "dcad_mailing_zip": "752311264",
+      "amount": null,
+      "trustee": null,
+      "sale_date": "2026-07-07",
+      "raw_excerpt": "NOTICE OF FORECLOSURE | Subdivision - Name: WELKINGFON FARMS Lot: 12 Block: F/8816",
+      "active": true,
+      "release_record_id": null,
+      "signal_metadata": {
+        "ocr": {
+          "grantor_pattern": "labeled-grantor",
+          "sale_date_pattern": null,
+          "address_pattern": null,
+          "loan_amount_pattern": null,
+          "legal_desc_pattern": "labeled-legal-description",
+          "apn_pattern": null,
+          "apn": null,
+          "pages_captured": 4,
+          "capture_warnings": []
+        },
+        "confidence_warnings": [
+          "lookup_variant_used"
+        ],
+        "resolution_history": [
+          {
+            "path": "path_variant_lookup",
+            "stage": "6.35",
+            "input": "1015 SERNA DR",
+            "status": "matched",
+            "skip_reason": null,
+            "tier": null,
+            "dcad_account": "008816000F0120000",
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_a_grantor_owner_index",
+            "stage": "6.45",
+            "input": "Gustavo Suarez Conteras",
+            "status": "no_match",
+            "skip_reason": null,
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_c_legal_resolver",
+            "stage": "6.5",
+            "input": "WELKINGFON FARMS",
+            "status": "no_match",
+            "skip_reason": null,
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          }
+        ]
+      },
+      "address_city": null,
+      "address_state": null,
+      "address_zip": null,
+      "source_url": "https://dallas.tx.publicsearch.us/doc/318070682",
+      "score": 65,
+      "score_breakdown": {
+        "base": 30,
+        "category_flag": 10,
+        "value_100k": 15,
+        "new_this_week": 5,
+        "has_address": 5
+      },
+      "parse_warnings": [
+        "no_sale_date_extracted"
+      ],
+      "first_seen": "2026-06-17",
+      "last_seen": "2026-06-17",
+      "in_buy_box": true,
+      "buy_box_reasons": [],
+      "grantor_raw": "Gustavo Suarez Conteras",
+      "dcad_owner_raw": "CONTRERAS GUSTAVO SUAREZ"
+    },
+    {
+      "record_id": "318070683",
+      "source": "publicsearch.us",
+      "dallas_code": "NOF",
+      "category": "NOTICE",
+      "filing_date": "2026-06-16",
+      "instrument_num": "202600001409",
+      "grantor": "Delgadillo, Trino Murillo",
+      "grantee": null,
+      "address": "11204 PATTI LANE, BALCH SPRINGS, TEXAS, 75180",
+      "address_normalized": "11204 PATTI LN",
+      "dcad_account": "12048500000160000",
+      "dcad_owner": "Delgadillo, Trino Murillo",
+      "dcad_market_value": 255510.0,
+      "dcad_homestead": false,
+      "dcad_over65": false,
+      "dcad_disabled": false,
+      "dcad_tax_deferred": false,
+      "dcad_mailing_address": "CARRILLO MARIA GUADALUPE C\n11204 PATTI LN",
+      "dcad_mailing_city": "BALCH SPRINGS",
+      "dcad_mailing_state": "TEXAS",
+      "dcad_mailing_zip": "751802010",
+      "amount": "134,000",
+      "trustee": null,
+      "sale_date": "2026-07-07",
+      "raw_excerpt": "NOTICE OF FORECLOSURE | 11204 PATTI LANE, BALCH SPRINGS, TEXAS, 75180 | Lot 20, of MORTON-GONSIQRian Addition to the City of Balch Springs, Dallas Count, Texa ding to the Plat thereof recorded in Volume 30)Page 223, Map Records of Dallas County, Texas",
+      "active": true,
+      "release_record_id": null,
+      "signal_metadata": {
+        "ocr": {
+          "grantor_pattern": "labeled-grantor",
+          "sale_date_pattern": null,
+          "address_pattern": null,
+          "loan_amount_pattern": "original-principal-amount-of",
+          "legal_desc_pattern": "labeled-legal-description",
+          "apn_pattern": null,
+          "apn": null,
+          "pages_captured": 4,
+          "capture_warnings": []
+        },
+        "resolution_history": [
+          {
+            "path": "path_variant_lookup",
+            "stage": "6.35",
+            "input": "11204 PATTI LN",
+            "status": "matched",
+            "skip_reason": null,
+            "tier": null,
+            "dcad_account": "12048500000160000",
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_a_grantor_owner_index",
+            "stage": "6.45",
+            "input": "Trino Murillo Delgadillo",
+            "status": "multi_match",
+            "skip_reason": null,
+            "tier": "exact",
+            "dcad_account": "12048500000160000",
+            "alternates": [
+              "12048500000150000",
+              "12048500000200000"
+            ],
+            "warnings": [
+              "multi_account",
+              "surname_drift"
+            ]
+          },
+          {
+            "path": "path_c_legal_resolver",
+            "stage": "6.5",
+            "input": "NOTICE OF FORECLOSURE | 11204 PATTI LANE, BALCH SPRINGS, TEXAS, 75180 | Lot 20, of MORTON-GONSIQRian Addition to the Cit",
+            "status": "skipped",
+            "skip_reason": "no_subdivision_parsed",
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "stage_6_6_agreement",
+            "stage": "6.6",
+            "input": "path_a_grantor_owner_index|path_variant_lookup",
+            "status": "matched",
+            "skip_reason": null,
+            "tier": null,
+            "dcad_account": "12048500000160000",
+            "alternates": [],
+            "warnings": []
+          }
+        ],
+        "confidence_warnings": [
+          "path_agreement"
+        ]
+      },
+      "address_city": null,
+      "address_state": null,
+      "address_zip": null,
+      "source_url": "https://dallas.tx.publicsearch.us/doc/318070683",
+      "score": 65,
+      "score_breakdown": {
+        "base": 30,
+        "category_flag": 10,
+        "value_100k": 15,
+        "new_this_week": 5,
+        "has_address": 5
+      },
+      "parse_warnings": [
+        "no_sale_date_extracted"
+      ],
+      "first_seen": "2026-06-17",
+      "last_seen": "2026-06-17",
+      "in_buy_box": true,
+      "buy_box_reasons": [],
+      "grantor_raw": "Trino Murillo Delgadillo",
+      "dcad_owner_raw": "DELGADILLO TRINO MURILLO"
+    },
+    {
+      "record_id": "318070282",
+      "source": "publicsearch.us",
+      "dallas_code": "NOF",
+      "category": "NOTICE",
+      "filing_date": "2026-06-16",
+      "instrument_num": "202600001408",
+      "grantor": "Eizet, Hussien",
+      "grantee": null,
+      "address": "9238 EMBERGLOW LN, DALLAS, 75243",
+      "address_normalized": "9238 EMBERGLOW LN",
+      "dcad_account": "00000811093350000",
+      "dcad_owner": "Hussien, Eizet",
+      "dcad_market_value": 302500.0,
+      "dcad_homestead": false,
+      "dcad_over65": false,
+      "dcad_disabled": false,
+      "dcad_tax_deferred": false,
+      "dcad_mailing_address": "9238 EMBERGLOW LN",
+      "dcad_mailing_city": "DALLAS",
+      "dcad_mailing_state": "TEXAS",
+      "dcad_mailing_zip": "752433244",
+      "amount": "207,926.00",
+      "trustee": null,
+      "sale_date": "2026-08-04",
+      "raw_excerpt": "NOTICE OF FORECLOSURE | DALLAS",
+      "active": true,
+      "release_record_id": null,
+      "signal_metadata": {
+        "ocr": {
+          "grantor_pattern": null,
+          "sale_date_pattern": "bare-date-numeric",
+          "address_pattern": "mixed-case-one-line",
+          "loan_amount_pattern": "original-amount-space-tolerant",
+          "legal_desc_pattern": null,
+          "apn_pattern": null,
+          "apn": null,
+          "pages_captured": 2,
+          "capture_warnings": []
+        },
+        "resolution_history": [
+          {
+            "path": "path_variant_lookup",
+            "stage": "6.35",
+            "input": "9238 EMBERGLOW LN",
+            "status": "matched",
+            "skip_reason": null,
+            "tier": null,
+            "dcad_account": "00000811093350000",
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_c_legal_resolver",
+            "stage": "6.5",
+            "input": "NOTICE OF FORECLOSURE | DALLAS",
+            "status": "skipped",
+            "skip_reason": "no_subdivision_parsed",
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          }
+        ],
+        "confidence_warnings": [
+          "grantor_from_dcad"
+        ]
+      },
+      "address_city": null,
+      "address_state": null,
+      "address_zip": null,
+      "source_url": "https://dallas.tx.publicsearch.us/doc/318070282",
+      "score": 65,
+      "score_breakdown": {
+        "base": 30,
+        "category_flag": 10,
+        "value_100k": 15,
+        "new_this_week": 5,
+        "has_address": 5
+      },
+      "parse_warnings": [
+        "no_grantor_extracted"
+      ],
+      "first_seen": "2026-06-17",
+      "last_seen": "2026-06-17",
+      "in_buy_box": true,
+      "buy_box_reasons": [],
+      "grantor_raw": "HUSSIEN EIZET",
+      "dcad_owner_raw": "HUSSIEN EIZET"
+    },
+    {
+      "record_id": "318070283",
+      "source": "publicsearch.us",
+      "dallas_code": "NOF",
+      "category": "NOTICE",
+      "filing_date": "2026-06-16",
+      "instrument_num": "202600001406",
+      "grantor": "Douglas M. Bar Zd. Ad Vier, Laurie A. Barnell",
+      "grantee": null,
+      "address": "3323 HOMER ST, DALLAS, TEXAS, 75206",
+      "address_normalized": "3323 HOMER ST",
+      "dcad_account": "00000239683000000",
+      "dcad_owner": "Barnell, Douglas M",
+      "dcad_market_value": 928770.0,
+      "dcad_homestead": true,
+      "dcad_over65": false,
+      "dcad_disabled": false,
+      "dcad_tax_deferred": false,
+      "dcad_mailing_address": "LAURIE A\n3323 HOMER ST",
+      "dcad_mailing_city": "DALLAS",
+      "dcad_mailing_state": "TEXAS",
+      "dcad_mailing_zip": "752065811",
+      "amount": "380,000.00",
+      "trustee": null,
+      "sale_date": "2026-08-04",
+      "raw_excerpt": "NOTICE OF FORECLOSURE | 3323 HOMER ST, DALLAS, TEXAS, 75206 | LOT 6, BLOCK 21/2932, OF THE SECOND INSTALLMENT OF THE ier?y Q0 SECTION OF GREENLAND HILLS, AN ADDITION TO THE CITY OF DALLAS, DALKM COUNTY,TEXAS, ACCORDING TO THE MAP THEREOF RECORDED IN VO WRN DA GK 64, MAP RECORDS OF DALLAS COUNTY, TEXAS",
+      "active": true,
+      "release_record_id": null,
+      "signal_metadata": {
+        "ocr": {
+          "grantor_pattern": "inline-with-grantor",
+          "sale_date_pattern": "numeric-section1-date",
+          "address_pattern": null,
+          "loan_amount_pattern": "original-amount-space-tolerant",
+          "legal_desc_pattern": "lot-block",
+          "apn_pattern": null,
+          "apn": null,
+          "pages_captured": 4,
+          "capture_warnings": []
+        },
+        "resolution_history": [
+          {
+            "path": "path_variant_lookup",
+            "stage": "6.35",
+            "input": "3323 HOMER ST",
+            "status": "matched",
+            "skip_reason": null,
+            "tier": null,
+            "dcad_account": "00000239683000000",
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_a_grantor_owner_index",
+            "stage": "6.45",
+            "input": "DOUGLAS M. BAR zd. AD VIER, LAURIE A. BARNELL",
+            "status": "no_match",
+            "skip_reason": null,
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_c_legal_resolver",
+            "stage": "6.5",
+            "input": "NOTICE OF FORECLOSURE | 3323 HOMER ST, DALLAS, TEXAS, 75206 | LOT 6, BLOCK 21/2932, OF THE SECOND INSTALLMENT OF THE ier",
+            "status": "skipped",
+            "skip_reason": "no_subdivision_parsed",
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          }
+        ]
+      },
+      "address_city": null,
+      "address_state": null,
+      "address_zip": null,
+      "source_url": "https://dallas.tx.publicsearch.us/doc/318070283",
+      "score": 65,
+      "score_breakdown": {
+        "base": 30,
+        "category_flag": 10,
+        "value_100k": 15,
+        "new_this_week": 5,
+        "has_address": 5
+      },
+      "parse_warnings": [],
+      "first_seen": "2026-06-17",
+      "last_seen": "2026-06-17",
+      "in_buy_box": true,
+      "buy_box_reasons": [],
+      "grantor_raw": "DOUGLAS M. BAR zd. AD VIER, LAURIE A. BARNELL",
+      "dcad_owner_raw": "BARNELL DOUGLAS M"
+    },
+    {
+      "record_id": "318070284",
+      "source": "publicsearch.us",
+      "dallas_code": "NOF",
+      "category": "NOTICE",
+      "filing_date": "2026-06-16",
+      "instrument_num": "202600001402",
+      "grantor": "McKinney, A Sangre Person",
+      "grantee": null,
+      "address": "DALLAS",
+      "address_normalized": "5110 STONELEIGH AVE",
+      "dcad_account": "00000211969000000",
+      "dcad_owner": "McKinney, Patrick S",
+      "dcad_market_value": 496370.0,
+      "dcad_homestead": true,
+      "dcad_over65": true,
+      "dcad_disabled": false,
+      "dcad_tax_deferred": false,
+      "dcad_mailing_address": "5110 STONELEIGH AVE",
+      "dcad_mailing_city": "DALLAS",
+      "dcad_mailing_state": "TEXAS",
+      "dcad_mailing_zip": "752358331",
+      "amount": "397,500.00",
+      "trustee": null,
+      "sale_date": "2026-09-01",
+      "raw_excerpt": "NOTICE OF FORECLOSURE | DALLAS",
+      "active": true,
+      "release_record_id": null,
+      "signal_metadata": {
+        "ocr": {
+          "grantor_pattern": "name-as-grantor-borrower",
+          "sale_date_pattern": "narrative-given-fallback",
+          "address_pattern": null,
+          "loan_amount_pattern": "original-amount-space-tolerant",
+          "legal_desc_pattern": null,
+          "apn_pattern": "apn-labeled",
+          "apn": "211969000000",
+          "pages_captured": 5,
+          "capture_warnings": []
+        },
+        "resolution_history": [
+          {
+            "path": "path_b_raw_excerpt",
+            "stage": "6.3",
+            "input": null,
+            "status": "skipped",
+            "skip_reason": "no_clean_address_in_raw_excerpt",
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_c_apn",
+            "stage": "6.4",
+            "input": "211969000000",
+            "status": "matched",
+            "skip_reason": null,
+            "tier": "exact",
+            "dcad_account": "00000211969000000",
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_a_grantor_owner_index",
+            "stage": "6.45",
+            "input": "MCKINNEY, A SANGRE PERSON",
+            "status": "matched",
+            "skip_reason": null,
+            "tier": "surname_only",
+            "dcad_account": "00000618826000000",
+            "alternates": [],
+            "warnings": [
+              "surname_only_tier",
+              "surname_drift"
+            ]
+          },
+          {
+            "path": "path_c_legal_resolver",
+            "stage": "6.5",
+            "input": "NOTICE OF FORECLOSURE | DALLAS",
+            "status": "skipped",
+            "skip_reason": "no_subdivision_parsed",
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "stage_6_6_agreement",
+            "stage": "6.6",
+            "input": "DALLAS",
+            "status": "skipped",
+            "skip_reason": "tiebreak_inconclusive",
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [
+              "00000211969000000",
+              "00000618826000000"
+            ],
+            "warnings": []
+          }
+        ],
+        "confidence_warnings": [
+          "path_disagreement",
+          "page_tiebreak_inconclusive"
+        ]
+      },
+      "address_city": null,
+      "address_state": null,
+      "address_zip": null,
+      "source_url": "https://dallas.tx.publicsearch.us/doc/318070284",
+      "score": 65,
+      "score_breakdown": {
+        "base": 30,
+        "category_flag": 10,
+        "value_100k": 15,
+        "new_this_week": 5,
+        "has_address": 5
+      },
+      "parse_warnings": [],
+      "first_seen": "2026-06-17",
+      "last_seen": "2026-06-17",
+      "in_buy_box": true,
+      "buy_box_reasons": [],
+      "grantor_raw": "MCKINNEY, A SANGRE PERSON",
+      "dcad_owner_raw": "MCKINNEY PATRICK S"
+    },
+    {
+      "record_id": "318069483",
+      "source": "publicsearch.us",
+      "dallas_code": "NOF",
+      "category": "NOTICE",
+      "filing_date": "2026-06-16",
+      "instrument_num": "202600001400",
+      "grantor": "Juliet, Ndu Chinenye",
+      "grantee": null,
+      "address": "3213 WHATLEY DRIVE, GARLAND",
+      "address_normalized": "3213 WHATLEY DR",
+      "dcad_account": "26691000000B03213",
+      "dcad_owner": "Ndu, Chinenye Juliet",
+      "dcad_market_value": 233800.0,
+      "dcad_homestead": false,
+      "dcad_over65": false,
+      "dcad_disabled": false,
+      "dcad_tax_deferred": false,
+      "dcad_mailing_address": "NNADOZIE CHIDIEBERE\n3213 WHATLEY DR UNIT 3213B",
+      "dcad_mailing_city": "GARLAND",
+      "dcad_mailing_state": "TEXAS",
+      "dcad_mailing_zip": "750431558",
+      "amount": null,
+      "trustee": null,
+      "sale_date": "2026-07-07",
+      "raw_excerpt": "NOTICE OF FORECLOSURE | 3213 WHATLEY DRIVE, GARLAND",
+      "active": false,
+      "release_record_id": null,
+      "signal_metadata": {
+        "resolution_history": [
+          {
+            "path": "path_variant_lookup",
+            "stage": "6.35",
+            "input": "3213 WHATLEY DR",
+            "status": "matched",
+            "skip_reason": null,
+            "tier": null,
+            "dcad_account": "26691000000B03213",
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_c_legal_resolver",
+            "stage": "6.5",
+            "input": "NOTICE OF FORECLOSURE | 3213 WHATLEY DRIVE, GARLAND",
+            "status": "skipped",
+            "skip_reason": "no_subdivision_parsed",
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          }
+        ],
+        "confidence_warnings": [
+          "grantor_from_dcad"
+        ]
+      },
+      "address_city": null,
+      "address_state": null,
+      "address_zip": null,
+      "source_url": "https://dallas.tx.publicsearch.us/doc/318069483",
+      "score": 65,
+      "score_breakdown": {
+        "base": 30,
+        "category_flag": 10,
+        "value_100k": 15,
+        "new_this_week": 5,
+        "has_address": 5
+      },
+      "parse_warnings": [
+        "hoa_assessment_lien_sale"
+      ],
+      "buy_box_reasons": [],
+      "first_seen": "2026-06-17",
+      "last_seen": "2026-06-17",
+      "in_buy_box": true,
+      "grantor_raw": "NDU CHINENYE JULIET",
+      "dcad_owner_raw": "NDU CHINENYE JULIET"
+    },
+    {
+      "record_id": "318069485",
+      "source": "publicsearch.us",
+      "dallas_code": "NOF",
+      "category": "NOTICE",
+      "filing_date": "2026-06-16",
+      "instrument_num": "202600001397",
+      "grantor": "E, Wilson Corey",
+      "grantee": null,
+      "address": "1816 MASTERS DR, DESOTO",
+      "address_normalized": "1816 MASTERS DR",
+      "dcad_account": "201037900G13RR000",
+      "dcad_owner": "Wilson, Corey E",
+      "dcad_market_value": 425320.0,
+      "dcad_homestead": false,
+      "dcad_over65": false,
+      "dcad_disabled": false,
+      "dcad_tax_deferred": false,
+      "dcad_mailing_address": "523 W 17TH ST",
+      "dcad_mailing_city": "CHEYENNE",
+      "dcad_mailing_state": "WYOMING",
+      "dcad_mailing_zip": "820014329",
+      "amount": null,
+      "trustee": null,
+      "sale_date": "2026-07-07",
+      "raw_excerpt": "NOTICE OF FORECLOSURE | 1816 MASTERS DR, DESOTO",
+      "active": false,
+      "release_record_id": null,
+      "signal_metadata": {
+        "resolution_history": [
+          {
+            "path": "path_variant_lookup",
+            "stage": "6.35",
+            "input": "1816 MASTERS DR",
+            "status": "matched",
+            "skip_reason": null,
+            "tier": null,
+            "dcad_account": "201037900G13RR000",
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_c_legal_resolver",
+            "stage": "6.5",
+            "input": "NOTICE OF FORECLOSURE | 1816 MASTERS DR, DESOTO",
+            "status": "skipped",
+            "skip_reason": "no_subdivision_parsed",
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          }
+        ],
+        "confidence_warnings": [
+          "grantor_from_dcad"
+        ]
+      },
+      "address_city": null,
+      "address_state": null,
+      "address_zip": null,
+      "source_url": "https://dallas.tx.publicsearch.us/doc/318069485",
+      "score": 65,
+      "score_breakdown": {
+        "base": 30,
+        "category_flag": 10,
+        "value_100k": 15,
+        "new_this_week": 5,
+        "has_address": 5
+      },
+      "parse_warnings": [
+        "hoa_assessment_lien_sale"
+      ],
+      "buy_box_reasons": [],
+      "first_seen": "2026-06-17",
+      "last_seen": "2026-06-17",
+      "in_buy_box": true,
+      "grantor_raw": "WILSON COREY E",
+      "dcad_owner_raw": "WILSON COREY E"
+    },
+    {
+      "record_id": "318069482",
+      "source": "publicsearch.us",
+      "dallas_code": "NOF",
+      "category": "NOTICE",
+      "filing_date": "2026-06-16",
+      "instrument_num": "202600001401",
+      "grantor": "Emma, Lytle",
+      "grantee": null,
+      "address": "3221 WHATLEY DRIVE, GARLAND",
+      "address_normalized": "3221 WHATLEY DR",
+      "dcad_account": "26691000000B03221",
+      "dcad_owner": "Lytle, Emma",
+      "dcad_market_value": 188520.0,
+      "dcad_homestead": true,
+      "dcad_over65": true,
+      "dcad_disabled": false,
+      "dcad_tax_deferred": false,
+      "dcad_mailing_address": "UNIT 3221\n3221 WHATLEY DR",
+      "dcad_mailing_city": "GARLAND",
+      "dcad_mailing_state": "TEXAS",
+      "dcad_mailing_zip": "750431558",
+      "amount": null,
+      "trustee": null,
+      "sale_date": "2026-07-07",
+      "raw_excerpt": "NOTICE OF FORECLOSURE | 3221 WHATLEY DRIVE, GARLAND",
+      "active": false,
+      "release_record_id": null,
+      "signal_metadata": {
+        "resolution_history": [
+          {
+            "path": "path_variant_lookup",
+            "stage": "6.35",
+            "input": "3221 WHATLEY DR",
+            "status": "matched",
+            "skip_reason": null,
+            "tier": null,
+            "dcad_account": "26691000000B03221",
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_c_legal_resolver",
+            "stage": "6.5",
+            "input": "NOTICE OF FORECLOSURE | 3221 WHATLEY DRIVE, GARLAND",
+            "status": "skipped",
+            "skip_reason": "no_subdivision_parsed",
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          }
+        ],
+        "confidence_warnings": [
+          "grantor_from_dcad"
+        ]
+      },
+      "address_city": null,
+      "address_state": null,
+      "address_zip": null,
+      "source_url": "https://dallas.tx.publicsearch.us/doc/318069482",
+      "score": 65,
+      "score_breakdown": {
+        "base": 30,
+        "category_flag": 10,
+        "value_100k": 15,
+        "new_this_week": 5,
+        "has_address": 5
+      },
+      "parse_warnings": [
+        "hoa_assessment_lien_sale"
+      ],
+      "buy_box_reasons": [],
+      "first_seen": "2026-06-17",
+      "last_seen": "2026-06-17",
+      "in_buy_box": true,
+      "grantor_raw": "LYTLE EMMA",
+      "dcad_owner_raw": "LYTLE EMMA"
+    },
+    {
+      "record_id": "318069110",
+      "source": "publicsearch.us",
+      "dallas_code": "NOF",
+      "category": "NOTICE",
+      "filing_date": "2026-06-16",
+      "instrument_num": "202600001396",
+      "grantor": "Molano, Jose More ©) Ennifer",
+      "grantee": null,
+      "address": "8202 Lake Valley Ct., Rowlett, TX 75089",
+      "address_normalized": "8202 LAKE VLY CT",
+      "dcad_account": "440129500F0250000",
+      "dcad_owner": "Vega, Jose Moreno",
+      "dcad_market_value": 654510.0,
+      "dcad_homestead": false,
+      "dcad_over65": false,
+      "dcad_disabled": false,
+      "dcad_tax_deferred": false,
+      "dcad_mailing_address": "2733 RIVIERA DR",
+      "dcad_mailing_city": "GARLAND",
+      "dcad_mailing_state": "TEXAS",
+      "dcad_mailing_zip": "750409009",
+      "amount": "475,000.00",
+      "trustee": null,
+      "sale_date": "2026-07-07",
+      "raw_excerpt": "NOTICE OF FORECLOSURE | 8202 LAKE VALLEY CT, ROWLETT, TEXAS, 75089",
+      "active": true,
+      "release_record_id": null,
+      "signal_metadata": {
+        "ocr": {
+          "grantor_pattern": "labeled-grantor",
+          "sale_date_pattern": "bare-date-word",
+          "address_pattern": "commonly-known-as-one-line",
+          "loan_amount_pattern": "original-amount-space-tolerant",
+          "legal_desc_pattern": null,
+          "apn_pattern": null,
+          "apn": null,
+          "pages_captured": 5,
+          "capture_warnings": []
+        },
+        "resolution_history": [
+          {
+            "path": "path_variant_lookup",
+            "stage": "6.35",
+            "input": "8202 LAKE VLY CT",
+            "status": "matched",
+            "skip_reason": null,
+            "tier": null,
+            "dcad_account": "440129500F0250000",
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_a_grantor_owner_index",
+            "stage": "6.45",
+            "input": "Jose More ©) ennifer Molano",
+            "status": "no_match",
+            "skip_reason": null,
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_c_legal_resolver",
+            "stage": "6.5",
+            "input": "NOTICE OF FORECLOSURE | 8202 LAKE VALLEY CT, ROWLETT, TEXAS, 75089",
+            "status": "skipped",
+            "skip_reason": "no_subdivision_parsed",
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          }
+        ]
+      },
+      "address_city": null,
+      "address_state": null,
+      "address_zip": null,
+      "source_url": "https://dallas.tx.publicsearch.us/doc/318069110",
+      "score": 65,
+      "score_breakdown": {
+        "base": 30,
+        "category_flag": 10,
+        "value_100k": 15,
+        "new_this_week": 5,
+        "has_address": 5
+      },
+      "parse_warnings": [],
+      "first_seen": "2026-06-17",
+      "last_seen": "2026-06-17",
+      "in_buy_box": true,
+      "buy_box_reasons": [],
+      "grantor_raw": "Jose More ©) ennifer Molano",
+      "dcad_owner_raw": "VEGA JOSE MORENO"
+    },
+    {
+      "record_id": "318069108",
+      "source": "publicsearch.us",
+      "dallas_code": "NOF",
+      "category": "NOTICE",
+      "filing_date": "2026-06-16",
+      "instrument_num": "202600001393",
+      "grantor": "Angel, Angel Rene",
+      "grantee": null,
+      "address": "3615 Rising Sun Lane, Dallas, 75227",
+      "address_normalized": "3615 RISING SUN LN",
+      "dcad_account": "00679800020030000",
+      "dcad_owner": "Angel, Rene Angel",
+      "dcad_market_value": 276130.0,
+      "dcad_homestead": true,
+      "dcad_over65": false,
+      "dcad_disabled": false,
+      "dcad_tax_deferred": false,
+      "dcad_mailing_address": "TOVAR CANDY DENISE\n3615 RISING SUN LN",
+      "dcad_mailing_city": "DALLAS",
+      "dcad_mailing_state": "TEXAS",
+      "dcad_mailing_zip": "752275256",
+      "amount": null,
+      "trustee": null,
+      "sale_date": "2026-07-07",
+      "raw_excerpt": "NOTICE OF FORECLOSURE | OTHER | Parkway Village 2 Blk 2/6798 Lot 3 Int2014000454 0224 Co-de 6798 002 00300 4da6798 002 Local Address: 3615 Rising Sun Lane, Dallas, TX 75227 Order Information: Cause No. DC-25-18653; 191st Judicial Dis ii oRD3las County, Texas",
+      "active": true,
+      "release_record_id": null,
+      "signal_metadata": {
+        "ocr": {
+          "grantor_pattern": null,
+          "sale_date_pattern": "bare-date-word",
+          "address_pattern": "mixed-case-one-line",
+          "loan_amount_pattern": null,
+          "legal_desc_pattern": "labeled-legal-description",
+          "apn_pattern": null,
+          "apn": null,
+          "pages_captured": 3,
+          "capture_warnings": []
+        },
+        "resolution_history": [
+          {
+            "path": "path_variant_lookup",
+            "stage": "6.35",
+            "input": "3615 RISING SUN LN",
+            "status": "matched",
+            "skip_reason": null,
+            "tier": null,
+            "dcad_account": "00679800020030000",
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_c_legal_resolver",
+            "stage": "6.5",
+            "input": "NOTICE OF FORECLOSURE | OTHER | Parkway Village 2 Blk 2/6798 Lot 3 Int2014000454 0224 Co-de 6798 002 00300 4da6798 002 L",
+            "status": "skipped",
+            "skip_reason": "no_subdivision_parsed",
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          }
+        ],
+        "confidence_warnings": [
+          "grantor_from_dcad"
+        ]
+      },
+      "address_city": null,
+      "address_state": null,
+      "address_zip": null,
+      "source_url": "https://dallas.tx.publicsearch.us/doc/318069108",
+      "score": 65,
+      "score_breakdown": {
+        "base": 30,
+        "category_flag": 10,
+        "value_100k": 15,
+        "new_this_week": 5,
+        "has_address": 5
+      },
+      "parse_warnings": [
+        "no_grantor_extracted"
+      ],
+      "first_seen": "2026-06-17",
+      "last_seen": "2026-06-17",
+      "in_buy_box": true,
+      "buy_box_reasons": [],
+      "grantor_raw": "ANGEL RENE ANGEL",
+      "dcad_owner_raw": "ANGEL RENE ANGEL"
+    },
+    {
+      "record_id": "318068208",
+      "source": "publicsearch.us",
+      "dallas_code": "NOF",
+      "category": "NOTICE",
+      "filing_date": "2026-06-16",
+      "instrument_num": "202600001392",
+      "grantor": "Maldonado, Victor Raul Castro",
+      "grantee": null,
+      "address": "1244 Southridge Court, Hurst, 76053",
+      "address_normalized": "428 NORMA DR",
+      "dcad_account": "32143500030080000",
+      "dcad_owner": "Maldonado, Victor Raul Castro",
+      "dcad_market_value": 404890.0,
+      "dcad_homestead": false,
+      "dcad_over65": false,
+      "dcad_disabled": false,
+      "dcad_tax_deferred": false,
+      "dcad_mailing_address": "428 NORMA DR",
+      "dcad_mailing_city": "IRVING",
+      "dcad_mailing_state": "TEXAS",
+      "dcad_mailing_zip": "750616934",
+      "amount": "369,526",
+      "trustee": null,
+      "sale_date": "2026-07-07",
+      "raw_excerpt": "NOTICE OF FORECLOSURE | IRVING, TEXAS | Lot Eight (8), in Block “C”, of\\Garden Ogk$ No. Seven (7), an Addition to the City of Irving, i as€ounty, Texas, according to the Map or Plat theréoK recordéd-in Volume 756, Page 1460, of the Map records of Dallas Gqunty, Texas",
+      "active": true,
+      "release_record_id": null,
+      "signal_metadata": {
+        "ocr": {
+          "grantor_pattern": "labeled-grantor",
+          "sale_date_pattern": "bare-date-word",
+          "address_pattern": "mixed-case-two-line",
+          "loan_amount_pattern": "original-principal-amount-of",
+          "legal_desc_pattern": "labeled-legal-description",
+          "apn_pattern": null,
+          "apn": null,
+          "pages_captured": 4,
+          "capture_warnings": []
+        },
+        "resolution_history": [
+          {
+            "path": "path_variant_lookup",
+            "stage": "6.35",
+            "input": "1244 SOUTHRIDGE CT",
+            "status": "no_match",
+            "skip_reason": null,
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_a_grantor_owner_index",
+            "stage": "6.45",
+            "input": "Victor Raul Castro Maldonado",
+            "status": "matched",
+            "skip_reason": null,
+            "tier": "exact",
+            "dcad_account": "32143500030080000",
+            "alternates": [],
+            "warnings": [
+              "surname_drift"
+            ]
+          },
+          {
+            "path": "path_c_legal_resolver",
+            "stage": "6.5",
+            "input": "NOTICE OF FORECLOSURE | IRVING, TEXAS | Lot Eight (8), in Block “C”, of\\Garden Ogk$ No. Seven (7), an Addition to the Ci",
+            "status": "skipped",
+            "skip_reason": "no_subdivision_parsed",
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          }
+        ],
+        "confidence_warnings": [
+          "surname_drift"
+        ]
+      },
+      "address_city": null,
+      "address_state": null,
+      "address_zip": null,
+      "source_url": "https://dallas.tx.publicsearch.us/doc/318068208",
+      "score": 65,
+      "score_breakdown": {
+        "base": 30,
+        "category_flag": 10,
+        "value_100k": 15,
+        "new_this_week": 5,
+        "has_address": 5
+      },
+      "parse_warnings": [],
+      "first_seen": "2026-06-17",
+      "last_seen": "2026-06-17",
+      "in_buy_box": true,
+      "buy_box_reasons": [],
+      "grantor_raw": "Victor Raul Castro Maldonado",
+      "dcad_owner_raw": "MALDONADO VICTOR RAUL CASTRO"
+    },
+    {
+      "record_id": "318067785",
+      "source": "publicsearch.us",
+      "dallas_code": "NOF",
+      "category": "NOTICE",
+      "filing_date": "2026-06-16",
+      "instrument_num": "202600001385",
+      "grantor": "Villarreal, 8/23/2019 Tammy",
+      "grantee": null,
+      "address": "600 Commerce Street, Dallas, 75202",
+      "address_normalized": "600 COMMERCE ST",
+      "dcad_account": "00000100171000000",
+      "dcad_owner": "Dallas, County Of",
+      "dcad_market_value": 52081580.0,
+      "dcad_homestead": false,
+      "dcad_over65": false,
+      "dcad_disabled": false,
+      "dcad_tax_deferred": false,
+      "dcad_mailing_address": "EXEMPT 1963\n411 ELM ST FL 3",
+      "dcad_mailing_city": "DALLAS",
+      "dcad_mailing_state": "TEXAS",
+      "dcad_mailing_zip": "752023301",
+      "amount": null,
+      "trustee": null,
+      "sale_date": "2026-08-04",
+      "raw_excerpt": "NOTICE OF FORECLOSURE | Subdivision - Name: BROOKGREEN ADDITION Lot: 43 Block: B/7757",
+      "active": true,
+      "release_record_id": null,
+      "signal_metadata": {
+        "ocr": {
+          "grantor_pattern": "labeled-grantor-mortgagor",
+          "sale_date_pattern": "numeric-date-of-sale",
+          "address_pattern": "mixed-case-one-line",
+          "loan_amount_pattern": null,
+          "legal_desc_pattern": "labeled-legal-description",
+          "apn_pattern": null,
+          "apn": null,
+          "pages_captured": 2,
+          "capture_warnings": []
+        },
+        "resolution_history": [
+          {
+            "path": "path_b_raw_excerpt",
+            "stage": "6.3",
+            "input": null,
+            "status": "skipped",
+            "skip_reason": "no_clean_address_in_raw_excerpt",
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_a_grantor_owner_index",
+            "stage": "6.45",
+            "input": "8/23/2019 TAMMY VILLARREAL, A SINGLE WOMAN",
+            "status": "no_match",
+            "skip_reason": null,
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_c_legal_resolver",
+            "stage": "6.5",
+            "input": "BROOKGREEN ADDITION",
+            "status": "no_match",
+            "skip_reason": null,
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          }
+        ]
+      },
+      "address_city": null,
+      "address_state": null,
+      "address_zip": null,
+      "source_url": "https://dallas.tx.publicsearch.us/doc/318067785",
+      "score": 65,
+      "score_breakdown": {
+        "base": 30,
+        "category_flag": 10,
+        "value_100k": 15,
+        "new_this_week": 5,
+        "has_address": 5
+      },
+      "parse_warnings": [],
+      "first_seen": "2026-06-17",
+      "last_seen": "2026-06-17",
+      "in_buy_box": true,
+      "buy_box_reasons": [],
+      "grantor_raw": "8/23/2019 TAMMY VILLARREAL, A SINGLE WOMAN",
+      "dcad_owner_raw": "DALLAS COUNTY OF"
+    },
+    {
+      "record_id": "318067793",
+      "source": "publicsearch.us",
+      "dallas_code": "NOF",
+      "category": "NOTICE",
+      "filing_date": "2026-06-16",
+      "instrument_num": "202600001382",
+      "grantor": "Erwin, Lima",
+      "grantee": null,
+      "address": "2913 Honeysuckle Drive, Garland, TX 75041",
+      "address_normalized": "2913 HONEYSUCKLE DR",
+      "dcad_account": "26048500020040000",
+      "dcad_owner": "Lima, Erwin",
+      "dcad_market_value": 238090.0,
+      "dcad_homestead": false,
+      "dcad_over65": false,
+      "dcad_disabled": false,
+      "dcad_tax_deferred": false,
+      "dcad_mailing_address": "6401 PORT ARANSAS DR",
+      "dcad_mailing_city": "ROWLETT",
+      "dcad_mailing_state": "TEXAS",
+      "dcad_mailing_zip": "750894180",
+      "amount": null,
+      "trustee": null,
+      "sale_date": "2026-07-07",
+      "raw_excerpt": "NOTICE OF FORECLOSURE | GARLAND | Lot 4, Block 2, BROADWAY TERRACE, an Addition to the City of Garland, Dallas County, Texas, according to the map thereof recorded in Volume 36, Page 29, Map Records, Dallas County, Texas",
+      "active": true,
+      "release_record_id": null,
+      "signal_metadata": {
+        "ocr": {
+          "grantor_pattern": null,
+          "sale_date_pattern": null,
+          "address_pattern": "top-of-doc-2line",
+          "loan_amount_pattern": null,
+          "legal_desc_pattern": "lot-block",
+          "apn_pattern": null,
+          "apn": null,
+          "pages_captured": 3,
+          "capture_warnings": []
+        },
+        "resolution_history": [
+          {
+            "path": "path_variant_lookup",
+            "stage": "6.35",
+            "input": "2913 HONEYSUCKLE DR",
+            "status": "matched",
+            "skip_reason": null,
+            "tier": null,
+            "dcad_account": "26048500020040000",
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_c_legal_resolver",
+            "stage": "6.5",
+            "input": "NOTICE OF FORECLOSURE | GARLAND | Lot 4, Block 2, BROADWAY TERRACE, an Addition to the City of Garland, Dallas County, T",
+            "status": "skipped",
+            "skip_reason": "no_subdivision_parsed",
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          }
+        ],
+        "confidence_warnings": [
+          "grantor_from_dcad"
+        ]
+      },
+      "address_city": null,
+      "address_state": null,
+      "address_zip": null,
+      "source_url": "https://dallas.tx.publicsearch.us/doc/318067793",
+      "score": 65,
+      "score_breakdown": {
+        "base": 30,
+        "category_flag": 10,
+        "value_100k": 15,
+        "new_this_week": 5,
+        "has_address": 5
+      },
+      "parse_warnings": [
+        "no_grantor_extracted",
+        "no_sale_date_extracted"
+      ],
+      "first_seen": "2026-06-17",
+      "last_seen": "2026-06-17",
+      "in_buy_box": true,
+      "buy_box_reasons": [],
+      "grantor_raw": "LIMA ERWIN",
+      "dcad_owner_raw": "LIMA ERWIN"
+    },
+    {
+      "record_id": "318067794",
+      "source": "publicsearch.us",
+      "dallas_code": "NOF",
+      "category": "NOTICE",
+      "filing_date": "2026-06-16",
+      "instrument_num": "202600001384",
+      "grantor": "4/23/2009 Sanford Hofer, Joined Herein Pro Forma By His",
+      "grantee": null,
+      "address": "SACHSE",
+      "address_normalized": "5018 BROOKHOLLOW DR",
+      "dcad_account": "480012000D0090000",
+      "dcad_owner": "Hofer, Sanford",
+      "dcad_market_value": 252250.0,
+      "dcad_homestead": true,
+      "dcad_over65": false,
+      "dcad_disabled": false,
+      "dcad_tax_deferred": false,
+      "dcad_mailing_address": "5018 BROOKHOLLOW DR",
+      "dcad_mailing_city": "SACHSE",
+      "dcad_mailing_state": "TEXAS",
+      "dcad_mailing_zip": "750484016",
+      "amount": null,
+      "trustee": null,
+      "sale_date": "2026-09-01",
+      "raw_excerpt": "NOTICE OF FORECLOSURE | Subdivision - Name: BROOKVIEW ESTATES Lot: 9 Block: D",
+      "active": true,
+      "release_record_id": null,
+      "signal_metadata": {
+        "ocr": {
+          "grantor_pattern": "labeled-grantor-mortgagor",
+          "sale_date_pattern": "numeric-date-of-sale",
+          "address_pattern": null,
+          "loan_amount_pattern": null,
+          "legal_desc_pattern": "labeled-legal-description",
+          "apn_pattern": null,
+          "apn": null,
+          "pages_captured": 2,
+          "capture_warnings": []
+        },
+        "resolution_history": [
+          {
+            "path": "path_b_raw_excerpt",
+            "stage": "6.3",
+            "input": null,
+            "status": "skipped",
+            "skip_reason": "no_clean_address_in_raw_excerpt",
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_a_grantor_owner_index",
+            "stage": "6.45",
+            "input": "4/23/2009 SANFORD HOFER, JOINED HEREIN PRO FORMA BY HIS",
+            "status": "no_match",
+            "skip_reason": null,
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_c_legal_resolver",
+            "stage": "6.5",
+            "input": "BROOKVIEW ESTATES",
+            "status": "matched",
+            "skip_reason": null,
+            "tier": "fuzzy_subdivision",
+            "dcad_account": "480012000D0090000",
+            "alternates": [],
+            "warnings": [
+              "fuzzy_subdivision_match"
+            ]
+          }
+        ],
+        "confidence_warnings": [
+          "fuzzy_subdivision_match"
+        ]
+      },
+      "address_city": null,
+      "address_state": null,
+      "address_zip": null,
+      "source_url": "https://dallas.tx.publicsearch.us/doc/318067794",
+      "score": 65,
+      "score_breakdown": {
+        "base": 30,
+        "category_flag": 10,
+        "value_100k": 15,
+        "new_this_week": 5,
+        "has_address": 5
+      },
+      "parse_warnings": [],
+      "first_seen": "2026-06-17",
+      "last_seen": "2026-06-17",
+      "in_buy_box": true,
+      "buy_box_reasons": [],
+      "grantor_raw": "4/23/2009 SANFORD HOFER, JOINED HEREIN PRO FORMA BY HIS",
+      "dcad_owner_raw": "HOFER SANFORD"
     },
     {
       "record_id": "316979520",
@@ -5891,7 +6758,9 @@
           "apn_pattern": null,
           "apn": null,
           "pages_captured": 4,
-          "capture_warnings": []
+          "capture_warnings": [
+            "initial_load_hung_reloading"
+          ]
         },
         "resolution_history": [
           {
@@ -5968,57 +6837,68 @@
         "no_sale_date_extracted"
       ],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "CHARLES RAYVELLE ALLEN",
       "dcad_owner_raw": "VOB REAL ESTATE LLC"
     },
     {
-      "record_id": "316922446",
+      "record_id": "318056615",
       "source": "publicsearch.us",
       "dallas_code": "NOF",
       "category": "NOTICE",
-      "filing_date": "2026-06-09",
-      "instrument_num": "202600001242",
-      "grantor": null,
+      "filing_date": "2026-06-15",
+      "instrument_num": "202600001377",
+      "grantor": "Rebollar, Abraham Neri Ax Er Teran",
       "grantee": null,
-      "address": "5700 Granite Parkway, Plano, 75024",
-      "address_normalized": "5700 GRANITE PKWY",
-      "dcad_account": null,
-      "dcad_owner": null,
-      "dcad_market_value": null,
-      "dcad_homestead": null,
-      "dcad_over65": null,
-      "dcad_disabled": null,
-      "dcad_tax_deferred": null,
-      "dcad_mailing_address": null,
-      "dcad_mailing_city": null,
-      "dcad_mailing_state": null,
-      "dcad_mailing_zip": null,
-      "amount": null,
+      "address": "10226 Midway Road, Dallas, Texas 75229",
+      "address_normalized": "10226 MIDWAY RD",
+      "dcad_account": "99161122120000000",
+      "dcad_owner": "Dia Servicing LLC",
+      "dcad_market_value": 8450.0,
+      "dcad_homestead": false,
+      "dcad_over65": false,
+      "dcad_disabled": false,
+      "dcad_tax_deferred": false,
+      "dcad_mailing_address": "ATTN ASHLEIGH RENFRO\n10226 MIDWAY RD",
+      "dcad_mailing_city": "DALLAS",
+      "dcad_mailing_state": "TEXAS",
+      "dcad_mailing_zip": "752296231",
+      "amount": "185,000.00",
       "trustee": null,
       "sale_date": "2026-07-07",
-      "raw_excerpt": "NOTICE OF FORECLOSURE | SUNYVALE",
+      "raw_excerpt": "NOTICE OF FORECLOSURE | 11713 RED BUD LN, BALCH SPRINGS, TEXAS, 75180",
       "active": true,
       "release_record_id": null,
       "signal_metadata": {
         "ocr": {
-          "grantor_pattern": null,
-          "sale_date_pattern": null,
-          "address_pattern": "mixed-case-two-line",
-          "loan_amount_pattern": null,
+          "grantor_pattern": "labeled-grantor",
+          "sale_date_pattern": "bare-date-word",
+          "address_pattern": "top-of-doc-2line",
+          "loan_amount_pattern": "original-amount-space-tolerant",
           "legal_desc_pattern": null,
           "apn_pattern": null,
           "apn": null,
-          "pages_captured": 5,
+          "pages_captured": 6,
           "capture_warnings": []
         },
         "resolution_history": [
           {
             "path": "path_variant_lookup",
             "stage": "6.35",
-            "input": "5700 GRANITE PKWY",
+            "input": "10226 MIDWAY RD",
+            "status": "matched",
+            "skip_reason": null,
+            "tier": null,
+            "dcad_account": "99161122120000000",
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_a_grantor_owner_index",
+            "stage": "6.45",
+            "input": "Abraham Neri aX er Teran Rebollar",
             "status": "no_match",
             "skip_reason": null,
             "tier": null,
@@ -6029,7 +6909,7 @@
           {
             "path": "path_c_legal_resolver",
             "stage": "6.5",
-            "input": "NOTICE OF FORECLOSURE | SUNYVALE",
+            "input": "NOTICE OF FORECLOSURE | 11713 RED BUD LN, BALCH SPRINGS, TEXAS, 75180",
             "status": "skipped",
             "skip_reason": "no_subdivision_parsed",
             "tier": null,
@@ -6042,78 +6922,78 @@
       "address_city": null,
       "address_state": null,
       "address_zip": null,
-      "source_url": "https://dallas.tx.publicsearch.us/doc/316922446",
-      "score": 45,
+      "source_url": "https://dallas.tx.publicsearch.us/doc/318056615",
+      "score": 50,
       "score_breakdown": {
         "base": 30,
         "category_flag": 10,
-        "new_this_week": 5
+        "new_this_week": 5,
+        "has_address": 5
       },
-      "parse_warnings": [
-        "no_grantor_extracted",
-        "no_sale_date_extracted"
-      ],
-      "first_seen": "2026-06-10",
-      "last_seen": "2026-06-16",
+      "parse_warnings": [],
+      "first_seen": "2026-06-17",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
-      "buy_box_reasons": []
+      "buy_box_reasons": [],
+      "grantor_raw": "Abraham Neri aX er Teran Rebollar",
+      "dcad_owner_raw": "DIA SERVICING LLC"
     },
     {
-      "record_id": "316951769",
+      "record_id": "318071843",
       "source": "publicsearch.us",
       "dallas_code": "NOF",
       "category": "NOTICE",
-      "filing_date": "2026-06-10",
-      "instrument_num": "202600001245",
-      "grantor": null,
+      "filing_date": "2026-06-16",
+      "instrument_num": "202600001424",
+      "grantor": "Jorge, Teran",
       "grantee": null,
-      "address": "DALLAS",
-      "address_normalized": "DALLAS",
-      "dcad_account": null,
-      "dcad_owner": null,
-      "dcad_market_value": null,
-      "dcad_homestead": null,
-      "dcad_over65": null,
-      "dcad_disabled": null,
-      "dcad_tax_deferred": null,
-      "dcad_mailing_address": null,
-      "dcad_mailing_city": null,
-      "dcad_mailing_state": null,
-      "dcad_mailing_zip": null,
-      "amount": "5,325,000.00",
+      "address": "2200 Ross Avenue, Dallas, 75201",
+      "address_normalized": "2200 ROSS AVE",
+      "dcad_account": "99190211300000000",
+      "dcad_owner": "Teran, Jorge",
+      "dcad_market_value": 850.0,
+      "dcad_homestead": false,
+      "dcad_over65": false,
+      "dcad_disabled": false,
+      "dcad_tax_deferred": false,
+      "dcad_mailing_address": "STE 170\n2200 ROSS AVE",
+      "dcad_mailing_city": "DALLAS",
+      "dcad_mailing_state": "TEXAS",
+      "dcad_mailing_zip": "752016738",
+      "amount": null,
       "trustee": null,
       "sale_date": "2026-07-07",
-      "raw_excerpt": "NOTICE OF FORECLOSURE | DALLAS | | Being Lot 5A,: Block B/6930, of WAL-MART ADDITION NO. 949 LOTS 3A, 4A, BLOCK B/6930, an Addition to the City of Dallas, Dallas County, Texas, according to | the Map thereof recorded in Volume 2004228, Page 1, of the Map Record Dallas County, Texas",
+      "raw_excerpt": "NOTICE OF FORECLOSURE | DALLAS | BEING SITUATED IN THE WILLIAM JAMES SURVEY, ABSTRACT NO. 691 AND LOCATED IN CITY BLOCK 6965, CITY OF DALLAS, DALLAS COUNTY, TEXAS",
       "active": true,
       "release_record_id": null,
       "signal_metadata": {
         "ocr": {
           "grantor_pattern": null,
           "sale_date_pattern": null,
-          "address_pattern": null,
-          "loan_amount_pattern": "original-amount-space-tolerant",
+          "address_pattern": "mixed-case-two-line",
+          "loan_amount_pattern": null,
           "legal_desc_pattern": "labeled-legal-description",
           "apn_pattern": null,
           "apn": null,
-          "pages_captured": 4,
+          "pages_captured": 8,
           "capture_warnings": []
         },
         "resolution_history": [
           {
-            "path": "path_b_raw_excerpt",
-            "stage": "6.3",
-            "input": null,
-            "status": "skipped",
-            "skip_reason": "no_clean_address_in_raw_excerpt",
+            "path": "path_variant_lookup",
+            "stage": "6.35",
+            "input": "2200 ROSS AVE",
+            "status": "matched",
+            "skip_reason": null,
             "tier": null,
-            "dcad_account": null,
+            "dcad_account": "99190211300000000",
             "alternates": [],
             "warnings": []
           },
           {
             "path": "path_c_legal_resolver",
             "stage": "6.5",
-            "input": "NOTICE OF FORECLOSURE | DALLAS | | Being Lot 5A,: Block B/6930, of WAL-MART ADDITION NO. 949 LOTS 3A, 4A, BLOCK B/6930, ",
+            "input": "NOTICE OF FORECLOSURE | DALLAS | BEING SITUATED IN THE WILLIAM JAMES SURVEY, ABSTRACT NO. 691 AND LOCATED IN CITY BLOCK ",
             "status": "skipped",
             "skip_reason": "no_subdivision_parsed",
             "tier": null,
@@ -6121,111 +7001,32 @@
             "alternates": [],
             "warnings": []
           }
+        ],
+        "confidence_warnings": [
+          "grantor_from_dcad"
         ]
       },
       "address_city": null,
       "address_state": null,
       "address_zip": null,
-      "source_url": "https://dallas.tx.publicsearch.us/doc/316951769",
-      "score": 45,
+      "source_url": "https://dallas.tx.publicsearch.us/doc/318071843",
+      "score": 50,
       "score_breakdown": {
         "base": 30,
         "category_flag": 10,
-        "new_this_week": 5
+        "new_this_week": 5,
+        "has_address": 5
       },
       "parse_warnings": [
         "no_grantor_extracted",
         "no_sale_date_extracted"
       ],
-      "first_seen": "2026-06-11",
-      "last_seen": "2026-06-16",
+      "first_seen": "2026-06-17",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
-      "buy_box_reasons": []
-    },
-    {
-      "record_id": "316951767",
-      "source": "publicsearch.us",
-      "dallas_code": "NOF",
-      "category": "NOTICE",
-      "filing_date": "2026-06-10",
-      "instrument_num": "202600001244",
-      "grantor": null,
-      "grantee": null,
-      "address": "MESQUITE",
-      "address_normalized": "MESQUITE",
-      "dcad_account": null,
-      "dcad_owner": null,
-      "dcad_market_value": null,
-      "dcad_homestead": null,
-      "dcad_over65": null,
-      "dcad_disabled": null,
-      "dcad_tax_deferred": null,
-      "dcad_mailing_address": null,
-      "dcad_mailing_city": null,
-      "dcad_mailing_state": null,
-      "dcad_mailing_zip": null,
-      "amount": "506,000",
-      "trustee": null,
-      "sale_date": "2026-07-07",
-      "raw_excerpt": "NOTICE OF FORECLOSURE | MESQUITE",
-      "active": true,
-      "release_record_id": null,
-      "signal_metadata": {
-        "ocr": {
-          "grantor_pattern": null,
-          "sale_date_pattern": null,
-          "address_pattern": null,
-          "loan_amount_pattern": "original-principal-amount-of",
-          "legal_desc_pattern": null,
-          "apn_pattern": null,
-          "apn": null,
-          "pages_captured": 6,
-          "capture_warnings": []
-        },
-        "resolution_history": [
-          {
-            "path": "path_b_raw_excerpt",
-            "stage": "6.3",
-            "input": null,
-            "status": "skipped",
-            "skip_reason": "no_clean_address_in_raw_excerpt",
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "path_c_legal_resolver",
-            "stage": "6.5",
-            "input": "NOTICE OF FORECLOSURE | MESQUITE",
-            "status": "skipped",
-            "skip_reason": "no_subdivision_parsed",
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          }
-        ]
-      },
-      "address_city": null,
-      "address_state": null,
-      "address_zip": null,
-      "source_url": "https://dallas.tx.publicsearch.us/doc/316951767",
-      "score": 45,
-      "score_breakdown": {
-        "base": 30,
-        "category_flag": 10,
-        "new_this_week": 5
-      },
-      "parse_warnings": [
-        "no_grantor_extracted",
-        "no_sale_date_extracted",
-        "no_address_or_legal_description"
-      ],
-      "first_seen": "2026-06-11",
-      "last_seen": "2026-06-16",
-      "in_buy_box": true,
-      "buy_box_reasons": []
+      "buy_box_reasons": [],
+      "grantor_raw": "TERAN JORGE",
+      "dcad_owner_raw": "TERAN JORGE"
     },
     {
       "record_id": "316986799",
@@ -6306,7 +7107,7 @@
         "no_grantor_extracted"
       ],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": []
     },
@@ -6348,7 +7149,9 @@
           "apn_pattern": null,
           "apn": null,
           "pages_captured": 5,
-          "capture_warnings": []
+          "capture_warnings": [
+            "initial_load_hung_reloading"
+          ]
         },
         "resolution_history": [
           {
@@ -6391,7 +7194,7 @@
         "no_address_or_legal_description"
       ],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": []
     },
@@ -6474,7 +7277,7 @@
         "no_grantor_extracted"
       ],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": []
     },
@@ -6516,7 +7319,9 @@
           "apn_pattern": null,
           "apn": null,
           "pages_captured": 2,
-          "capture_warnings": []
+          "capture_warnings": [
+            "initial_load_hung_reloading"
+          ]
         },
         "resolution_history": [
           {
@@ -6566,894 +7371,10 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-12",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "8/15/2019 ROSARIO REYES AND JESUS ARVIZU GARZA, WIFE AND"
-    },
-    {
-      "record_id": "316978614",
-      "source": "publicsearch.us",
-      "dallas_code": "NOF",
-      "category": "NOTICE",
-      "filing_date": "2026-06-11",
-      "instrument_num": "202600001257",
-      "grantor": "Jester, 4/29/2019 Shaun W Sr",
-      "grantee": null,
-      "address": "DALLAS",
-      "address_normalized": "DALLAS",
-      "dcad_account": null,
-      "dcad_owner": null,
-      "dcad_market_value": null,
-      "dcad_homestead": null,
-      "dcad_over65": null,
-      "dcad_disabled": null,
-      "dcad_tax_deferred": null,
-      "dcad_mailing_address": null,
-      "dcad_mailing_city": null,
-      "dcad_mailing_state": null,
-      "dcad_mailing_zip": null,
-      "amount": null,
-      "trustee": null,
-      "sale_date": "2026-07-07",
-      "raw_excerpt": "NOTICE OF FORECLOSURE | DALLAS | UNIT 1816, BUILDING G, DEL PASEO TOWN HOMES, A CONDOMINIUM PROJECT INADALTA ITY, TEXAS; TOGETHER WITH THE LIMITED COMMON ELEMENTS AND AN UNDIVIDED INTEREST IN AND TO THE GENERA ON 5B NTS, AS DEFINED IN THAT DECLARATION RECORDED IN VOLUME 78028, PAGE 450, AND AMENDMENTS RECORDED IN VOL 031, PA 1299, VOLUME 78211, PAGE 2454, VOLUME 86196, PAGE 2321, VOLUME 99099, PAGE 5476, AND VOLUME 990997 PAGE 5449, PROPERTY RECORDS, DALLAS COUNTY, TEXAS",
-      "active": true,
-      "release_record_id": null,
-      "signal_metadata": {
-        "ocr": {
-          "grantor_pattern": "labeled-grantor-mortgagor",
-          "sale_date_pattern": "numeric-date-of-sale",
-          "address_pattern": null,
-          "loan_amount_pattern": null,
-          "legal_desc_pattern": "labeled-legal-description",
-          "apn_pattern": null,
-          "apn": null,
-          "pages_captured": 2,
-          "capture_warnings": []
-        },
-        "resolution_history": [
-          {
-            "path": "path_b_raw_excerpt",
-            "stage": "6.3",
-            "input": null,
-            "status": "skipped",
-            "skip_reason": "no_clean_address_in_raw_excerpt",
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "path_a_grantor_owner_index",
-            "stage": "6.45",
-            "input": "4/29/2019 SHAUN W JESTER SR., SINGLE MAN",
-            "status": "no_match",
-            "skip_reason": null,
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "path_c_legal_resolver",
-            "stage": "6.5",
-            "input": "NOTICE OF FORECLOSURE | DALLAS | UNIT 1816, BUILDING G, DEL PASEO TOWN HOMES, A CONDOMINIUM PROJECT INADALTA ITY, TEXAS;",
-            "status": "skipped",
-            "skip_reason": "no_subdivision_parsed",
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          }
-        ]
-      },
-      "address_city": null,
-      "address_state": null,
-      "address_zip": null,
-      "source_url": "https://dallas.tx.publicsearch.us/doc/316978614",
-      "score": 45,
-      "score_breakdown": {
-        "base": 30,
-        "category_flag": 10,
-        "new_this_week": 5
-      },
-      "parse_warnings": [],
-      "first_seen": "2026-06-16",
-      "last_seen": "2026-06-16",
-      "in_buy_box": true,
-      "buy_box_reasons": [],
-      "grantor_raw": "4/29/2019 SHAUN W JESTER SR., SINGLE MAN"
-    },
-    {
-      "record_id": "316978644",
-      "source": "publicsearch.us",
-      "dallas_code": "NOF",
-      "category": "NOTICE",
-      "filing_date": "2026-06-11",
-      "instrument_num": "202600001278",
-      "grantor": "Zetina, Jose Antonio & Adriana Ortiz Zetina, Husand-Andww S",
-      "grantee": null,
-      "address": "MESQUITE",
-      "address_normalized": "MESQUITE",
-      "dcad_account": null,
-      "dcad_owner": null,
-      "dcad_market_value": null,
-      "dcad_homestead": null,
-      "dcad_over65": null,
-      "dcad_disabled": null,
-      "dcad_tax_deferred": null,
-      "dcad_mailing_address": null,
-      "dcad_mailing_city": null,
-      "dcad_mailing_state": null,
-      "dcad_mailing_zip": null,
-      "amount": "171,690.00",
-      "trustee": null,
-      "sale_date": "2026-08-04",
-      "raw_excerpt": "NOTICE OF FORECLOSURE | Subdivision - Name: SAMUEVLPARR AST Lot: 26 Block: I",
-      "active": true,
-      "release_record_id": null,
-      "signal_metadata": {
-        "ocr": {
-          "grantor_pattern": "inline-with-grantor",
-          "sale_date_pattern": "numeric-date-of-sale",
-          "address_pattern": null,
-          "loan_amount_pattern": "original-amount-space-tolerant",
-          "legal_desc_pattern": "labeled-legal-description",
-          "apn_pattern": null,
-          "apn": null,
-          "pages_captured": 3,
-          "capture_warnings": []
-        },
-        "resolution_history": [
-          {
-            "path": "path_b_raw_excerpt",
-            "stage": "6.3",
-            "input": null,
-            "status": "skipped",
-            "skip_reason": "no_clean_address_in_raw_excerpt",
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "path_a_grantor_owner_index",
-            "stage": "6.45",
-            "input": "Jose Antonio Zetina and Adriana Ortiz Zetina, Husand-andWw s",
-            "status": "no_match",
-            "skip_reason": null,
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "path_c_legal_resolver",
-            "stage": "6.5",
-            "input": "SAMUEVLPARR AST",
-            "status": "no_match",
-            "skip_reason": null,
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          }
-        ]
-      },
-      "address_city": null,
-      "address_state": null,
-      "address_zip": null,
-      "source_url": "https://dallas.tx.publicsearch.us/doc/316978644",
-      "score": 45,
-      "score_breakdown": {
-        "base": 30,
-        "category_flag": 10,
-        "new_this_week": 5
-      },
-      "parse_warnings": [],
-      "first_seen": "2026-06-12",
-      "last_seen": "2026-06-16",
-      "in_buy_box": true,
-      "buy_box_reasons": [],
-      "grantor_raw": "Jose Antonio Zetina and Adriana Ortiz Zetina, Husand-andWw s"
-    },
-    {
-      "record_id": "316978638",
-      "source": "publicsearch.us",
-      "dallas_code": "NOF",
-      "category": "NOTICE",
-      "filing_date": "2026-06-11",
-      "instrument_num": "202600001273",
-      "grantor": "Williams, Christopher & Band, Angela Iialys",
-      "grantee": null,
-      "address": "DALLAS",
-      "address_normalized": "DALLAS",
-      "dcad_account": null,
-      "dcad_owner": null,
-      "dcad_market_value": null,
-      "dcad_homestead": null,
-      "dcad_over65": null,
-      "dcad_disabled": null,
-      "dcad_tax_deferred": null,
-      "dcad_mailing_address": null,
-      "dcad_mailing_city": null,
-      "dcad_mailing_state": null,
-      "dcad_mailing_zip": null,
-      "amount": null,
-      "trustee": null,
-      "sale_date": "2026-08-04",
-      "raw_excerpt": "NOTICE OF FORECLOSURE | DALLAS",
-      "active": true,
-      "release_record_id": null,
-      "signal_metadata": {
-        "ocr": {
-          "grantor_pattern": "labeled-original-mortgagor",
-          "sale_date_pattern": "bare-date-word",
-          "address_pattern": null,
-          "loan_amount_pattern": null,
-          "legal_desc_pattern": null,
-          "apn_pattern": null,
-          "apn": null,
-          "pages_captured": 3,
-          "capture_warnings": []
-        },
-        "resolution_history": [
-          {
-            "path": "path_b_raw_excerpt",
-            "stage": "6.3",
-            "input": null,
-            "status": "skipped",
-            "skip_reason": "no_clean_address_in_raw_excerpt",
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "path_a_grantor_owner_index",
-            "stage": "6.45",
-            "input": "CHRISTOPHER WILLIAMS AND ANGELA iialys BAND",
-            "status": "no_match",
-            "skip_reason": null,
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "path_c_legal_resolver",
-            "stage": "6.5",
-            "input": "NOTICE OF FORECLOSURE | DALLAS",
-            "status": "skipped",
-            "skip_reason": "no_subdivision_parsed",
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          }
-        ]
-      },
-      "address_city": null,
-      "address_state": null,
-      "address_zip": null,
-      "source_url": "https://dallas.tx.publicsearch.us/doc/316978638",
-      "score": 45,
-      "score_breakdown": {
-        "base": 30,
-        "category_flag": 10,
-        "new_this_week": 5
-      },
-      "parse_warnings": [
-        "no_address_or_legal_description"
-      ],
-      "first_seen": "2026-06-12",
-      "last_seen": "2026-06-16",
-      "in_buy_box": true,
-      "buy_box_reasons": [],
-      "grantor_raw": "CHRISTOPHER WILLIAMS AND ANGELA iialys BAND"
-    },
-    {
-      "record_id": "316978634",
-      "source": "publicsearch.us",
-      "dallas_code": "NOF",
-      "category": "NOTICE",
-      "filing_date": "2026-06-11",
-      "instrument_num": "202600001275",
-      "grantor": null,
-      "grantee": null,
-      "address": "DESOTO",
-      "address_normalized": "DESOTO",
-      "dcad_account": null,
-      "dcad_owner": null,
-      "dcad_market_value": null,
-      "dcad_homestead": null,
-      "dcad_over65": null,
-      "dcad_disabled": null,
-      "dcad_tax_deferred": null,
-      "dcad_mailing_address": null,
-      "dcad_mailing_city": null,
-      "dcad_mailing_state": null,
-      "dcad_mailing_zip": null,
-      "amount": "285,000.00",
-      "trustee": null,
-      "sale_date": "2026-07-07",
-      "raw_excerpt": "NOTICE OF FORECLOSURE | DESOTO | © LOT 3, BLOCK 14, CREEKSIDR’ ESTATES BJARWOOD NO. 1, AN ADDITION TO THE CITY OF DESOTO, DALLAS COUNT oy YAR, . QRDING TO THE MAP OR PLAT THEREOF RECORDED IN VOLUME 99210, PAGE 3004 4J4APANDYOR PLAT RECORDS, DALLAS COUNTY, TEXAS",
-      "active": true,
-      "release_record_id": null,
-      "signal_metadata": {
-        "ocr": {
-          "grantor_pattern": null,
-          "sale_date_pattern": "numeric-date-of-sale",
-          "address_pattern": null,
-          "loan_amount_pattern": "original-amount-space-tolerant",
-          "legal_desc_pattern": "labeled-legal-description",
-          "apn_pattern": null,
-          "apn": null,
-          "pages_captured": 3,
-          "capture_warnings": []
-        },
-        "resolution_history": [
-          {
-            "path": "path_b_raw_excerpt",
-            "stage": "6.3",
-            "input": null,
-            "status": "skipped",
-            "skip_reason": "no_clean_address_in_raw_excerpt",
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "path_c_legal_resolver",
-            "stage": "6.5",
-            "input": "NOTICE OF FORECLOSURE | DESOTO | © LOT 3, BLOCK 14, CREEKSIDR’ ESTATES BJARWOOD NO. 1, AN ADDITION TO THE CITY OF DESOTO",
-            "status": "skipped",
-            "skip_reason": "no_subdivision_parsed",
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          }
-        ]
-      },
-      "address_city": null,
-      "address_state": null,
-      "address_zip": null,
-      "source_url": "https://dallas.tx.publicsearch.us/doc/316978634",
-      "score": 45,
-      "score_breakdown": {
-        "base": 30,
-        "category_flag": 10,
-        "new_this_week": 5
-      },
-      "parse_warnings": [
-        "no_grantor_extracted"
-      ],
-      "first_seen": "2026-06-12",
-      "last_seen": "2026-06-16",
-      "in_buy_box": true,
-      "buy_box_reasons": []
-    },
-    {
-      "record_id": "316978622",
-      "source": "publicsearch.us",
-      "dallas_code": "NOF",
-      "category": "NOTICE",
-      "filing_date": "2026-06-11",
-      "instrument_num": "202600001263",
-      "grantor": null,
-      "grantee": null,
-      "address": "GRAND PRAIRIE",
-      "address_normalized": "GRAND PRAIRIE",
-      "dcad_account": null,
-      "dcad_owner": null,
-      "dcad_market_value": null,
-      "dcad_homestead": null,
-      "dcad_over65": null,
-      "dcad_disabled": null,
-      "dcad_tax_deferred": null,
-      "dcad_mailing_address": null,
-      "dcad_mailing_city": null,
-      "dcad_mailing_state": null,
-      "dcad_mailing_zip": null,
-      "amount": "194,925.00",
-      "trustee": null,
-      "sale_date": "2026-08-04",
-      "raw_excerpt": "NOTICE OF FORECLOSURE | GRAND PRAIRIE",
-      "active": true,
-      "release_record_id": null,
-      "signal_metadata": {
-        "ocr": {
-          "grantor_pattern": null,
-          "sale_date_pattern": "word-section1-date",
-          "address_pattern": null,
-          "loan_amount_pattern": "original-amount-space-tolerant",
-          "legal_desc_pattern": null,
-          "apn_pattern": null,
-          "apn": null,
-          "pages_captured": 3,
-          "capture_warnings": [
-            "initial_load_hung_reloading"
-          ]
-        },
-        "resolution_history": [
-          {
-            "path": "path_b_raw_excerpt",
-            "stage": "6.3",
-            "input": null,
-            "status": "skipped",
-            "skip_reason": "no_clean_address_in_raw_excerpt",
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "path_c_legal_resolver",
-            "stage": "6.5",
-            "input": "NOTICE OF FORECLOSURE | GRAND PRAIRIE",
-            "status": "skipped",
-            "skip_reason": "no_subdivision_parsed",
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          }
-        ]
-      },
-      "address_city": null,
-      "address_state": null,
-      "address_zip": null,
-      "source_url": "https://dallas.tx.publicsearch.us/doc/316978622",
-      "score": 45,
-      "score_breakdown": {
-        "base": 30,
-        "category_flag": 10,
-        "new_this_week": 5
-      },
-      "parse_warnings": [
-        "no_grantor_extracted",
-        "no_address_or_legal_description"
-      ],
-      "first_seen": "2026-06-12",
-      "last_seen": "2026-06-16",
-      "in_buy_box": true,
-      "buy_box_reasons": []
-    },
-    {
-      "record_id": "316978626",
-      "source": "publicsearch.us",
-      "dallas_code": "NOF",
-      "category": "NOTICE",
-      "filing_date": "2026-06-11",
-      "instrument_num": "202600001251",
-      "grantor": "5/18/2015 Darshunda Osioh, A",
-      "grantee": null,
-      "address": "MESQUITE",
-      "address_normalized": "MESQUITE",
-      "dcad_account": null,
-      "dcad_owner": null,
-      "dcad_market_value": null,
-      "dcad_homestead": null,
-      "dcad_over65": null,
-      "dcad_disabled": null,
-      "dcad_tax_deferred": null,
-      "dcad_mailing_address": null,
-      "dcad_mailing_city": null,
-      "dcad_mailing_state": null,
-      "dcad_mailing_zip": null,
-      "amount": null,
-      "trustee": null,
-      "sale_date": "2026-09-01",
-      "raw_excerpt": "NOTICE OF FORECLOSURE | MESQUITE",
-      "active": true,
-      "release_record_id": null,
-      "signal_metadata": {
-        "ocr": {
-          "grantor_pattern": "labeled-grantor-mortgagor",
-          "sale_date_pattern": "numeric-date-of-sale",
-          "address_pattern": null,
-          "loan_amount_pattern": null,
-          "legal_desc_pattern": null,
-          "apn_pattern": null,
-          "apn": null,
-          "pages_captured": 2,
-          "capture_warnings": [
-            "recovered_on_attempt_2"
-          ]
-        },
-        "resolution_history": [
-          {
-            "path": "path_b_raw_excerpt",
-            "stage": "6.3",
-            "input": null,
-            "status": "skipped",
-            "skip_reason": "no_clean_address_in_raw_excerpt",
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "path_a_grantor_owner_index",
-            "stage": "6.45",
-            "input": "5/18/2015 DARSHUNDA OSIOH, A SINGLE PERSON",
-            "status": "no_match",
-            "skip_reason": null,
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "path_c_legal_resolver",
-            "stage": "6.5",
-            "input": "NOTICE OF FORECLOSURE | MESQUITE",
-            "status": "skipped",
-            "skip_reason": "no_subdivision_parsed",
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          }
-        ]
-      },
-      "address_city": null,
-      "address_state": null,
-      "address_zip": null,
-      "source_url": "https://dallas.tx.publicsearch.us/doc/316978626",
-      "score": 45,
-      "score_breakdown": {
-        "base": 30,
-        "category_flag": 10,
-        "new_this_week": 5
-      },
-      "parse_warnings": [
-        "no_address_or_legal_description"
-      ],
-      "first_seen": "2026-06-12",
-      "last_seen": "2026-06-16",
-      "in_buy_box": true,
-      "buy_box_reasons": [],
-      "grantor_raw": "5/18/2015 DARSHUNDA OSIOH, A SINGLE PERSON"
-    },
-    {
-      "record_id": "316978629",
-      "source": "publicsearch.us",
-      "dallas_code": "NOF",
-      "category": "NOTICE",
-      "filing_date": "2026-06-11",
-      "instrument_num": "202600001282",
-      "grantor": null,
-      "grantee": null,
-      "address": "MESQUITE",
-      "address_normalized": "MESQUITE",
-      "dcad_account": null,
-      "dcad_owner": null,
-      "dcad_market_value": null,
-      "dcad_homestead": null,
-      "dcad_over65": null,
-      "dcad_disabled": null,
-      "dcad_tax_deferred": null,
-      "dcad_mailing_address": null,
-      "dcad_mailing_city": null,
-      "dcad_mailing_state": null,
-      "dcad_mailing_zip": null,
-      "amount": null,
-      "trustee": null,
-      "sale_date": "2026-07-07",
-      "raw_excerpt": "NOTICE OF FORECLOSURE | MESQUITE | Lot 21, Block 37, NORTHRIDGE ESTATES NO. 2, an addition to the Cigy~s Mesquite, Dallas County, Texas",
-      "active": true,
-      "release_record_id": null,
-      "signal_metadata": {
-        "ocr": {
-          "grantor_pattern": null,
-          "sale_date_pattern": null,
-          "address_pattern": null,
-          "loan_amount_pattern": null,
-          "legal_desc_pattern": "lot-block",
-          "apn_pattern": null,
-          "apn": null,
-          "pages_captured": 4,
-          "capture_warnings": []
-        },
-        "resolution_history": [
-          {
-            "path": "path_b_raw_excerpt",
-            "stage": "6.3",
-            "input": null,
-            "status": "skipped",
-            "skip_reason": "no_clean_address_in_raw_excerpt",
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "path_c_legal_resolver",
-            "stage": "6.5",
-            "input": "NOTICE OF FORECLOSURE | MESQUITE | Lot 21, Block 37, NORTHRIDGE ESTATES NO. 2, an addition to the Cigy~s Mesquite, Dalla",
-            "status": "skipped",
-            "skip_reason": "no_subdivision_parsed",
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          }
-        ]
-      },
-      "address_city": null,
-      "address_state": null,
-      "address_zip": null,
-      "source_url": "https://dallas.tx.publicsearch.us/doc/316978629",
-      "score": 45,
-      "score_breakdown": {
-        "base": 30,
-        "category_flag": 10,
-        "new_this_week": 5
-      },
-      "parse_warnings": [
-        "no_grantor_extracted",
-        "no_sale_date_extracted"
-      ],
-      "first_seen": "2026-06-12",
-      "last_seen": "2026-06-16",
-      "in_buy_box": true,
-      "buy_box_reasons": []
-    },
-    {
-      "record_id": "316978631",
-      "source": "publicsearch.us",
-      "dallas_code": "NOF",
-      "category": "NOTICE",
-      "filing_date": "2026-06-11",
-      "instrument_num": "202600001284",
-      "grantor": null,
-      "grantee": null,
-      "address": "DALLAS",
-      "address_normalized": "DALLAS",
-      "dcad_account": null,
-      "dcad_owner": null,
-      "dcad_market_value": null,
-      "dcad_homestead": null,
-      "dcad_over65": null,
-      "dcad_disabled": null,
-      "dcad_tax_deferred": null,
-      "dcad_mailing_address": null,
-      "dcad_mailing_city": null,
-      "dcad_mailing_state": null,
-      "dcad_mailing_zip": null,
-      "amount": null,
-      "trustee": null,
-      "sale_date": "2026-07-07",
-      "raw_excerpt": "NOTICE OF FORECLOSURE | Subdivision - Name: BELLEVUE Lot: 18 Block: 24/4320",
-      "active": true,
-      "release_record_id": null,
-      "signal_metadata": {
-        "ocr": {
-          "grantor_pattern": null,
-          "sale_date_pattern": null,
-          "address_pattern": null,
-          "loan_amount_pattern": null,
-          "legal_desc_pattern": "lot-block",
-          "apn_pattern": null,
-          "apn": null,
-          "pages_captured": 5,
-          "capture_warnings": []
-        },
-        "resolution_history": [
-          {
-            "path": "path_b_raw_excerpt",
-            "stage": "6.3",
-            "input": null,
-            "status": "skipped",
-            "skip_reason": "no_clean_address_in_raw_excerpt",
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "path_c_legal_resolver",
-            "stage": "6.5",
-            "input": "BELLEVUE",
-            "status": "no_match",
-            "skip_reason": null,
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          }
-        ]
-      },
-      "address_city": null,
-      "address_state": null,
-      "address_zip": null,
-      "source_url": "https://dallas.tx.publicsearch.us/doc/316978631",
-      "score": 45,
-      "score_breakdown": {
-        "base": 30,
-        "category_flag": 10,
-        "new_this_week": 5
-      },
-      "parse_warnings": [
-        "no_grantor_extracted",
-        "no_sale_date_extracted"
-      ],
-      "first_seen": "2026-06-12",
-      "last_seen": "2026-06-16",
-      "in_buy_box": true,
-      "buy_box_reasons": []
-    },
-    {
-      "record_id": "316978636",
-      "source": "publicsearch.us",
-      "dallas_code": "NOF",
-      "category": "NOTICE",
-      "filing_date": "2026-06-11",
-      "instrument_num": "202600001283",
-      "grantor": null,
-      "grantee": null,
-      "address": "DALLAS",
-      "address_normalized": "DALLAS",
-      "dcad_account": null,
-      "dcad_owner": null,
-      "dcad_market_value": null,
-      "dcad_homestead": null,
-      "dcad_over65": null,
-      "dcad_disabled": null,
-      "dcad_tax_deferred": null,
-      "dcad_mailing_address": null,
-      "dcad_mailing_city": null,
-      "dcad_mailing_state": null,
-      "dcad_mailing_zip": null,
-      "amount": null,
-      "trustee": null,
-      "sale_date": "2026-07-07",
-      "raw_excerpt": "NOTICE OF FORECLOSURE | DALLAS | Lot 11, Block 2/6021, First Installment of HILANDALE ADDITIQS Addition to the City of Dallas, Dallas County, Texas, according to th¢ Map 0 Plat thereof recorded in Volume 36, Page 83 of the Map and/or PIf deco of Dallas County, Texas",
-      "active": true,
-      "release_record_id": null,
-      "signal_metadata": {
-        "ocr": {
-          "grantor_pattern": null,
-          "sale_date_pattern": null,
-          "address_pattern": null,
-          "loan_amount_pattern": null,
-          "legal_desc_pattern": "lot-block",
-          "apn_pattern": null,
-          "apn": null,
-          "pages_captured": 5,
-          "capture_warnings": []
-        },
-        "resolution_history": [
-          {
-            "path": "path_b_raw_excerpt",
-            "stage": "6.3",
-            "input": null,
-            "status": "skipped",
-            "skip_reason": "no_clean_address_in_raw_excerpt",
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "path_c_legal_resolver",
-            "stage": "6.5",
-            "input": "NOTICE OF FORECLOSURE | DALLAS | Lot 11, Block 2/6021, First Installment of HILANDALE ADDITIQS Addition to the City of D",
-            "status": "skipped",
-            "skip_reason": "no_subdivision_parsed",
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          }
-        ]
-      },
-      "address_city": null,
-      "address_state": null,
-      "address_zip": null,
-      "source_url": "https://dallas.tx.publicsearch.us/doc/316978636",
-      "score": 45,
-      "score_breakdown": {
-        "base": 30,
-        "category_flag": 10,
-        "new_this_week": 5
-      },
-      "parse_warnings": [
-        "no_grantor_extracted",
-        "no_sale_date_extracted"
-      ],
-      "first_seen": "2026-06-12",
-      "last_seen": "2026-06-16",
-      "in_buy_box": true,
-      "buy_box_reasons": []
-    },
-    {
-      "record_id": "316976876",
-      "source": "publicsearch.us",
-      "dallas_code": "NOF",
-      "category": "NOTICE",
-      "filing_date": "2026-06-11",
-      "instrument_num": "202600001247",
-      "grantor": null,
-      "grantee": null,
-      "address": "CARROLLTON",
-      "address_normalized": "CARROLLTON",
-      "dcad_account": null,
-      "dcad_owner": null,
-      "dcad_market_value": null,
-      "dcad_homestead": null,
-      "dcad_over65": null,
-      "dcad_disabled": null,
-      "dcad_tax_deferred": null,
-      "dcad_mailing_address": null,
-      "dcad_mailing_city": null,
-      "dcad_mailing_state": null,
-      "dcad_mailing_zip": null,
-      "amount": null,
-      "trustee": null,
-      "sale_date": "2026-07-07",
-      "raw_excerpt": "NOTICE OF FORECLOSURE | CARROLLTON",
-      "active": true,
-      "release_record_id": null,
-      "signal_metadata": {
-        "ocr": {
-          "grantor_pattern": null,
-          "sale_date_pattern": null,
-          "address_pattern": null,
-          "loan_amount_pattern": null,
-          "legal_desc_pattern": null,
-          "apn_pattern": null,
-          "apn": null,
-          "pages_captured": 6,
-          "capture_warnings": []
-        },
-        "resolution_history": [
-          {
-            "path": "path_b_raw_excerpt",
-            "stage": "6.3",
-            "input": null,
-            "status": "skipped",
-            "skip_reason": "no_clean_address_in_raw_excerpt",
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          },
-          {
-            "path": "path_c_legal_resolver",
-            "stage": "6.5",
-            "input": "NOTICE OF FORECLOSURE | CARROLLTON",
-            "status": "skipped",
-            "skip_reason": "no_subdivision_parsed",
-            "tier": null,
-            "dcad_account": null,
-            "alternates": [],
-            "warnings": []
-          }
-        ]
-      },
-      "address_city": null,
-      "address_state": null,
-      "address_zip": null,
-      "source_url": "https://dallas.tx.publicsearch.us/doc/316976876",
-      "score": 45,
-      "score_breakdown": {
-        "base": 30,
-        "category_flag": 10,
-        "new_this_week": 5
-      },
-      "parse_warnings": [
-        "no_grantor_extracted",
-        "no_sale_date_extracted",
-        "no_address_or_legal_description"
-      ],
-      "first_seen": "2026-06-12",
-      "last_seen": "2026-06-16",
-      "in_buy_box": true,
-      "buy_box_reasons": []
     },
     {
       "record_id": "317007213",
@@ -7535,7 +7456,173 @@
         "no_address_or_legal_description"
       ],
       "first_seen": "2026-06-13",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
+      "in_buy_box": true,
+      "buy_box_reasons": []
+    },
+    {
+      "record_id": "318056167",
+      "source": "publicsearch.us",
+      "dallas_code": "NOF",
+      "category": "NOTICE",
+      "filing_date": "2026-06-15",
+      "instrument_num": "202600001376",
+      "grantor": null,
+      "grantee": null,
+      "address": "815 W. Ennis Avenue, Ennis, Texas 75119",
+      "address_normalized": "815 W ENNIS AVE",
+      "dcad_account": null,
+      "dcad_owner": null,
+      "dcad_market_value": null,
+      "dcad_homestead": null,
+      "dcad_over65": null,
+      "dcad_disabled": null,
+      "dcad_tax_deferred": null,
+      "dcad_mailing_address": null,
+      "dcad_mailing_city": null,
+      "dcad_mailing_state": null,
+      "dcad_mailing_zip": null,
+      "amount": "769,000.00",
+      "trustee": null,
+      "sale_date": "2026-07-07",
+      "raw_excerpt": "NOTICE OF FORECLOSURE | DALLAS | of Truck Docking Easement) BEING an easement for truck docking situated in the Amariah Hanna Survey, Abstract No, 564, City of Dallas, Dallas County, Texas, and being a portion of Lot 30 A, in Block 20/6850, of Liptey Addition, an addition to the City of Dallas, Dallas County, Texas, according to the map thereo recorded in Volume 97190, Page 3717, Deed Records, Dallas County, Texas",
+      "active": true,
+      "release_record_id": null,
+      "signal_metadata": {
+        "ocr": {
+          "grantor_pattern": null,
+          "sale_date_pattern": "bare-date-word",
+          "address_pattern": "top-of-doc-2line",
+          "loan_amount_pattern": "original-amount-space-tolerant",
+          "legal_desc_pattern": "labeled-legal-description",
+          "apn_pattern": null,
+          "apn": null,
+          "pages_captured": 6,
+          "capture_warnings": []
+        },
+        "resolution_history": [
+          {
+            "path": "path_variant_lookup",
+            "stage": "6.35",
+            "input": "815 W ENNIS AVE",
+            "status": "no_match",
+            "skip_reason": null,
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_c_legal_resolver",
+            "stage": "6.5",
+            "input": "NOTICE OF FORECLOSURE | DALLAS | of Truck Docking Easement) BEING an easement for truck docking situated in the Amariah ",
+            "status": "skipped",
+            "skip_reason": "no_subdivision_parsed",
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          }
+        ]
+      },
+      "address_city": null,
+      "address_state": null,
+      "address_zip": null,
+      "source_url": "https://dallas.tx.publicsearch.us/doc/318056167",
+      "score": 45,
+      "score_breakdown": {
+        "base": 30,
+        "category_flag": 10,
+        "new_this_week": 5
+      },
+      "parse_warnings": [
+        "no_grantor_extracted"
+      ],
+      "first_seen": "2026-06-17",
+      "last_seen": "2026-06-17",
+      "in_buy_box": true,
+      "buy_box_reasons": []
+    },
+    {
+      "record_id": "318055753",
+      "source": "publicsearch.us",
+      "dallas_code": "NOF",
+      "category": "NOTICE",
+      "filing_date": "2026-06-15",
+      "instrument_num": "202600001375",
+      "grantor": null,
+      "grantee": null,
+      "address": "DALLAS",
+      "address_normalized": "DALLAS",
+      "dcad_account": null,
+      "dcad_owner": null,
+      "dcad_market_value": null,
+      "dcad_homestead": null,
+      "dcad_over65": null,
+      "dcad_disabled": null,
+      "dcad_tax_deferred": null,
+      "dcad_mailing_address": null,
+      "dcad_mailing_city": null,
+      "dcad_mailing_state": null,
+      "dcad_mailing_zip": null,
+      "amount": "21,975,000.00",
+      "trustee": null,
+      "sale_date": "2026-07-07",
+      "raw_excerpt": "NOTICE OF FORECLOSURE | DALLAS | TRACT 1: BEING A TRACT OR PARCEL OF LAND SITUATED IN THE THEOPHALUS THOMAS SURVEY, ABSTRACT NO. 1461, CITY OF DALLAS, DALLAS COUNTY, TEXAS, AND BEING ALL OF BLO C/8579, SECOND INSTALLMENT NEW WORLD APARTMENTS, AN ADDITION TO THE CITY O DALLAS, DALLAS COUNTY, TEXAS",
+      "active": true,
+      "release_record_id": null,
+      "signal_metadata": {
+        "ocr": {
+          "grantor_pattern": null,
+          "sale_date_pattern": "word-date-of-sale",
+          "address_pattern": null,
+          "loan_amount_pattern": "principal-amount-of",
+          "legal_desc_pattern": "labeled-legal-description",
+          "apn_pattern": null,
+          "apn": null,
+          "pages_captured": 10,
+          "capture_warnings": []
+        },
+        "resolution_history": [
+          {
+            "path": "path_b_raw_excerpt",
+            "stage": "6.3",
+            "input": null,
+            "status": "skipped",
+            "skip_reason": "no_clean_address_in_raw_excerpt",
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_c_legal_resolver",
+            "stage": "6.5",
+            "input": "NOTICE OF FORECLOSURE | DALLAS | TRACT 1: BEING A TRACT OR PARCEL OF LAND SITUATED IN THE THEOPHALUS THOMAS SURVEY, ABST",
+            "status": "skipped",
+            "skip_reason": "no_subdivision_parsed",
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          }
+        ]
+      },
+      "address_city": null,
+      "address_state": null,
+      "address_zip": null,
+      "source_url": "https://dallas.tx.publicsearch.us/doc/318055753",
+      "score": 45,
+      "score_breakdown": {
+        "base": 30,
+        "category_flag": 10,
+        "new_this_week": 5
+      },
+      "parse_warnings": [
+        "no_grantor_extracted"
+      ],
+      "first_seen": "2026-06-17",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": []
     },
@@ -7619,7 +7706,7 @@
         "no_address_or_legal_description"
       ],
       "first_seen": "2026-06-16",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": []
     },
@@ -7700,7 +7787,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-16",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "Tasha Williams-Dukes gnd.j co-signers and co-makers"
@@ -7785,7 +7872,7 @@
         "no_sale_date_extracted"
       ],
       "first_seen": "2026-06-16",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": []
     },
@@ -7877,7 +7964,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-16",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "Nirguné ©)"
@@ -7970,7 +8057,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-16",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "Dolores Vazquez and Julio Cesar Galicia Lar¢"
@@ -8065,7 +8152,7 @@
         "no_sale_date_extracted"
       ],
       "first_seen": "2026-06-16",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "WHITNEY NICOLE COX AND LEON J COX III, WIFE AND AND"
@@ -8108,9 +8195,7 @@
           "apn_pattern": null,
           "apn": null,
           "pages_captured": 3,
-          "capture_warnings": [
-            "initial_load_hung_reloading"
-          ]
+          "capture_warnings": []
         },
         "resolution_history": [
           {
@@ -8152,7 +8237,7 @@
         "no_sale_date_extracted"
       ],
       "first_seen": "2026-06-16",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": []
     },
@@ -8235,7 +8320,7 @@
         "no_grantor_extracted"
       ],
       "first_seen": "2026-06-16",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": []
     },
@@ -8329,7 +8414,7 @@
         "no_address_or_legal_description"
       ],
       "first_seen": "2026-06-16",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "CHRISTOPHER CLAASSEN AND TANZEEN, A"
@@ -8414,7 +8499,7 @@
         "no_address_or_legal_description"
       ],
       "first_seen": "2026-06-16",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": []
     },
@@ -8498,7 +8583,7 @@
         "no_address_or_legal_description"
       ],
       "first_seen": "2026-06-16",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": []
     },
@@ -8590,7 +8675,7 @@
       },
       "parse_warnings": [],
       "first_seen": "2026-06-16",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "Rodolfo Galvan Rodriguez and"
@@ -8674,7 +8759,7 @@
         "no_grantor_extracted"
       ],
       "first_seen": "2026-06-16",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": []
     },
@@ -8757,7 +8842,7 @@
         "no_grantor_extracted"
       ],
       "first_seen": "2026-06-16",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": []
     },
@@ -8842,7 +8927,7 @@
         "no_address_or_legal_description"
       ],
       "first_seen": "2026-06-16",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": []
     },
@@ -8926,7 +9011,7 @@
         "no_address_or_legal_description"
       ],
       "first_seen": "2026-06-16",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": []
     },
@@ -8968,9 +9053,7 @@
           "apn_pattern": null,
           "apn": null,
           "pages_captured": 4,
-          "capture_warnings": [
-            "initial_load_hung_reloading"
-          ]
+          "capture_warnings": []
         },
         "resolution_history": [
           {
@@ -9022,10 +9105,1115 @@
         "no_sale_date_extracted"
       ],
       "first_seen": "2026-06-16",
-      "last_seen": "2026-06-16",
+      "last_seen": "2026-06-17",
       "in_buy_box": true,
       "buy_box_reasons": [],
       "grantor_raw": "Montreal Bailey and Brianna Bailey"
+    },
+    {
+      "record_id": "318075616",
+      "source": "publicsearch.us",
+      "dallas_code": "NOF",
+      "category": "NOTICE",
+      "filing_date": "2026-06-16",
+      "instrument_num": "202600001426",
+      "grantor": null,
+      "grantee": null,
+      "address": "GRAND PRAIRIE",
+      "address_normalized": "GRAND PRAIRIE",
+      "dcad_account": null,
+      "dcad_owner": null,
+      "dcad_market_value": null,
+      "dcad_homestead": null,
+      "dcad_over65": null,
+      "dcad_disabled": null,
+      "dcad_tax_deferred": null,
+      "dcad_mailing_address": null,
+      "dcad_mailing_city": null,
+      "dcad_mailing_state": null,
+      "dcad_mailing_zip": null,
+      "amount": null,
+      "trustee": null,
+      "sale_date": "2026-07-07",
+      "raw_excerpt": "NOTICE OF FORECLOSURE | GRAND PRAIRIE",
+      "active": true,
+      "release_record_id": null,
+      "signal_metadata": {
+        "ocr": {
+          "grantor_pattern": null,
+          "sale_date_pattern": null,
+          "address_pattern": null,
+          "loan_amount_pattern": null,
+          "legal_desc_pattern": null,
+          "apn_pattern": null,
+          "apn": null,
+          "pages_captured": 2,
+          "capture_warnings": []
+        },
+        "resolution_history": [
+          {
+            "path": "path_b_raw_excerpt",
+            "stage": "6.3",
+            "input": null,
+            "status": "skipped",
+            "skip_reason": "no_clean_address_in_raw_excerpt",
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_c_legal_resolver",
+            "stage": "6.5",
+            "input": "NOTICE OF FORECLOSURE | GRAND PRAIRIE",
+            "status": "skipped",
+            "skip_reason": "no_subdivision_parsed",
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          }
+        ]
+      },
+      "address_city": null,
+      "address_state": null,
+      "address_zip": null,
+      "source_url": "https://dallas.tx.publicsearch.us/doc/318075616",
+      "score": 45,
+      "score_breakdown": {
+        "base": 30,
+        "category_flag": 10,
+        "new_this_week": 5
+      },
+      "parse_warnings": [
+        "no_grantor_extracted",
+        "no_sale_date_extracted",
+        "no_address_or_legal_description"
+      ],
+      "first_seen": "2026-06-17",
+      "last_seen": "2026-06-17",
+      "in_buy_box": true,
+      "buy_box_reasons": []
+    },
+    {
+      "record_id": "318071841",
+      "source": "publicsearch.us",
+      "dallas_code": "NOF",
+      "category": "NOTICE",
+      "filing_date": "2026-06-16",
+      "instrument_num": "202600001425",
+      "grantor": null,
+      "grantee": null,
+      "address": "6900 Dallas Pkwy, Plano, 75024",
+      "address_normalized": "6900 DALLAS PKWY",
+      "dcad_account": null,
+      "dcad_owner": null,
+      "dcad_market_value": null,
+      "dcad_homestead": null,
+      "dcad_over65": null,
+      "dcad_disabled": null,
+      "dcad_tax_deferred": null,
+      "dcad_mailing_address": null,
+      "dcad_mailing_city": null,
+      "dcad_mailing_state": null,
+      "dcad_mailing_zip": null,
+      "amount": null,
+      "trustee": null,
+      "sale_date": "2026-07-07",
+      "raw_excerpt": "NOTICE OF FORECLOSURE | 330 E. LAS COLINAS BLVD, 924, IRVING, TEXAS, 75039",
+      "active": true,
+      "release_record_id": null,
+      "signal_metadata": {
+        "ocr": {
+          "grantor_pattern": null,
+          "sale_date_pattern": null,
+          "address_pattern": "mixed-case-two-line",
+          "loan_amount_pattern": null,
+          "legal_desc_pattern": null,
+          "apn_pattern": null,
+          "apn": null,
+          "pages_captured": 4,
+          "capture_warnings": []
+        },
+        "resolution_history": [
+          {
+            "path": "path_variant_lookup",
+            "stage": "6.35",
+            "input": "6900 DALLAS PKWY",
+            "status": "no_match",
+            "skip_reason": null,
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_c_legal_resolver",
+            "stage": "6.5",
+            "input": "NOTICE OF FORECLOSURE | 330 E. LAS COLINAS BLVD, 924, IRVING, TEXAS, 75039",
+            "status": "skipped",
+            "skip_reason": "no_subdivision_parsed",
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          }
+        ]
+      },
+      "address_city": null,
+      "address_state": null,
+      "address_zip": null,
+      "source_url": "https://dallas.tx.publicsearch.us/doc/318071841",
+      "score": 45,
+      "score_breakdown": {
+        "base": 30,
+        "category_flag": 10,
+        "new_this_week": 5
+      },
+      "parse_warnings": [
+        "no_grantor_extracted",
+        "no_sale_date_extracted"
+      ],
+      "first_seen": "2026-06-17",
+      "last_seen": "2026-06-17",
+      "in_buy_box": true,
+      "buy_box_reasons": []
+    },
+    {
+      "record_id": "318071283",
+      "source": "publicsearch.us",
+      "dallas_code": "NOF",
+      "category": "NOTICE",
+      "filing_date": "2026-06-16",
+      "instrument_num": "202600001413",
+      "grantor": null,
+      "grantee": null,
+      "address": "4016 Gateway Drive, Colleyville, 76034",
+      "address_normalized": "4016 GATEWAY DR",
+      "dcad_account": null,
+      "dcad_owner": null,
+      "dcad_market_value": null,
+      "dcad_homestead": null,
+      "dcad_over65": null,
+      "dcad_disabled": null,
+      "dcad_tax_deferred": null,
+      "dcad_mailing_address": null,
+      "dcad_mailing_city": null,
+      "dcad_mailing_state": null,
+      "dcad_mailing_zip": null,
+      "amount": null,
+      "trustee": null,
+      "sale_date": "2026-07-07",
+      "raw_excerpt": "NOTICE OF FORECLOSURE | 11927 BADGER DR, BALCH SPRINGS, TEXAS, 75180",
+      "active": true,
+      "release_record_id": null,
+      "signal_metadata": {
+        "ocr": {
+          "grantor_pattern": null,
+          "sale_date_pattern": null,
+          "address_pattern": "mixed-case-two-line",
+          "loan_amount_pattern": null,
+          "legal_desc_pattern": null,
+          "apn_pattern": null,
+          "apn": null,
+          "pages_captured": 3,
+          "capture_warnings": []
+        },
+        "resolution_history": [
+          {
+            "path": "path_variant_lookup",
+            "stage": "6.35",
+            "input": "4016 GATEWAY DR",
+            "status": "no_match",
+            "skip_reason": null,
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_c_legal_resolver",
+            "stage": "6.5",
+            "input": "NOTICE OF FORECLOSURE | 11927 BADGER DR, BALCH SPRINGS, TEXAS, 75180",
+            "status": "skipped",
+            "skip_reason": "no_subdivision_parsed",
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          }
+        ]
+      },
+      "address_city": null,
+      "address_state": null,
+      "address_zip": null,
+      "source_url": "https://dallas.tx.publicsearch.us/doc/318071283",
+      "score": 45,
+      "score_breakdown": {
+        "base": 30,
+        "category_flag": 10,
+        "new_this_week": 5
+      },
+      "parse_warnings": [
+        "no_grantor_extracted",
+        "no_sale_date_extracted"
+      ],
+      "first_seen": "2026-06-17",
+      "last_seen": "2026-06-17",
+      "in_buy_box": true,
+      "buy_box_reasons": []
+    },
+    {
+      "record_id": "318071277",
+      "source": "publicsearch.us",
+      "dallas_code": "NOF",
+      "category": "NOTICE",
+      "filing_date": "2026-06-16",
+      "instrument_num": "202600001419",
+      "grantor": null,
+      "grantee": null,
+      "address": "4016 Gateway Drive, Colleyville, 76034",
+      "address_normalized": "4016 GATEWAY DR",
+      "dcad_account": null,
+      "dcad_owner": null,
+      "dcad_market_value": null,
+      "dcad_homestead": null,
+      "dcad_over65": null,
+      "dcad_disabled": null,
+      "dcad_tax_deferred": null,
+      "dcad_mailing_address": null,
+      "dcad_mailing_city": null,
+      "dcad_mailing_state": null,
+      "dcad_mailing_zip": null,
+      "amount": null,
+      "trustee": null,
+      "sale_date": "2026-07-07",
+      "raw_excerpt": "NOTICE OF FORECLOSURE | DALLAS",
+      "active": true,
+      "release_record_id": null,
+      "signal_metadata": {
+        "ocr": {
+          "grantor_pattern": null,
+          "sale_date_pattern": null,
+          "address_pattern": "mixed-case-two-line",
+          "loan_amount_pattern": null,
+          "legal_desc_pattern": null,
+          "apn_pattern": null,
+          "apn": null,
+          "pages_captured": 3,
+          "capture_warnings": []
+        },
+        "resolution_history": [
+          {
+            "path": "path_variant_lookup",
+            "stage": "6.35",
+            "input": "4016 GATEWAY DR",
+            "status": "no_match",
+            "skip_reason": null,
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_c_legal_resolver",
+            "stage": "6.5",
+            "input": "NOTICE OF FORECLOSURE | DALLAS",
+            "status": "skipped",
+            "skip_reason": "no_subdivision_parsed",
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          }
+        ]
+      },
+      "address_city": null,
+      "address_state": null,
+      "address_zip": null,
+      "source_url": "https://dallas.tx.publicsearch.us/doc/318071277",
+      "score": 45,
+      "score_breakdown": {
+        "base": 30,
+        "category_flag": 10,
+        "new_this_week": 5
+      },
+      "parse_warnings": [
+        "no_grantor_extracted",
+        "no_sale_date_extracted"
+      ],
+      "first_seen": "2026-06-17",
+      "last_seen": "2026-06-17",
+      "in_buy_box": true,
+      "buy_box_reasons": []
+    },
+    {
+      "record_id": "318071285",
+      "source": "publicsearch.us",
+      "dallas_code": "NOF",
+      "category": "NOTICE",
+      "filing_date": "2026-06-16",
+      "instrument_num": "202600001412",
+      "grantor": null,
+      "grantee": null,
+      "address": "4016 Gateway Drive, Colleyville, 76034",
+      "address_normalized": "4016 GATEWAY DR",
+      "dcad_account": null,
+      "dcad_owner": null,
+      "dcad_market_value": null,
+      "dcad_homestead": null,
+      "dcad_over65": null,
+      "dcad_disabled": null,
+      "dcad_tax_deferred": null,
+      "dcad_mailing_address": null,
+      "dcad_mailing_city": null,
+      "dcad_mailing_state": null,
+      "dcad_mailing_zip": null,
+      "amount": null,
+      "trustee": null,
+      "sale_date": "2026-07-07",
+      "raw_excerpt": "NOTICE OF FORECLOSURE | Subdivision - Name: Hidden Valley Section of Singing Hills Lot: 35 Block: 3/6898",
+      "active": true,
+      "release_record_id": null,
+      "signal_metadata": {
+        "ocr": {
+          "grantor_pattern": null,
+          "sale_date_pattern": null,
+          "address_pattern": "mixed-case-two-line",
+          "loan_amount_pattern": null,
+          "legal_desc_pattern": "lot-block",
+          "apn_pattern": null,
+          "apn": null,
+          "pages_captured": 3,
+          "capture_warnings": []
+        },
+        "resolution_history": [
+          {
+            "path": "path_variant_lookup",
+            "stage": "6.35",
+            "input": "4016 GATEWAY DR",
+            "status": "no_match",
+            "skip_reason": null,
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_c_legal_resolver",
+            "stage": "6.5",
+            "input": "Hidden Valley Section of Singing Hills",
+            "status": "no_match",
+            "skip_reason": null,
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          }
+        ]
+      },
+      "address_city": null,
+      "address_state": null,
+      "address_zip": null,
+      "source_url": "https://dallas.tx.publicsearch.us/doc/318071285",
+      "score": 45,
+      "score_breakdown": {
+        "base": 30,
+        "category_flag": 10,
+        "new_this_week": 5
+      },
+      "parse_warnings": [
+        "no_grantor_extracted",
+        "no_sale_date_extracted"
+      ],
+      "first_seen": "2026-06-17",
+      "last_seen": "2026-06-17",
+      "in_buy_box": true,
+      "buy_box_reasons": []
+    },
+    {
+      "record_id": "318071282",
+      "source": "publicsearch.us",
+      "dallas_code": "NOF",
+      "category": "NOTICE",
+      "filing_date": "2026-06-16",
+      "instrument_num": "202600001415",
+      "grantor": null,
+      "grantee": null,
+      "address": "4016 Gateway Drive, Coileyville, 76034",
+      "address_normalized": "4016 GATEWAY DR",
+      "dcad_account": null,
+      "dcad_owner": null,
+      "dcad_market_value": null,
+      "dcad_homestead": null,
+      "dcad_over65": null,
+      "dcad_disabled": null,
+      "dcad_tax_deferred": null,
+      "dcad_mailing_address": null,
+      "dcad_mailing_city": null,
+      "dcad_mailing_state": null,
+      "dcad_mailing_zip": null,
+      "amount": null,
+      "trustee": null,
+      "sale_date": "2026-07-07",
+      "raw_excerpt": "NOTICE OF FORECLOSURE | Subdivision - Name: Tetrakem Village Lot: 27 Block: 34B/7614",
+      "active": true,
+      "release_record_id": null,
+      "signal_metadata": {
+        "ocr": {
+          "grantor_pattern": null,
+          "sale_date_pattern": null,
+          "address_pattern": "mixed-case-two-line",
+          "loan_amount_pattern": null,
+          "legal_desc_pattern": "lot-block",
+          "apn_pattern": null,
+          "apn": null,
+          "pages_captured": 3,
+          "capture_warnings": []
+        },
+        "resolution_history": [
+          {
+            "path": "path_variant_lookup",
+            "stage": "6.35",
+            "input": "4016 GATEWAY DR",
+            "status": "no_match",
+            "skip_reason": null,
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_c_legal_resolver",
+            "stage": "6.5",
+            "input": "Tetrakem Village",
+            "status": "no_match",
+            "skip_reason": null,
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          }
+        ]
+      },
+      "address_city": null,
+      "address_state": null,
+      "address_zip": null,
+      "source_url": "https://dallas.tx.publicsearch.us/doc/318071282",
+      "score": 45,
+      "score_breakdown": {
+        "base": 30,
+        "category_flag": 10,
+        "new_this_week": 5
+      },
+      "parse_warnings": [
+        "no_grantor_extracted",
+        "no_sale_date_extracted"
+      ],
+      "first_seen": "2026-06-17",
+      "last_seen": "2026-06-17",
+      "in_buy_box": true,
+      "buy_box_reasons": []
+    },
+    {
+      "record_id": "318071286",
+      "source": "publicsearch.us",
+      "dallas_code": "NOF",
+      "category": "NOTICE",
+      "filing_date": "2026-06-16",
+      "instrument_num": "202600001423",
+      "grantor": null,
+      "grantee": null,
+      "address": "4016 Gateway Drive, Colleyville, 76034",
+      "address_normalized": "4016 GATEWAY DR",
+      "dcad_account": null,
+      "dcad_owner": null,
+      "dcad_market_value": null,
+      "dcad_homestead": null,
+      "dcad_over65": null,
+      "dcad_disabled": null,
+      "dcad_tax_deferred": null,
+      "dcad_mailing_address": null,
+      "dcad_mailing_city": null,
+      "dcad_mailing_state": null,
+      "dcad_mailing_zip": null,
+      "amount": null,
+      "trustee": null,
+      "sale_date": "2026-07-07",
+      "raw_excerpt": "NOTICE OF FORECLOSURE | 538 CASSIDY LANE, DALLAS, TEXAS, 75217 | Being Lot 9, in City Block 6669 of M.J. Cassidy's Subdivision, an addition to the City of Dallas, Texas, according to the plat thereof recorded in Volume 18, Page 41, Map Records, Dallas County, Texas",
+      "active": true,
+      "release_record_id": null,
+      "signal_metadata": {
+        "ocr": {
+          "grantor_pattern": null,
+          "sale_date_pattern": null,
+          "address_pattern": "mixed-case-two-line",
+          "loan_amount_pattern": null,
+          "legal_desc_pattern": "being-lot",
+          "apn_pattern": null,
+          "apn": null,
+          "pages_captured": 3,
+          "capture_warnings": []
+        },
+        "resolution_history": [
+          {
+            "path": "path_variant_lookup",
+            "stage": "6.35",
+            "input": "4016 GATEWAY DR",
+            "status": "no_match",
+            "skip_reason": null,
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_c_legal_resolver",
+            "stage": "6.5",
+            "input": "NOTICE OF FORECLOSURE | 538 CASSIDY LANE, DALLAS, TEXAS, 75217 | Being Lot 9, in City Block 6669 of M.J. Cassidy's Subdi",
+            "status": "skipped",
+            "skip_reason": "no_subdivision_parsed",
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          }
+        ]
+      },
+      "address_city": null,
+      "address_state": null,
+      "address_zip": null,
+      "source_url": "https://dallas.tx.publicsearch.us/doc/318071286",
+      "score": 45,
+      "score_breakdown": {
+        "base": 30,
+        "category_flag": 10,
+        "new_this_week": 5
+      },
+      "parse_warnings": [
+        "no_grantor_extracted",
+        "no_sale_date_extracted"
+      ],
+      "first_seen": "2026-06-17",
+      "last_seen": "2026-06-17",
+      "in_buy_box": true,
+      "buy_box_reasons": []
+    },
+    {
+      "record_id": "318070684",
+      "source": "publicsearch.us",
+      "dallas_code": "NOF",
+      "category": "NOTICE",
+      "filing_date": "2026-06-16",
+      "instrument_num": "202600001410",
+      "grantor": "Jose Maria Reyes Lemus, Gabriela Patricia Arevalo Ramiréaand",
+      "grantee": null,
+      "address": "226 Bailey Ave, Fort Worth, 76107",
+      "address_normalized": "226 BAILEY AVE",
+      "dcad_account": null,
+      "dcad_owner": null,
+      "dcad_market_value": null,
+      "dcad_homestead": null,
+      "dcad_over65": null,
+      "dcad_disabled": null,
+      "dcad_tax_deferred": null,
+      "dcad_mailing_address": null,
+      "dcad_mailing_city": null,
+      "dcad_mailing_state": null,
+      "dcad_mailing_zip": null,
+      "amount": "13",
+      "trustee": null,
+      "sale_date": "2026-07-07",
+      "raw_excerpt": "NOTICE OF FORECLOSURE | 616 RORARY DRIVE, RICHARDSON, TEXAS, 75081 | Being Lot 9, in Block P, RIGHARDSON TERRACE ADDITION NO. 3, an Addition te y of Richardson, Dallas County, Texas, accordi the Map thereof recorded in Volume 38, Page 119, of the Map ds of Dallas County, Texas",
+      "active": true,
+      "release_record_id": null,
+      "signal_metadata": {
+        "ocr": {
+          "grantor_pattern": "labeled-grantor",
+          "sale_date_pattern": null,
+          "address_pattern": "mixed-case-two-line",
+          "loan_amount_pattern": "original-principal-amount-of",
+          "legal_desc_pattern": "labeled-legal-description",
+          "apn_pattern": null,
+          "apn": null,
+          "pages_captured": 4,
+          "capture_warnings": []
+        },
+        "resolution_history": [
+          {
+            "path": "path_variant_lookup",
+            "stage": "6.35",
+            "input": "226 BAILEY AVE",
+            "status": "no_match",
+            "skip_reason": null,
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_a_grantor_owner_index",
+            "stage": "6.45",
+            "input": "Jose Maria Reyes Lemus, Gabriela Patricia Arevalo RamiréAand",
+            "status": "no_match",
+            "skip_reason": null,
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_c_legal_resolver",
+            "stage": "6.5",
+            "input": "NOTICE OF FORECLOSURE | 616 RORARY DRIVE, RICHARDSON, TEXAS, 75081 | Being Lot 9, in Block P, RIGHARDSON TERRACE ADDITIO",
+            "status": "skipped",
+            "skip_reason": "no_subdivision_parsed",
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          }
+        ]
+      },
+      "address_city": null,
+      "address_state": null,
+      "address_zip": null,
+      "source_url": "https://dallas.tx.publicsearch.us/doc/318070684",
+      "score": 45,
+      "score_breakdown": {
+        "base": 30,
+        "category_flag": 10,
+        "new_this_week": 5
+      },
+      "parse_warnings": [
+        "no_sale_date_extracted"
+      ],
+      "first_seen": "2026-06-17",
+      "last_seen": "2026-06-17",
+      "in_buy_box": true,
+      "buy_box_reasons": [],
+      "grantor_raw": "Jose Maria Reyes Lemus, Gabriela Patricia Arevalo RamiréAand"
+    },
+    {
+      "record_id": "318070281",
+      "source": "publicsearch.us",
+      "dallas_code": "NOF",
+      "category": "NOTICE",
+      "filing_date": "2026-06-16",
+      "instrument_num": "202600001405",
+      "grantor": null,
+      "grantee": null,
+      "address": "DALLAS",
+      "address_normalized": "DALLAS",
+      "dcad_account": null,
+      "dcad_owner": null,
+      "dcad_market_value": null,
+      "dcad_homestead": null,
+      "dcad_over65": null,
+      "dcad_disabled": null,
+      "dcad_tax_deferred": null,
+      "dcad_mailing_address": null,
+      "dcad_mailing_city": null,
+      "dcad_mailing_state": null,
+      "dcad_mailing_zip": null,
+      "amount": null,
+      "trustee": null,
+      "sale_date": "2026-07-07",
+      "raw_excerpt": "NOTICE OF FORECLOSURE | DALLAS | LOT 35, BLOCK 3/8013, LOS ENCINOS, AN ADDITION TO THE CITY OF DALLAS, DA}Ae TEXAS, ACCORDING TO THE MAP OR PLAT THEREOF RECORDED IN VOLUME 98 AGE 1,! RECORDS, DALLAS COUNTY, TEXAS",
+      "active": true,
+      "release_record_id": null,
+      "signal_metadata": {
+        "ocr": {
+          "grantor_pattern": null,
+          "sale_date_pattern": "bare-date-word",
+          "address_pattern": null,
+          "loan_amount_pattern": null,
+          "legal_desc_pattern": "lot-block",
+          "apn_pattern": null,
+          "apn": null,
+          "pages_captured": 3,
+          "capture_warnings": []
+        },
+        "resolution_history": [
+          {
+            "path": "path_b_raw_excerpt",
+            "stage": "6.3",
+            "input": null,
+            "status": "skipped",
+            "skip_reason": "no_clean_address_in_raw_excerpt",
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_c_legal_resolver",
+            "stage": "6.5",
+            "input": "NOTICE OF FORECLOSURE | DALLAS | LOT 35, BLOCK 3/8013, LOS ENCINOS, AN ADDITION TO THE CITY OF DALLAS, DA}Ae TEXAS, ACCO",
+            "status": "skipped",
+            "skip_reason": "no_subdivision_parsed",
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          }
+        ]
+      },
+      "address_city": null,
+      "address_state": null,
+      "address_zip": null,
+      "source_url": "https://dallas.tx.publicsearch.us/doc/318070281",
+      "score": 45,
+      "score_breakdown": {
+        "base": 30,
+        "category_flag": 10,
+        "new_this_week": 5
+      },
+      "parse_warnings": [
+        "no_grantor_extracted"
+      ],
+      "first_seen": "2026-06-17",
+      "last_seen": "2026-06-17",
+      "in_buy_box": true,
+      "buy_box_reasons": []
+    },
+    {
+      "record_id": "318069109",
+      "source": "publicsearch.us",
+      "dallas_code": "NOF",
+      "category": "NOTICE",
+      "filing_date": "2026-06-16",
+      "instrument_num": "202600001395",
+      "grantor": null,
+      "grantee": null,
+      "address": "FARMERS BRANCH",
+      "address_normalized": "FARMERS BRANCH",
+      "dcad_account": null,
+      "dcad_owner": null,
+      "dcad_market_value": null,
+      "dcad_homestead": null,
+      "dcad_over65": null,
+      "dcad_disabled": null,
+      "dcad_tax_deferred": null,
+      "dcad_mailing_address": null,
+      "dcad_mailing_city": null,
+      "dcad_mailing_state": null,
+      "dcad_mailing_zip": null,
+      "amount": null,
+      "trustee": null,
+      "sale_date": "2026-07-07",
+      "raw_excerpt": "NOTICE OF FORECLOSURE | FARMERS BRANCH | of Real Property Real property in the City of Farmers Branch, County of Dallas, State of Texas, described as follows: BEING a 257,624 square feet or 5.9142 acre tract of land situated in the John Nix Survey, Abstract No. 1088, Dallas County, Texas",
+      "active": true,
+      "release_record_id": null,
+      "signal_metadata": {
+        "ocr": {
+          "grantor_pattern": null,
+          "sale_date_pattern": null,
+          "address_pattern": null,
+          "loan_amount_pattern": null,
+          "legal_desc_pattern": "labeled-legal-description",
+          "apn_pattern": null,
+          "apn": null,
+          "pages_captured": 6,
+          "capture_warnings": []
+        },
+        "resolution_history": [
+          {
+            "path": "path_b_raw_excerpt",
+            "stage": "6.3",
+            "input": null,
+            "status": "skipped",
+            "skip_reason": "no_clean_address_in_raw_excerpt",
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_c_legal_resolver",
+            "stage": "6.5",
+            "input": "NOTICE OF FORECLOSURE | FARMERS BRANCH | of Real Property Real property in the City of Farmers Branch, County of Dallas,",
+            "status": "skipped",
+            "skip_reason": "no_subdivision_parsed",
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          }
+        ]
+      },
+      "address_city": null,
+      "address_state": null,
+      "address_zip": null,
+      "source_url": "https://dallas.tx.publicsearch.us/doc/318069109",
+      "score": 45,
+      "score_breakdown": {
+        "base": 30,
+        "category_flag": 10,
+        "new_this_week": 5
+      },
+      "parse_warnings": [
+        "no_grantor_extracted",
+        "no_sale_date_extracted"
+      ],
+      "first_seen": "2026-06-17",
+      "last_seen": "2026-06-17",
+      "in_buy_box": true,
+      "buy_box_reasons": []
+    },
+    {
+      "record_id": "318067797",
+      "source": "publicsearch.us",
+      "dallas_code": "NOF",
+      "category": "NOTICE",
+      "filing_date": "2026-06-16",
+      "instrument_num": "202600001383",
+      "grantor": null,
+      "grantee": null,
+      "address": "MESQUITE",
+      "address_normalized": "MESQUITE",
+      "dcad_account": null,
+      "dcad_owner": null,
+      "dcad_market_value": null,
+      "dcad_homestead": null,
+      "dcad_over65": null,
+      "dcad_disabled": null,
+      "dcad_tax_deferred": null,
+      "dcad_mailing_address": null,
+      "dcad_mailing_city": null,
+      "dcad_mailing_state": null,
+      "dcad_mailing_zip": null,
+      "amount": null,
+      "trustee": null,
+      "sale_date": "2026-07-07",
+      "raw_excerpt": "NOTICE OF FORECLOSURE | MESQUITE",
+      "active": true,
+      "release_record_id": null,
+      "signal_metadata": {
+        "ocr": {
+          "grantor_pattern": null,
+          "sale_date_pattern": null,
+          "address_pattern": null,
+          "loan_amount_pattern": null,
+          "legal_desc_pattern": null,
+          "apn_pattern": null,
+          "apn": null,
+          "pages_captured": 3,
+          "capture_warnings": []
+        },
+        "resolution_history": [
+          {
+            "path": "path_b_raw_excerpt",
+            "stage": "6.3",
+            "input": null,
+            "status": "skipped",
+            "skip_reason": "no_clean_address_in_raw_excerpt",
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_c_legal_resolver",
+            "stage": "6.5",
+            "input": "NOTICE OF FORECLOSURE | MESQUITE",
+            "status": "skipped",
+            "skip_reason": "no_subdivision_parsed",
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          }
+        ]
+      },
+      "address_city": null,
+      "address_state": null,
+      "address_zip": null,
+      "source_url": "https://dallas.tx.publicsearch.us/doc/318067797",
+      "score": 45,
+      "score_breakdown": {
+        "base": 30,
+        "category_flag": 10,
+        "new_this_week": 5
+      },
+      "parse_warnings": [
+        "no_grantor_extracted",
+        "no_sale_date_extracted",
+        "no_address_or_legal_description"
+      ],
+      "first_seen": "2026-06-17",
+      "last_seen": "2026-06-17",
+      "in_buy_box": true,
+      "buy_box_reasons": []
+    },
+    {
+      "record_id": "318067784",
+      "source": "publicsearch.us",
+      "dallas_code": "NOF",
+      "category": "NOTICE",
+      "filing_date": "2026-06-16",
+      "instrument_num": "202600001380",
+      "grantor": null,
+      "grantee": null,
+      "address": "MESQUITE",
+      "address_normalized": "MESQUITE",
+      "dcad_account": null,
+      "dcad_owner": null,
+      "dcad_market_value": null,
+      "dcad_homestead": null,
+      "dcad_over65": null,
+      "dcad_disabled": null,
+      "dcad_tax_deferred": null,
+      "dcad_mailing_address": null,
+      "dcad_mailing_city": null,
+      "dcad_mailing_state": null,
+      "dcad_mailing_zip": null,
+      "amount": null,
+      "trustee": null,
+      "sale_date": "2026-07-07",
+      "raw_excerpt": "NOTICE OF FORECLOSURE | MESQUITE",
+      "active": true,
+      "release_record_id": null,
+      "signal_metadata": {
+        "ocr": {
+          "grantor_pattern": null,
+          "sale_date_pattern": null,
+          "address_pattern": null,
+          "loan_amount_pattern": null,
+          "legal_desc_pattern": null,
+          "apn_pattern": null,
+          "apn": null,
+          "pages_captured": 3,
+          "capture_warnings": []
+        },
+        "resolution_history": [
+          {
+            "path": "path_b_raw_excerpt",
+            "stage": "6.3",
+            "input": null,
+            "status": "skipped",
+            "skip_reason": "no_clean_address_in_raw_excerpt",
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_c_legal_resolver",
+            "stage": "6.5",
+            "input": "NOTICE OF FORECLOSURE | MESQUITE",
+            "status": "skipped",
+            "skip_reason": "no_subdivision_parsed",
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          }
+        ]
+      },
+      "address_city": null,
+      "address_state": null,
+      "address_zip": null,
+      "source_url": "https://dallas.tx.publicsearch.us/doc/318067784",
+      "score": 45,
+      "score_breakdown": {
+        "base": 30,
+        "category_flag": 10,
+        "new_this_week": 5
+      },
+      "parse_warnings": [
+        "no_grantor_extracted",
+        "no_sale_date_extracted",
+        "no_address_or_legal_description"
+      ],
+      "first_seen": "2026-06-17",
+      "last_seen": "2026-06-17",
+      "in_buy_box": true,
+      "buy_box_reasons": []
+    },
+    {
+      "record_id": "318067790",
+      "source": "publicsearch.us",
+      "dallas_code": "NOF",
+      "category": "NOTICE",
+      "filing_date": "2026-06-16",
+      "instrument_num": "202600001381",
+      "grantor": null,
+      "grantee": null,
+      "address": "MESQUITE",
+      "address_normalized": "MESQUITE",
+      "dcad_account": null,
+      "dcad_owner": null,
+      "dcad_market_value": null,
+      "dcad_homestead": null,
+      "dcad_over65": null,
+      "dcad_disabled": null,
+      "dcad_tax_deferred": null,
+      "dcad_mailing_address": null,
+      "dcad_mailing_city": null,
+      "dcad_mailing_state": null,
+      "dcad_mailing_zip": null,
+      "amount": null,
+      "trustee": null,
+      "sale_date": "2026-07-07",
+      "raw_excerpt": "NOTICE OF FORECLOSURE | MESQUITE | Being Lot 25, Block “D”, of Eastern Heights, First Installment, an Addition to the City of Mesquite, according to the map thereof recorded in Volume 43, Page 81, Map Records, Dallas County, Texas",
+      "active": true,
+      "release_record_id": null,
+      "signal_metadata": {
+        "ocr": {
+          "grantor_pattern": null,
+          "sale_date_pattern": null,
+          "address_pattern": null,
+          "loan_amount_pattern": null,
+          "legal_desc_pattern": "being-lot",
+          "apn_pattern": null,
+          "apn": null,
+          "pages_captured": 3,
+          "capture_warnings": []
+        },
+        "resolution_history": [
+          {
+            "path": "path_b_raw_excerpt",
+            "stage": "6.3",
+            "input": null,
+            "status": "skipped",
+            "skip_reason": "no_clean_address_in_raw_excerpt",
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          },
+          {
+            "path": "path_c_legal_resolver",
+            "stage": "6.5",
+            "input": "NOTICE OF FORECLOSURE | MESQUITE | Being Lot 25, Block “D”, of Eastern Heights, First Installment, an Addition to the Ci",
+            "status": "skipped",
+            "skip_reason": "no_subdivision_parsed",
+            "tier": null,
+            "dcad_account": null,
+            "alternates": [],
+            "warnings": []
+          }
+        ]
+      },
+      "address_city": null,
+      "address_state": null,
+      "address_zip": null,
+      "source_url": "https://dallas.tx.publicsearch.us/doc/318067790",
+      "score": 45,
+      "score_breakdown": {
+        "base": 30,
+        "category_flag": 10,
+        "new_this_week": 5
+      },
+      "parse_warnings": [
+        "no_grantor_extracted",
+        "no_sale_date_extracted"
+      ],
+      "first_seen": "2026-06-17",
+      "last_seen": "2026-06-17",
+      "in_buy_box": true,
+      "buy_box_reasons": []
     }
   ]
 }
